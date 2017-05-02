@@ -8,4 +8,9 @@
     <include package="zope.component" />
 	<include package="zope.security" />
 
+	<adapter name="SiteAdmin"
+			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
+			 factory=".views.SiteAdminPathAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter" />
+
 </configure>
