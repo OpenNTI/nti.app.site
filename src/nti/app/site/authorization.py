@@ -28,7 +28,7 @@ ROLE_SITE_ADMIN = StringRole(ROLE_SITE_ADMIN_NAME)
 
 @component.adapter(IUser)
 @interface.implementer(IGroupMember)
-class NextthoughtDotComAdmin(object):
+class NextthoughtDotComSiteAdmin(object):
 
     def __init__(self, context):
         if context.username.endswith('@nextthought.com'):

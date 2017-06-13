@@ -19,7 +19,7 @@
 
 	<adapter name="NextthoughtDotComSiteAdmin"
 			 for="nti.dataserver.interfaces.IUser"
-			 factory=".authorization.NextthoughtDotComAdmin"
+			 factory=".authorization.NextthoughtDotComSiteAdmin"
 			 provides="nti.dataserver.interfaces.IGroupMember" />
 
 	<!-- Externalization -->
