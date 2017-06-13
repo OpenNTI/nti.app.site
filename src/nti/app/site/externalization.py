@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-.. $Id: externalization.py 114597 2017-06-08 19:01:51Z carlos.sanchez $
+.. $Id$
 """
 
 from __future__ import print_function, absolute_import, division

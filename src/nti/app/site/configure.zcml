@@ -14,6 +14,9 @@
 			 factory=".views.SitesPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
+	<!-- ACLs -->
+	<adapter factory=".acl.SiteACLProvider" />
+
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />
