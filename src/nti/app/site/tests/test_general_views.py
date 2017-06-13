@@ -21,4 +21,5 @@ class TestGeneralViews(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_all_sites(self):
-        pass
+        href = '/dataserver2/sites/@@all'
+        self.testapp.get(href, status=200)
