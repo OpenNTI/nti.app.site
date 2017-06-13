@@ -26,10 +26,10 @@ from nti.dataserver.interfaces import ALL_PERMISSIONS
 
 
 @interface.implementer(IPathAdapter)
-class SiteAdminPathAdapter(object):
+class SitesPathAdapter(object):
 
     __parent__ = None
-    __name__ = 'SiteAdmin'
+    __name__ = 'sites'
 
     def __init__(self, context, request):
         self.context = context
