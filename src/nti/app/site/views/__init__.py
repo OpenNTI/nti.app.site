@@ -15,6 +15,8 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.traversing.interfaces import IPathAdapter
 
+from pyramid import httpexceptions as hexc
+
 from nti.app.site.interfaces import ACT_SITE_ADMIN
 
 from nti.dataserver.authorization import ROLE_ADMIN
@@ -24,17 +26,27 @@ from nti.dataserver.authorization_acl import acl_from_aces
 
 from nti.dataserver.interfaces import ALL_PERMISSIONS
 
+from nti.site.hostpolicy import get_host_site
+
 
 @interface.implementer(IPathAdapter)
-class SiteAdminPathAdapter(object):
+class SitesPathAdapter(object):
 
     __parent__ = None
-    __name__ = 'SiteAdmin'
+    __name__ = 'sites'
 
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.__parent__ = context
+
+    def __getitem__(self, name):
+        if not name:
+            raise hexc.HTTPNotFound()
+        result = get_host_site(name, safe=True)
+        if result is None:
+            raise KeyError(name)
+        return result
 
     @Lazy
     def __acl__(self):
