@@ -22,6 +22,8 @@ from nti.externalization.externalization import StandardExternalFields
 
 from nti.externalization.interfaces import LocatedExternalDict
 
+from nti.site.hostpolicy import get_all_host_sites
+
 ITEMS = StandardExternalFields.ITEMS
 TOTAL = StandardExternalFields.TOTAL
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
@@ -38,6 +40,6 @@ class AllSitesView(AbstractAuthenticatedView):
 
     def __call__(self):
         result = LocatedExternalDict()
-        result[ITEMS] = items = []
+        result[ITEMS] = items = list(get_all_host_sites())
         result[TOTAL] = result[ITEM_COUNT] = len(items)
         return result
