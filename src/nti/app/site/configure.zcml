@@ -17,6 +17,11 @@
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
 
+	<adapter name="NextthoughtDotComSiteAdmin"
+			 for="nti.dataserver.interfaces.IUser"
+			 factory=".authorization.NextthoughtDotComAdmin"
+			 provides="nti.dataserver.interfaces.IGroupMember" />
+
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />

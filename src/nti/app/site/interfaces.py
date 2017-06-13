@@ -8,9 +8,3 @@ from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
-
-from zope.security.permission import Permission
-
-
-#: site admin permission
-ACT_SITE_ADMIN = Permission('nti.actions.site.admin')

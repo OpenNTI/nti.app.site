@@ -14,9 +14,9 @@ from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
-from nti.app.site.interfaces import ACT_SITE_ADMIN
-
 from nti.app.site.views import SitesPathAdapter
+
+from nti.dataserver.authorization import ACT_READ
 
 from nti.externalization.externalization import StandardExternalFields
 
@@ -28,11 +28,12 @@ ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
 @view_config(name="all")
+@view_config(name="sites")
 @view_defaults(route_name='objects.generic.traversal',
                renderer='rest',
                request_method='GET',
                context=SitesPathAdapter,
-               permission=ACT_SITE_ADMIN)
+               permission=ACT_READ)
 class AllSitesView(AbstractAuthenticatedView):
 
     def __call__(self):

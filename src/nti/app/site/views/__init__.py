@@ -13,11 +13,13 @@ from zope import interface
 
 from zope.cachedescriptors.property import Lazy
 
+from zope.location.interfaces import IContained
+
 from zope.traversing.interfaces import IPathAdapter
 
 from pyramid import httpexceptions as hexc
 
-from nti.app.site.interfaces import ACT_SITE_ADMIN
+from nti.app.site.authorization import ROLE_SITE_ADMIN
 
 from nti.dataserver.authorization import ROLE_ADMIN
 
@@ -29,7 +31,7 @@ from nti.dataserver.interfaces import ALL_PERMISSIONS
 from nti.site.hostpolicy import get_host_site
 
 
-@interface.implementer(IPathAdapter)
+@interface.implementer(IPathAdapter, IContained)
 class SitesPathAdapter(object):
 
     __parent__ = None
@@ -41,6 +43,7 @@ class SitesPathAdapter(object):
         self.__parent__ = context
 
     def __getitem__(self, name):
+        from IPython.terminal.debugger import set_trace;set_trace()
         if not name:
             raise hexc.HTTPNotFound()
         result = get_host_site(name, safe=True)
@@ -51,5 +54,5 @@ class SitesPathAdapter(object):
     @Lazy
     def __acl__(self):
         aces = [ace_allowing(ROLE_ADMIN, ALL_PERMISSIONS, type(self)),
-                ace_allowing(ACT_SITE_ADMIN, ALL_PERMISSIONS, type(self))]
+                ace_allowing(ROLE_SITE_ADMIN, ALL_PERMISSIONS, type(self))]
         return acl_from_aces(aces)
