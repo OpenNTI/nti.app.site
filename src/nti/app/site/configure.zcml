@@ -29,5 +29,10 @@
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
-			 
+
+	<!-- Traversal -->
+	<adapter factory=".traversal.HostPolicyTraversable"
+			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
+			 provides="zope.traversing.interfaces.ITraversable" />
+
 </configure>
