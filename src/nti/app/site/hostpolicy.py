@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-.. $Id$
+Support for host policies and sites
 """
 
 from __future__ import print_function, absolute_import, division
@@ -23,10 +23,17 @@ from nti.site.folder import HostPolicyFolder
 from nti.site.folder import HostPolicySiteManager
 
 from nti.site.site import BTreePersistentComponents
+
 from nti.site.utils import registerUtility
 
 
-def create_site(name, default_parent=BASEADULT):
+def create_site(name, default_base=BASEADULT):
+    """
+    create a site with the specified name
+    
+    @param nanme: Site name
+    @param default_base: Default parent base specification for root sites
+    """
     logger.info("Installing site policy %s", name)
     hostsites = component.getUtility(IEtcNamespace, name='hostsites')
     ds_folder = hostsites.__parent__  # by definiton
@@ -34,7 +41,7 @@ def create_site(name, default_parent=BASEADULT):
     site_name = getattr(getSite(), '__name__', None) or ''
     parent = component.queryUtility(IComponents, name=site_name)
     if parent is None:
-        parent = default_parent
+        parent = default_base
         secondary_comps = ds_folder.getSiteManager()
     else:
         secondary_comps = component.getSiteManager()
@@ -50,7 +57,7 @@ def create_site(name, default_parent=BASEADULT):
     result = HostPolicyFolder()
     hostsites[name] = result
     site_policy = HostPolicySiteManager(result)
-    site_policy.__bases__ = (comps, secondary_comps)
+    site_policy.__bases__ =(secondary_comps,)
     # set the site manager and return
     result.setSiteManager(site_policy)
     return result

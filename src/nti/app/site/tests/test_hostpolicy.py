@@ -17,7 +17,7 @@ does_not = is_not
 
 from zope.component.hooks import getSite
 
-from nti.app.site.utils import create_site
+from nti.app.site.hostpolicy import create_site
 
 from nti.site.hostpolicy import get_host_site
 
@@ -30,7 +30,7 @@ from nti.app.testing.decorators import WithSharedApplicationMockDS
 from nti.dataserver.tests import mock_dataserver
 
 
-class TestUtils(ApplicationLayerTest):
+class TestHostPolicy(ApplicationLayerTest):
 
     default_origin = 'http://janux.ou.edu'
 
