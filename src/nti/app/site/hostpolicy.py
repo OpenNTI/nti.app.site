@@ -30,9 +30,9 @@ from nti.site.utils import registerUtility
 def create_site(name, default_base=BASEADULT):
     """
     create a site with the specified name
-    
-    @param nanme: Site name
-    @param default_base: Default parent base specification for root sites
+
+    :param name: Site name
+    :keyword default_base: Default parent base specification for root sites
     """
     logger.info("Installing site policy %s", name)
     hostsites = component.getUtility(IEtcNamespace, name='hostsites')
@@ -57,7 +57,7 @@ def create_site(name, default_base=BASEADULT):
     result = HostPolicyFolder()
     hostsites[name] = result
     site_policy = HostPolicySiteManager(result)
-    site_policy.__bases__ =(secondary_comps,)
+    site_policy.__bases__ = (secondary_comps,)
     # set the site manager and return
     result.setSiteManager(site_policy)
     return result
