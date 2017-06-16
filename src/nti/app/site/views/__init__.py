@@ -43,7 +43,6 @@ class SitesPathAdapter(object):
         self.__parent__ = context
 
     def __getitem__(self, name):
-        from IPython.terminal.debugger import set_trace;set_trace()
         if not name:
             raise hexc.HTTPNotFound()
         result = get_host_site(name, safe=True)
