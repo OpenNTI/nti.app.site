@@ -9,9 +9,12 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import time
+
 from requests.structures import CaseInsensitiveDict
 
 from zope import component
+from zope import interface
 
 from zope.component.hooks import site as curre_site
 
@@ -33,6 +36,9 @@ from nti.app.site.hostpolicy import create_site
 from nti.app.site import MessageFactory as _
 
 from nti.app.site.views import SitesPathAdapter
+
+from nti.base.interfaces import ICreated
+from nti.base.interfaces import ICreatedTime
 
 from nti.dataserver.authorization import ACT_READ
 
@@ -108,4 +114,9 @@ class CreateSiteView(AbstractAuthenticatedView,
         # set proper site
         with curre_site(parent):
             site = create_site(name)
+        # mark site
+        interface.alsoProvides(site, ICreated)
+        interface.alsoProvides(site, ICreatedTime)
+        site.creator = self.remoteUser.username
+        site.createdTime = time.time()
         return site
