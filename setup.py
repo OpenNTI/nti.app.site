@@ -43,5 +43,4 @@ setup(
         'nti.site',
     ],
     entry_points=entry_points,
-    test_suite="nti.app.site.tests",
 )
