@@ -13,7 +13,7 @@ from zope import component
 from zope import interface
 
 from nti.base.interfaces import ICreated
-from nti.base.interfaces import ICreatedTime
+from nti.base.interfaces import ILastModified
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
@@ -30,6 +30,7 @@ ITEMS = StandardExternalFields.ITEMS
 CREATOR = StandardExternalFields.CREATOR
 MIMETYPE = StandardExternalFields.MIMETYPE
 CREATED_TIME = StandardExternalFields.CREATED_TIME
+LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 
 
 @component.adapter(IHostPolicyFolder)
@@ -47,6 +48,7 @@ class _SiteExternalizer(object):
         result[NTIID] = result[OID] = to_external_ntiid_oid(self.site)
         if ICreated.providedBy(self.site):
             result[CREATOR] = self.site.creator
-        if ICreatedTime.providedBy(self.site):
+        if ILastModified.providedBy(self.site):
             result[CREATED_TIME] = self.site.createdTime
+            result[LAST_MODIFIED] = self.site.lastModified
         return result
