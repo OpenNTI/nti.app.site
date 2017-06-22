@@ -8,10 +8,12 @@ __docformat__ = "restructuredtext en"
 # pylint: disable=W0212,R0904
 
 from hamcrest import is_
+from hamcrest import none
 from hamcrest import is_not
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
+from hamcrest import has_entries
 from hamcrest import greater_than
 does_not = is_not
 
@@ -44,8 +46,11 @@ class TestGeneralViews(ApplicationLayerTest):
         res = self.testapp.post_json(href, 
                                      {'name':'seti.nextthought.com'}, 
                                      status=200)
+
         assert_that(res.json_body, 
-                    has_entry('Name', is_('seti.nextthought.com')))
+                    has_entries('Name', is_('seti.nextthought.com'),
+                                'CreatedTime', is_not(none()),
+                                'Last Modified', is_not(none())))
 
         href = '/dataserver2/sites/@@create'
         self.testapp.post_json(href, 
