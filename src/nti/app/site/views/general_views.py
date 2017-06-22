@@ -38,7 +38,7 @@ from nti.app.site import MessageFactory as _
 from nti.app.site.views import SitesPathAdapter
 
 from nti.base.interfaces import ICreated
-from nti.base.interfaces import ICreatedTime
+from nti.base.interfaces import ILastModified
 
 from nti.dataserver.authorization import ACT_READ
 
@@ -116,7 +116,7 @@ class CreateSiteView(AbstractAuthenticatedView,
             site = create_site(name)
         # mark site
         interface.alsoProvides(site, ICreated)
-        interface.alsoProvides(site, ICreatedTime)
+        interface.alsoProvides(site, ILastModified)
         site.creator = self.remoteUser.username
-        site.createdTime = time.time()
+        site.lastModified = site.createdTime = time.time()
         return site
