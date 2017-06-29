@@ -15,9 +15,15 @@ from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
 from hamcrest import greater_than
+from hamcrest import has_property
 does_not = is_not
 
+from nti.base.interfaces import ICreated
+from nti.base.interfaces import ILastModified
+
 from nti.dataserver.users.communities import Community
+
+from nti.site.hostpolicy import get_host_site
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -49,6 +55,12 @@ class TestGeneralViews(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans():
             result = Community.get_community('abydos.nextthought.com')
             assert_that(result, is_not(none()))
+            
+            site = get_host_site('abydos.nextthought.com')
+            assert_that(ICreated.providedBy(site), is_(True))
+            assert_that(ILastModified.providedBy(site), is_(True))
+            assert_that(site, 
+                        has_property('creator', is_(self.default_username.lower())))
             
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href, 
