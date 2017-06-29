@@ -12,6 +12,8 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
+from nti.app.site import SITE_MIMETYPE
+
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
@@ -26,7 +28,6 @@ from nti.site.interfaces import IHostPolicyFolder
 OID = StandardExternalFields.OID
 CLASS = StandardExternalFields.CLASS
 NTIID = StandardExternalFields.NTIID
-ITEMS = StandardExternalFields.ITEMS
 CREATOR = StandardExternalFields.CREATOR
 MIMETYPE = StandardExternalFields.MIMETYPE
 CREATED_TIME = StandardExternalFields.CREATED_TIME
@@ -43,8 +44,8 @@ class _SiteExternalizer(object):
     def toExternalObject(self, *args, **kwargs):
         result = LocatedExternalDict()
         result[CLASS] = 'Site'
+        result[MIMETYPE] = SITE_MIMETYPE
         result['Name'] = self.site.__name__
-        result[MIMETYPE] = 'application/vnd.nextthought.site'
         result[NTIID] = result[OID] = to_external_ntiid_oid(self.site)
         if ICreated.providedBy(self.site):
             result[CREATOR] = self.site.creator
