@@ -15,6 +15,7 @@ from requests.structures import CaseInsensitiveDict
 
 from zope import component
 from zope import interface
+from zope import lifecycleevent
 
 from zope.component.hooks import site as curre_site
 
@@ -119,4 +120,5 @@ class CreateSiteView(AbstractAuthenticatedView,
         interface.alsoProvides(site, ILastModified)
         site.creator = self.remoteUser.username
         site.lastModified = site.createdTime = time.time()
+        lifecycleevent.created(site)
         return site

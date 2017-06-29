@@ -35,4 +35,7 @@
 			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
 			 provides="zope.traversing.interfaces.ITraversable" />
 
+	<!-- Subscribers -->
+	<subscriber handler=".subscribers._on_site_created" />
+
 </configure>

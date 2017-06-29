@@ -17,9 +17,13 @@ from hamcrest import has_entries
 from hamcrest import greater_than
 does_not = is_not
 
+from nti.dataserver.users.communities import Community
+
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
+
+from nti.dataserver.tests import mock_dataserver
 
 
 class TestGeneralViews(ApplicationLayerTest):
@@ -42,6 +46,10 @@ class TestGeneralViews(ApplicationLayerTest):
         assert_that(res.json_body, 
                     has_entry('Name', is_('abydos.nextthought.com')))
         
+        with mock_dataserver.mock_db_trans():
+            result = Community.get_community('abydos.nextthought.com')
+            assert_that(result, is_not(none()))
+            
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href, 
                                      {'name':'seti.nextthought.com'}, 
