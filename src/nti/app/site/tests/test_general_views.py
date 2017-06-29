@@ -50,7 +50,9 @@ class TestGeneralViews(ApplicationLayerTest):
                                      {'name':'abydos.nextthought.com'}, 
                                      status=200)
         assert_that(res.json_body, 
-                    has_entry('Name', is_('abydos.nextthought.com')))
+                    has_entries('Name', is_('abydos.nextthought.com'),
+                                'Class', is_('Site'),
+                                'MimeType', is_('application/vnd.nextthought.site')))
         
         with mock_dataserver.mock_db_trans():
             result = Community.get_community('abydos.nextthought.com')
