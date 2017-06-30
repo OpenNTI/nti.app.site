@@ -13,9 +13,9 @@ from zope import component
 
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
     
-from nti.base.interfaces import ICreated
+from nti.app.site.communities import SiteCommunity
 
-from nti.dataserver.users.communities import Community
+from nti.base.interfaces import ICreated
 
 from nti.site.interfaces import IHostPolicyFolder
 
@@ -24,5 +24,5 @@ from nti.site.interfaces import IHostPolicyFolder
 def _on_site_created(site, event):
     if ICreated.providedBy(site):
         name = site.__name__
-        if Community.get_community(name) is None:
-            Community.create_community(username=name)
+        if SiteCommunity.get_community(name) is None:
+            SiteCommunity.create_community(username=name)
