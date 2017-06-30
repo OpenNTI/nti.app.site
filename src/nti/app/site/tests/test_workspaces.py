@@ -1,33 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-import json
-
+from hamcrest import is_
+from hamcrest import not_none
+from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_property
-from hamcrest import has_entry
-from hamcrest import not_none
-from hamcrest import is_
+
+import json
 
 from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site.workspaces import SiteAdminWorkspace
+
+from nti.externalization.interfaces import StandardExternalFields
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
 from nti.dataserver.tests import mock_dataserver
-
-from nti.externalization.externalization import to_external_object
-
-from nti.externalization.interfaces import StandardExternalFields
 
 CLASS = StandardExternalFields.CLASS
 ITEMS = StandardExternalFields.ITEMS
