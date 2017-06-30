@@ -13,3 +13,4 @@ import zope.i18nmessageid
 MessageFactory = zope.i18nmessageid.MessageFactory(__name__)
 
 SITE_MIMETYPE = 'application/vnd.nextthought.site'
+SITE_ADMIN = "SiteAdmin"

@@ -9,10 +9,25 @@
     <include package="zope.component" />
 	<include package="zope.security" />
 
+	<!-- Path Adapters -->
+	<adapter name="SiteAdmin"
+			 for="nti.dataserver.interfaces.IUser pyramid.interfaces.IRequest"
+			 factory=".views.SiteAdminWorkspacePathAdapter" 
+			 provides="zope.traversing.interfaces.IPathAdapter" />
+
 	<adapter name="sites"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
 			 factory=".views.SitesPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
+
+	<!-- Workspaces -->
+	<!-- A subscriber for enumeration -->
+	<subscriber factory=".workspaces.SiteAdminWorkspace"
+				provides=".interfaces.ISiteAdminWorkspace" />
+
+	<!-- And an adapter for direct access -->
+	<adapter factory=".workspaces.SiteAdminWorkspace"
+			 provides=".interfaces.ISiteAdminWorkspace" />
 
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
