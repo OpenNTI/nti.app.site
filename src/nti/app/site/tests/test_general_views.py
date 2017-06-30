@@ -18,6 +18,11 @@ from hamcrest import greater_than
 from hamcrest import has_property
 does_not = is_not
 
+from nti.testing.matchers import validly_provides
+from nti.testing.matchers import verifiably_provides
+
+from nti.app.site.interfaces import ISiteCommunity
+
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
@@ -57,7 +62,9 @@ class TestGeneralViews(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans():
             result = Community.get_community('abydos.nextthought.com')
             assert_that(result, is_not(none()))
-            
+            assert_that(result, validly_provides(ISiteCommunity))
+            assert_that(result, verifiably_provides(ISiteCommunity))
+
             site = get_host_site('abydos.nextthought.com')
             assert_that(ICreated.providedBy(site), is_(True))
             assert_that(ILastModified.providedBy(site), is_(True))
