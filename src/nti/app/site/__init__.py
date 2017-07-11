@@ -12,5 +12,5 @@ logger = __import__('logging').getLogger(__name__)
 import zope.i18nmessageid
 MessageFactory = zope.i18nmessageid.MessageFactory(__name__)
 
-SITE_MIMETYPE = 'application/vnd.nextthought.site'
 SITE_ADMIN = "SiteAdmin"
+SITE_MIMETYPE = 'application/vnd.nextthought.site'
