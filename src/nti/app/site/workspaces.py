@@ -22,6 +22,8 @@ from nti.app.site import SITE_ADMIN
 
 from nti.app.site.interfaces import ISiteAdminWorkspace
 
+from nti.dataserver.authorization import is_admin_or_content_admin
+
 from nti.property.property import alias
 
 
@@ -49,11 +51,16 @@ class _SiteAdminWorkspace(Contained):
 
     def __len__(self):
         pass
+    
+    def predicate(self):
+        return is_admin_or_content_admin(self.user)
 
 
 @interface.implementer(ISiteAdminWorkspace)
 @component.adapter(IUserService)
 def SiteAdminWorkspace(user_service):
     workspace = _SiteAdminWorkspace(user_service)
+    if not workspace.predicate():
+        return None
     workspace.__parent__ = workspace.user
     return workspace

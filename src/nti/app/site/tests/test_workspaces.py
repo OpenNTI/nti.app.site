@@ -38,7 +38,7 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
     @WithSharedApplicationMockDS(users=True)
     def test_workspace(self):
         with mock_dataserver.mock_db_trans(self.ds):
-            user = self._create_user(self.basic_user)
+            user = self._get_user('sjohnson@nextthought.com')
             service = IUserService(user)
 
             workspace = SiteAdminWorkspace(service)
@@ -51,6 +51,7 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_path_adapter(self):
+        # This is an admin, so they should have the workspace
         res = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
                                extra_environ=self._make_extra_environ())
 
@@ -61,3 +62,11 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
         # For now we have no collections, so just be sure the items are there
         assert_that(res_dict, has_entry(ITEMS, not_none()))
         assert_that(res_dict, has_entry("Title", "SiteAdmin"))
+
+        # pgreazy is not an admin, so it should be nothing
+        with mock_dataserver.mock_db_trans(self.ds):
+            user = self._create_user(self.basic_user)
+
+            res = self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
+                                   extra_environ=self._make_extra_environ(),
+                                   status=404)
