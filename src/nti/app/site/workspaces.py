@@ -22,8 +22,6 @@ from nti.app.site import SITE_ADMIN
 
 from nti.app.site.interfaces import ISiteAdminWorkspace
 
-from nti.dataserver import authorization as nauth
-
 from nti.dataserver.authorization import is_admin_or_content_admin
 
 from nti.property.property import alias
