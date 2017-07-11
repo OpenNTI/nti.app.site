@@ -35,3 +35,13 @@ class NextthoughtDotComSiteAdmin(object):
             self.groups = (ROLE_SITE_ADMIN,)
         else:
             self.groups = ()
+
+
+def is_site_admin(user):
+    """
+    Returns whether the user has the `ROLE_ADMIN` role.
+    """
+    for _, adapter in component.getAdapters((user,), IGroupMember):
+        if adapter.groups and ROLE_SITE_ADMIN in adapter.groups:
+            return True
+    return False

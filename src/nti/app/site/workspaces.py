@@ -16,13 +16,15 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.container.contained import Contained
 
+from nti.app.site.authorization import is_site_admin
+
 from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site import SITE_ADMIN
 
 from nti.app.site.interfaces import ISiteAdminWorkspace
 
-from nti.dataserver.authorization import is_admin_or_content_admin
+from nti.dataserver.authorization import is_admin
 
 from nti.property.property import alias
 
@@ -51,16 +53,15 @@ class _SiteAdminWorkspace(Contained):
 
     def __len__(self):
         pass
-    
+
     def predicate(self):
-        return is_admin_or_content_admin(self.user)
+        return is_admin(self.user) or is_site_admin(self.user)
 
 
 @interface.implementer(ISiteAdminWorkspace)
 @component.adapter(IUserService)
 def SiteAdminWorkspace(user_service):
     workspace = _SiteAdminWorkspace(user_service)
-    if not workspace.predicate():
-        return None
-    workspace.__parent__ = workspace.user
-    return workspace
+    if workspace.predicate():
+        workspace.__parent__ = workspace.user
+        return workspace
