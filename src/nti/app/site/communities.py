@@ -18,4 +18,6 @@ from nti.dataserver.users.communities import Community
 
 @interface.implementer(ISiteCommunity)
 class SiteCommunity(Community):
-    mimeType = mime_type = 'application/vnd.nextthought.community'
+    __external_can_create__ = False
+    __external_class_name__ = 'Community'
+    mimeType = mime_type = 'application/vnd.nextthought.sitecommunity'
