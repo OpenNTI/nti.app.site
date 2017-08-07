@@ -16,3 +16,4 @@ class ISiteCommunity(ICommunity):
     """
     Defines a site community
     """
+
