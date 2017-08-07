@@ -9,10 +9,9 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from nti.dataserver.interfaces import ICommunity
+from nti.appserver.workspaces.interfaces import IWorkspace
 
-
-class ISiteCommunity(ICommunity):
+class ISiteAdminWorkspace(IWorkspace):
     """
-    Defines a site community
+    Workspace for a particular site admin
     """

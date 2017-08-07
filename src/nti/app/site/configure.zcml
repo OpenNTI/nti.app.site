@@ -22,12 +22,17 @@
 
 	<!-- Workspaces -->
 	<!-- A subscriber for enumeration -->
-	<subscriber factory=".workspaces.SiteAdminWorkspace"
-				provides=".interfaces.ISiteAdminWorkspace" />
+	<subscriber factory=".workspaces.workspaces.SiteAdminWorkspace"
+				provides=".workspaces.interfaces.ISiteAdminWorkspace" />
+				
+	<subscriber factory=".workspaces.decorators.AdminSyncLibrariesDecorator"
+				provides="nti.externalization.interfaces.IExternalObjectDecorator"
+				for=".workspaces.interfaces.ISiteAdminWorkspace
+					 pyramid.interfaces.IRequest"/>
 
 	<!-- And an adapter for direct access -->
-	<adapter factory=".workspaces.SiteAdminWorkspace"
-			 provides=".interfaces.ISiteAdminWorkspace" />
+	<adapter factory=".workspaces.workspaces.SiteAdminWorkspace"
+			 provides=".workspaces.interfaces.ISiteAdminWorkspace" />
 
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />

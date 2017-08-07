@@ -22,12 +22,14 @@ from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site import SITE_ADMIN
 
-from nti.app.site.interfaces import ISiteAdminWorkspace
+from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
 from nti.dataserver.authorization import is_admin
 
 from nti.property.property import alias
 
+SYNC_LIBRARIES = 'SyncAllLibraries'
+REMOVE_LOCK = 'RemoveSyncLock'
 
 @interface.implementer(ISiteAdminWorkspace)
 class _SiteAdminWorkspace(Contained):
@@ -46,7 +48,7 @@ class _SiteAdminWorkspace(Contained):
 
     @property
     def links(self):
-        return ()  # temp val
+        return ()
 
     def __getitem__(self, key):
         pass

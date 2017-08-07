@@ -12,12 +12,13 @@ from hamcrest import not_none
 from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_property
+from hamcrest import contains_inanyorder
 
 import json
 
 from nti.appserver.workspaces.interfaces import IUserService
 
-from nti.app.site.workspaces import SiteAdminWorkspace
+from nti.app.site.workspaces.workspaces import SiteAdminWorkspace
 
 from nti.externalization.interfaces import StandardExternalFields
 
@@ -29,7 +30,7 @@ from nti.dataserver.tests import mock_dataserver
 
 CLASS = StandardExternalFields.CLASS
 ITEMS = StandardExternalFields.ITEMS
-
+LINKS = StandardExternalFields.LINKS
 
 class TestSiteAdminWorkspace(ApplicationLayerTest):
 
@@ -52,16 +53,14 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_path_adapter(self):
         # This is an admin, so they should have the workspace
-        res = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
+        res_dict = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
                                extra_environ=self._make_extra_environ())
 
-        res_dict = json.loads(res.body)
-
-        assert_that(res_dict, has_entry(CLASS, "Workspace"))
+        assert_that(res_dict.json_body, has_entry(CLASS, "Workspace"))
 
         # For now we have no collections, so just be sure the items are there
-        assert_that(res_dict, has_entry(ITEMS, not_none()))
-        assert_that(res_dict, has_entry("Title", "SiteAdmin"))
+        assert_that(res_dict.json_body, has_entry(ITEMS, not_none()))
+        assert_that(res_dict.json_body, has_entry("Title", "SiteAdmin"))
 
         # pgreazy is not an admin, so it should be nothing
         with mock_dataserver.mock_db_trans(self.ds):
@@ -70,3 +69,15 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
             res = self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
                                    extra_environ=self._make_extra_environ(),
                                    status=404)
+        
+    @WithSharedApplicationMockDS(testapp=True, users=True)
+    def test_admin_decoration(self):
+        #Get Site Admin workspace
+        res_dict = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
+                               extra_environ=self._make_extra_environ())
+        
+        assert_that(res_dict.json_body, has_entry(LINKS, not_none()))
+        
+        links = res_dict.json_body[LINKS]
+        assert_that(links, contains_inanyorder(has_entry("rel", "RemoveSyncLocks"),
+                                               has_entry("rel", "SyncAllLibraries")))

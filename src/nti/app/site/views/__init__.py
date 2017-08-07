@@ -26,7 +26,7 @@ from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site.authorization import ROLE_SITE_ADMIN
 
-from nti.app.site.workspaces import ISiteAdminWorkspace
+from nti.app.site.workspaces.workspaces import ISiteAdminWorkspace
 
 from nti.dataserver.authorization import ROLE_ADMIN
 
