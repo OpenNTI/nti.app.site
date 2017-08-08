@@ -80,4 +80,5 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
         
         links = res_dict.json_body[LINKS]
         assert_that(links, contains_inanyorder(has_entry("rel", "RemoveSyncLocks"),
-                                               has_entry("rel", "SyncAllLibraries")))
+                                               has_entry("rel", "SyncAllLibraries"),
+                                               has_entry("rel", "SyncMetadata")))
