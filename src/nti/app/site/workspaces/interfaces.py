@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from nti.appserver.workspaces.interfaces import IWorkspace
 
+
 class ISiteAdminWorkspace(IWorkspace):
     """
     Workspace for a particular site admin
