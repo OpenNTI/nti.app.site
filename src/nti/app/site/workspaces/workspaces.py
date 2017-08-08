@@ -28,8 +28,6 @@ from nti.dataserver.authorization import is_admin
 
 from nti.property.property import alias
 
-SYNC_LIBRARIES = 'SyncAllLibraries'
-REMOVE_LOCK = 'RemoveSyncLock'
 
 @interface.implementer(ISiteAdminWorkspace)
 class _SiteAdminWorkspace(Contained):
