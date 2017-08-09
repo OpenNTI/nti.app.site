@@ -5,7 +5,6 @@
 """
 
 from __future__ import print_function, absolute_import, division
-
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -13,17 +12,10 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
-from nti.dataserver.authorization import ROLE_PREFIX
-
-from nti.dataserver.authorization import StringRole
+from nti.dataserver.authorization import ROLE_SITE_ADMIN
 
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IGroupMember
-
-#: Name of the super-user group that is expected to have full rights
-#: on sites
-ROLE_SITE_ADMIN_NAME = ROLE_PREFIX + 'nti.site.admin'
-ROLE_SITE_ADMIN = StringRole(ROLE_SITE_ADMIN_NAME)
 
 
 @component.adapter(IUser)
