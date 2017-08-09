@@ -9,10 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from pyramid.view import IRequest
-
-from zope import interface
 from zope import component
+from zope import interface
 
 from zope.cachedescriptors.property import Lazy
 
@@ -21,6 +19,8 @@ from zope.location.interfaces import IContained
 from zope.traversing.interfaces import IPathAdapter
 
 from pyramid import httpexceptions as hexc
+
+from pyramid.view import IRequest
 
 from nti.appserver.workspaces.interfaces import IUserService
 
@@ -34,6 +34,7 @@ from nti.dataserver.authorization_acl import ace_allowing
 from nti.dataserver.authorization_acl import acl_from_aces
 
 from nti.dataserver.interfaces import ALL_PERMISSIONS
+
 from nti.dataserver.interfaces import IUser
 
 from nti.site.hostpolicy import get_host_site
@@ -41,7 +42,7 @@ from nti.site.hostpolicy import get_host_site
 
 @interface.implementer(IPathAdapter)
 @component.adapter(IUser, IRequest)
-def SiteAdminWorkspacePathAdapter(context, request):
+def SiteAdminWorkspacePathAdapter(context, unused_request):
     service = IUserService(context)
     workspace = ISiteAdminWorkspace(service)
     return workspace
