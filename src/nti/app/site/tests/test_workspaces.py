@@ -12,9 +12,6 @@ from hamcrest import not_none
 from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_property
-from hamcrest import contains_inanyorder
-
-import json
 
 from nti.appserver.workspaces.interfaces import IUserService
 
@@ -64,20 +61,15 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
 
         # pgreazy is not an admin, so it should be nothing
         with mock_dataserver.mock_db_trans(self.ds):
-            user = self._create_user(self.basic_user)
-
-            res = self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
-                                   extra_environ=self._make_extra_environ(),
-                                   status=404)
+            self._create_user(self.basic_user)
+            self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
+                             extra_environ=self._make_extra_environ(),
+                             status=404)
         
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_admin_decoration(self):
-        #Get Site Admin workspace
-        res_dict = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
+        # Get Site Admin workspace
+        res = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
                                extra_environ=self._make_extra_environ())
-        
-        assert_that(res_dict.json_body, has_entry(LINKS, not_none()))
-        
-        links = res_dict.json_body[LINKS]
-        assert_that(links, contains_inanyorder(has_entry("rel", "RemoveSyncLocks"),
-                                               has_entry("rel", "SyncAllLibraries")))
+        self.require_link_href_with_rel(res.json_body, 'RemoveSyncLocks')
+        self.require_link_href_with_rel(res.json_body, 'SyncAllLibraries')

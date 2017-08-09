@@ -41,7 +41,7 @@ class _SiteExternalizer(object):
     def __init__(self, obj):
         self.site = obj
 
-    def toExternalObject(self, *args, **kwargs):
+    def toExternalObject(self, *unused_args, **unused_kwargs):
         result = LocatedExternalDict()
         result[CLASS] = 'Site'
         result[MIMETYPE] = SITE_MIMETYPE

@@ -34,7 +34,7 @@ class _SiteAdminWorkspace(Contained):
 
     __name__ = SITE_ADMIN
 
-    name = alias('__name__', __name__)
+    name = alias('__name__')
 
     def __init__(self, user_service):
         self.context = user_service
