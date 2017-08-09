@@ -21,7 +21,7 @@ from nti.site.interfaces import IHostPolicyFolder
 
 
 @component.adapter(IHostPolicyFolder, IObjectCreatedEvent)
-def _on_site_created(site, event):
+def _on_site_created(site, unused_event):
     if ICreated.providedBy(site):
         name = site.__name__
         if SiteCommunity.get_community(name) is None:
