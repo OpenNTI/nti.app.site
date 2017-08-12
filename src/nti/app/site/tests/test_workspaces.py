@@ -71,5 +71,5 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
         # Get Site Admin workspace
         res = self.testapp.get('/dataserver2/users/sjohnson%40nextthought.com/SiteAdmin',
                                extra_environ=self._make_extra_environ())
-        self.require_link_href_with_rel(res.json_body, 'RemoveSyncLocks')
+        self.require_link_href_with_rel(res.json_body, 'RemoveSyncLock')
         self.require_link_href_with_rel(res.json_body, 'SyncAllLibraries')
