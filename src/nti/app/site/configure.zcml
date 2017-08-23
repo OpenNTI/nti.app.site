@@ -20,6 +20,9 @@
 			 factory=".views.SitesPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
+	<!-- Adapters -->
+	<adapter factory=".adapters._site_to_community" />
+	
 	<!-- Workspaces -->
 	<!-- A subscriber for enumeration -->
 	<subscriber factory=".workspaces.workspaces.SiteAdminWorkspace"
