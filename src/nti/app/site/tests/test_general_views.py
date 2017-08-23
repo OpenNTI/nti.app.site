@@ -28,6 +28,8 @@ from nti.app.site.interfaces import ISiteCommunity
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
+from nti.dataserver.interfaces import ICommunity
+
 from nti.dataserver.users.communities import Community
 
 from nti.site.hostpolicy import get_host_site
@@ -76,6 +78,9 @@ class TestGeneralViews(ApplicationLayerTest):
             
             annotations = IAnnotations(site)
             assert_that(annotations, has_entry('PROVIDER', 'SETI'))
+            
+            community = ICommunity(site, None)
+            assert_that(community, is_(result))
             
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href, 
