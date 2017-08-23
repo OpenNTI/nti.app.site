@@ -21,6 +21,8 @@ does_not = is_not
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
 
+from zope.annotation.interfaces import IAnnotations
+
 from nti.app.site.interfaces import ISiteCommunity
 
 from nti.base.interfaces import ICreated
@@ -52,7 +54,8 @@ class TestGeneralViews(ApplicationLayerTest):
     def test_create_stie(self):
         href = '/dataserver2/sites/@@create'
         res = self.testapp.post_json(href, 
-                                     {'name':'abydos.nextthought.com'}, 
+                                     {'name':'abydos.nextthought.com',
+                                      'provider': 'SETI'}, 
                                      status=200)
         assert_that(res.json_body, 
                     has_entries('Name', is_('abydos.nextthought.com'),
@@ -70,6 +73,9 @@ class TestGeneralViews(ApplicationLayerTest):
             assert_that(ILastModified.providedBy(site), is_(True))
             assert_that(site, 
                         has_property('creator', is_(self.default_username.lower())))
+            
+            annotations = IAnnotations(site)
+            assert_that(annotations, has_entry('PROVIDER', 'SETI'))
             
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href, 

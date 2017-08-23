@@ -17,6 +17,8 @@ from zope import component
 from zope import interface
 from zope import lifecycleevent
 
+from zope.annotation.interfaces import IAnnotations
+
 from zope.component.hooks import site as curre_site
 
 from zope.traversing.interfaces import IEtcNamespace
@@ -37,6 +39,8 @@ from nti.app.site.hostpolicy import create_site
 from nti.app.site import MessageFactory as _
 
 from nti.app.site.views import SitesPathAdapter
+
+from nti.base._compat import text_
 
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
@@ -115,6 +119,10 @@ class CreateSiteView(AbstractAuthenticatedView,
         # set proper site
         with curre_site(parent):
             site = create_site(name)
+        provider = data.get('provider')
+        if provider:
+            annotations = IAnnotations(site)
+            annotations['PROVIDER'] = text_(provider)
         # mark site
         interface.alsoProvides(site, ICreated)
         interface.alsoProvides(site, ILastModified)
