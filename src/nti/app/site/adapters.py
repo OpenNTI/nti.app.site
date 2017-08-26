@@ -58,7 +58,7 @@ def _folder_to_site(folder):
     if not provider:
         site_policy = component.queryUtility(ISitePolicyUserEventListener)
         provider = getattr(site_policy, SITE_PROVIDER, '')
-    result.provider = provider or NTI
+    result.Provider = provider or NTI
     if ICreated.providedBy(folder):
         result.creator = folder.creator
     if ILastModified.providedBy(folder):
