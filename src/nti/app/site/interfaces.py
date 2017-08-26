@@ -11,6 +11,9 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope.location.interfaces import IContained
 
+from nti.base.interfaces import ICreated
+from nti.base.interfaces import ILastModified
+
 from nti.dataserver.interfaces import ICommunity
 
 from nti.schema.field import TextLine
@@ -19,7 +22,7 @@ from nti.schema.field import TextLine
 NTI = u'NTI'
 
 
-class ISite(IContained):
+class ISite(IContained, ILastModified, ICreated):
     """
     Defines a site
     """

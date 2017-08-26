@@ -17,6 +17,8 @@ from zope.mimetype.interfaces import IContentTypeAware
 
 from nti.app.site import SITE_MIMETYPE
 
+from nti.base.mixins import CreatedAndModifiedTimeMixin
+
 from nti.externalization.representation import WithRepr
 
 from nti.property.property import alias
@@ -31,7 +33,7 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 @WithRepr
 @EqHash('name',)
 @interface.implementer(ISite, IContentTypeAware)
-class Site(SchemaConfigured):
+class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
     createDirectFieldProperties(ISite)
 
     __parent__ = None
