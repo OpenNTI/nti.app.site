@@ -11,8 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 
 import time
 
-from requests.structures import CaseInsensitiveDict
-
 from zope import component
 from zope import interface
 from zope import lifecycleevent
@@ -34,9 +32,13 @@ from nti.app.externalization.error import raise_json_error
 
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
-from nti.app.site.hostpolicy import create_site
+from nti.app.site import SITE_MIMETYPE
 
 from nti.app.site import MessageFactory as _
+
+from nti.app.site.hostpolicy import create_site as create_site_folder
+
+from nti.app.site.interfaces import ISite
 
 from nti.app.site.views import SitesPathAdapter
 
@@ -58,6 +60,7 @@ from nti.site.interfaces import IHostPolicyFolder
 
 ITEMS = StandardExternalFields.ITEMS
 TOTAL = StandardExternalFields.TOTAL
+MIMETYPE = StandardExternalFields.MIMETYPE
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
@@ -87,23 +90,21 @@ class AllSitesView(AbstractAuthenticatedView):
 class CreateSiteView(AbstractAuthenticatedView,
                      ModeledContentUploadRequestUtilsMixin):
 
+    content_predicate = ISite
+
     def readInput(self, value=None):
         values = super(CreateSiteView, self).readInput(value)
-        return CaseInsensitiveDict(values)
+        if MIMETYPE not in values:
+            values[MIMETYPE] = SITE_MIMETYPE
+        for key in ('name', 'provider'):
+            if values.get(key, None):
+                values[key.title()] = values.pop(key, None)
+        return values
 
     def __call__(self):
-        data = self.readInput()
-        name = data.get('name')
-        if not name:
-            raise_json_error(self.request,
-                             hexc.HTTPUnprocessableEntity,
-                             {
-                                 'message': _(u"Invalid site name."),
-                                 'code': 'InvalidSiteName',
-                             },
-                             None)
-        site = get_host_site(name, safe=True)
-        if site is not None:
+        site = self.readCreateUpdateContentObject(self.remoteUser)
+        folder = get_host_site(site.name, safe=True)
+        if folder is not None:
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
                              {
@@ -118,15 +119,15 @@ class CreateSiteView(AbstractAuthenticatedView,
             parent = hostsites.__parent__  # by definiton
         # set proper site
         with curre_site(parent):
-            site = create_site(name)
-        provider = data.get('provider')
+            folder = create_site_folder(site.Name)
+        provider = site.provider
         if provider:
-            annotations = IAnnotations(site)
+            annotations = IAnnotations(folder)
             annotations['PROVIDER'] = text_(provider)
         # mark site
-        interface.alsoProvides(site, ICreated)
-        interface.alsoProvides(site, ILastModified)
-        site.creator = self.remoteUser.username
-        site.lastModified = site.createdTime = time.time()
-        lifecycleevent.created(site)
-        return site
+        interface.alsoProvides(folder, ICreated)
+        interface.alsoProvides(folder, ILastModified)
+        folder.creator = self.remoteUser.username
+        folder.lastModified = folder.createdTime = time.time()
+        lifecycleevent.created(folder)
+        return ISite(folder)
