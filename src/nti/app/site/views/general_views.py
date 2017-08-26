@@ -10,8 +10,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import time
-
-from requests.structures import CaseInsensitiveDict
+import string
 
 from zope import component
 from zope import interface
@@ -34,9 +33,15 @@ from nti.app.externalization.error import raise_json_error
 
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
-from nti.app.site.hostpolicy import create_site
+from nti.app.site import SITE_MIMETYPE
+from nti.app.site import SITE_PROVIDER
 
 from nti.app.site import MessageFactory as _
+
+from nti.app.site.hostpolicy import is_valid_site_name
+from nti.app.site.hostpolicy import create_site as create_site_folder
+
+from nti.app.site.interfaces import ISite
 
 from nti.app.site.views import SitesPathAdapter
 
@@ -51,6 +56,8 @@ from nti.externalization.externalization import StandardExternalFields
 
 from nti.externalization.interfaces import LocatedExternalDict
 
+from nti.ntiids.ntiids import escape_provider
+
 from nti.site.hostpolicy import get_host_site
 from nti.site.hostpolicy import get_all_host_sites
 
@@ -58,6 +65,7 @@ from nti.site.interfaces import IHostPolicyFolder
 
 ITEMS = StandardExternalFields.ITEMS
 TOTAL = StandardExternalFields.TOTAL
+MIMETYPE = StandardExternalFields.MIMETYPE
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
@@ -87,23 +95,37 @@ class AllSitesView(AbstractAuthenticatedView):
 class CreateSiteView(AbstractAuthenticatedView,
                      ModeledContentUploadRequestUtilsMixin):
 
+    content_predicate = ISite
+
     def readInput(self, value=None):
         values = super(CreateSiteView, self).readInput(value)
-        return CaseInsensitiveDict(values)
+        if MIMETYPE not in values:
+            values[MIMETYPE] = SITE_MIMETYPE
+        for key, m in (('name', string.lower), ('provider', string.upper)):
+            if values.get(key, None):
+                value = values.pop(key, None)
+                values[key.title()] = m(value)
+        return values
 
     def __call__(self):
-        data = self.readInput()
-        name = data.get('name')
-        if not name:
+        site = self.readCreateUpdateContentObject(self.remoteUser)
+        if not site.Name:
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"Must specified a site name."),
+                             },
+                             None)
+        if not is_valid_site_name(site.Name):
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
                              {
                                  'message': _(u"Invalid site name."),
-                                 'code': 'InvalidSiteName',
+                                 'field': 'name'
                              },
                              None)
-        site = get_host_site(name, safe=True)
-        if site is not None:
+        folder = get_host_site(site.Name, safe=True)
+        if folder is not None:
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
                              {
@@ -118,15 +140,15 @@ class CreateSiteView(AbstractAuthenticatedView,
             parent = hostsites.__parent__  # by definiton
         # set proper site
         with curre_site(parent):
-            site = create_site(name)
-        provider = data.get('provider')
+            folder = create_site_folder(site.Name)
+        provider = site.provider
         if provider:
-            annotations = IAnnotations(site)
-            annotations['PROVIDER'] = text_(provider)
+            annotations = IAnnotations(folder)
+            annotations[SITE_PROVIDER] = escape_provider(text_(provider))
         # mark site
-        interface.alsoProvides(site, ICreated)
-        interface.alsoProvides(site, ILastModified)
-        site.creator = self.remoteUser.username
-        site.lastModified = site.createdTime = time.time()
-        lifecycleevent.created(site)
-        return site
+        interface.alsoProvides(folder, ICreated)
+        interface.alsoProvides(folder, ILastModified)
+        folder.creator = self.remoteUser.username
+        folder.lastModified = folder.createdTime = time.time()
+        lifecycleevent.created(folder)
+        return ISite(folder)
