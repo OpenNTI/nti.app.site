@@ -21,7 +21,9 @@
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
 	<!-- Adapters -->
-	<adapter factory=".adapters._site_to_community" />
+	<adapter factory=".adapters._folder_to_site" />
+	<adapter factory=".adapters._site_to_folder" />
+	<adapter factory=".adapters._folder_to_community" />
 	
 	<!-- Workspaces -->
 	<!-- A subscriber for enumeration -->
@@ -43,7 +45,11 @@
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />
-	
+
+	<ext:registerAutoPackageIO
+		root_interfaces=".interfaces.ISite"
+		modules=".model" />
+
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
