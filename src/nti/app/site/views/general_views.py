@@ -97,7 +97,6 @@ class CreateSiteView(AbstractAuthenticatedView,
 
     content_predicate = ISite
 
-    patter = r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
     def readInput(self, value=None):
         values = super(CreateSiteView, self).readInput(value)
         if MIMETYPE not in values:
