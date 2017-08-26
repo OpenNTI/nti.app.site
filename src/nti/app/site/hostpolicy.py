@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import re
+
 from zope import component
 
 from zope.component.hooks import getSite
@@ -25,6 +27,13 @@ from nti.site.folder import HostPolicySiteManager
 from nti.site.site import BTreePersistentComponents
 
 from nti.site.utils import registerUtility
+
+pattern = r'^([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])(\.([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]))*$'
+pattern = re.compile(pattern)
+
+
+def is_valid_site_name(name):
+    return bool(pattern.match(name) is not None)
 
 
 def create_site(name, default_base=BASEADULT):
