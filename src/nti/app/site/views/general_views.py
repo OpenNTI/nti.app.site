@@ -10,6 +10,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import time
+import string
 
 from zope import component
 from zope import interface
@@ -36,6 +37,7 @@ from nti.app.site import SITE_MIMETYPE
 
 from nti.app.site import MessageFactory as _
 
+from nti.app.site.hostpolicy import is_valid_site_name
 from nti.app.site.hostpolicy import create_site as create_site_folder
 
 from nti.app.site.interfaces import ISite
@@ -52,6 +54,8 @@ from nti.dataserver.authorization import ACT_READ
 from nti.externalization.externalization import StandardExternalFields
 
 from nti.externalization.interfaces import LocatedExternalDict
+
+from nti.ntiids.ntiids import escape_provider
 
 from nti.site.hostpolicy import get_host_site
 from nti.site.hostpolicy import get_all_host_sites
@@ -92,18 +96,35 @@ class CreateSiteView(AbstractAuthenticatedView,
 
     content_predicate = ISite
 
+    patter = r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
     def readInput(self, value=None):
         values = super(CreateSiteView, self).readInput(value)
         if MIMETYPE not in values:
             values[MIMETYPE] = SITE_MIMETYPE
-        for key in ('name', 'provider'):
+        for key, m in (('name', string.lower), ('provider', string.upper)):
             if values.get(key, None):
-                values[key.title()] = values.pop(key, None)
+                value = values.pop(key, None)
+                values[key.title()] = m(value)
         return values
 
     def __call__(self):
         site = self.readCreateUpdateContentObject(self.remoteUser)
-        folder = get_host_site(site.name, safe=True)
+        if not site.Name:
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"Must specified a site name."),
+                             },
+                             None)
+        if not is_valid_site_name(site.Name):
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"Invalid site name."),
+                                 'field': 'name'
+                             },
+                             None)
+        folder = get_host_site(site.Name, safe=True)
         if folder is not None:
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
@@ -123,7 +144,7 @@ class CreateSiteView(AbstractAuthenticatedView,
         provider = site.provider
         if provider:
             annotations = IAnnotations(folder)
-            annotations['PROVIDER'] = text_(provider)
+            annotations['PROVIDER'] = escape_provider(text_(provider))
         # mark site
         interface.alsoProvides(folder, ICreated)
         interface.alsoProvides(folder, ILastModified)
