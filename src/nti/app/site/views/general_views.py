@@ -34,6 +34,7 @@ from nti.app.externalization.error import raise_json_error
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
 from nti.app.site import SITE_MIMETYPE
+from nti.app.site import SITE_PROVIDER
 
 from nti.app.site import MessageFactory as _
 
@@ -144,7 +145,7 @@ class CreateSiteView(AbstractAuthenticatedView,
         provider = site.provider
         if provider:
             annotations = IAnnotations(folder)
-            annotations['PROVIDER'] = escape_provider(text_(provider))
+            annotations[SITE_PROVIDER] = escape_provider(text_(provider))
         # mark site
         interface.alsoProvides(folder, ICreated)
         interface.alsoProvides(folder, ILastModified)

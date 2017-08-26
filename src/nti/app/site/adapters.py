@@ -16,6 +16,8 @@ from zope.annotation.interfaces import IAnnotations
 
 from zope.site.interfaces import IFolder
 
+from nti.app.site import SITE_PROVIDER
+
 from nti.app.site.interfaces import NTI
 from nti.app.site.interfaces import ISite
 
@@ -52,10 +54,10 @@ def _folder_to_site(folder):
     result = Site()
     result.Name = folder.__name__
     annotations = IAnnotations(folder, None) or {}
-    provider = annotations.get('Provider')
+    provider = annotations.get(SITE_PROVIDER)
     if not provider:
         site_policy = component.queryUtility(ISitePolicyUserEventListener)
-        provider = getattr(site_policy, 'PROVIDER', '')
+        provider = getattr(site_policy, SITE_PROVIDER, '')
     result.provider = provider or NTI
     if ICreated.providedBy(folder):
         result.creator = folder.creator
