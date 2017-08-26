@@ -29,10 +29,11 @@ from nti.externalization.tests import externalizes
 class TestModel(ApplicationLayerTest):
 
     def test_site(self):
-        site = Site(name=u"abydos.nextthought.com", provider=u"SETI")
+        site = Site(Name=u"abydos.nextthought.com", Provider=u"SETI")
         assert_that(site, validly_provides(ISite))
         assert_that(site, verifiably_provides(ISite))
 
         assert_that(site,
                     externalizes(has_entries('MimeType', SITE_MIMETYPE,
-                                             'Name', 'abydos.nextthought.com')))
+                                             'Name', 'abydos.nextthought.com',
+                                             'Provider', 'SETI')))
