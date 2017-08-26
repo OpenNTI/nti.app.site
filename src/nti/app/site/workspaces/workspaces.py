@@ -14,7 +14,7 @@ from zope import interface
 
 from zope.cachedescriptors.property import Lazy
 
-from zope.container.contained import Contained
+from zope.location.interfaces import IContained
 
 from nti.app.site.authorization import is_site_admin
 
@@ -29,9 +29,10 @@ from nti.dataserver.authorization import is_admin
 from nti.property.property import alias
 
 
-@interface.implementer(ISiteAdminWorkspace)
-class _SiteAdminWorkspace(Contained):
+@interface.implementer(ISiteAdminWorkspace, IContained)
+class _SiteAdminWorkspace(object):
 
+    __parent__ = None
     __name__ = SITE_ADMIN
 
     name = alias('__name__')
