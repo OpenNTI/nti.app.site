@@ -57,7 +57,7 @@ class TestGeneralViews(ApplicationLayerTest):
         href = '/dataserver2/sites/@@create'
         res = self.testapp.post_json(href, 
                                      {'name':'abydos.nextthought.com',
-                                      'provider': 'SETI'}, 
+                                      'provider': 'seti'}, 
                                      status=200)
         assert_that(res.json_body, 
                     has_entries('Name', is_('abydos.nextthought.com'),
