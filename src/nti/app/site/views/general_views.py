@@ -116,6 +116,8 @@ class CreateSiteView(AbstractAuthenticatedView,
                                  'message': _(u"Must specified a site name."),
                              },
                              None)
+        if site.Name.endswith('.'):
+            site.Name = site.Name[:-1]
         if not is_valid_site_name(site.Name):
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
