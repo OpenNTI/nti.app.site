@@ -12,26 +12,19 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
-from nti.app.site import SITE_MIMETYPE
+from nti.app.site.interfaces import ISite
 
-from nti.base.interfaces import ICreated
-from nti.base.interfaces import ILastModified
-
-from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
 from nti.externalization.interfaces import IInternalObjectExternalizer
+
+from nti.externalization.externalization import to_external_object
 
 from nti.externalization.oids import to_external_ntiid_oid
 
 from nti.site.interfaces import IHostPolicyFolder
 
 OID = StandardExternalFields.OID
-CLASS = StandardExternalFields.CLASS
 NTIID = StandardExternalFields.NTIID
-CREATOR = StandardExternalFields.CREATOR
-MIMETYPE = StandardExternalFields.MIMETYPE
-CREATED_TIME = StandardExternalFields.CREATED_TIME
-LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 
 
 @component.adapter(IHostPolicyFolder)
@@ -39,17 +32,9 @@ LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 class _SiteExternalizer(object):
 
     def __init__(self, obj):
-        self.site = obj
+        self.folder = obj
 
-    def toExternalObject(self, *unused_args, **unused_kwargs):
-        result = LocatedExternalDict()
-        result[CLASS] = 'Site'
-        result[MIMETYPE] = SITE_MIMETYPE
-        result['Name'] = self.site.__name__
-        result[NTIID] = result[OID] = to_external_ntiid_oid(self.site)
-        if ICreated.providedBy(self.site):
-            result[CREATOR] = self.site.creator
-        if ILastModified.providedBy(self.site):
-            result[CREATED_TIME] = self.site.createdTime
-            result[LAST_MODIFIED] = self.site.lastModified
+    def toExternalObject(self, *args, **kwargs):
+        result = to_external_object(ISite(self.folder), *args, **kwargs)
+        result[NTIID] = result[OID] = to_external_ntiid_oid(self.folder)
         return result
