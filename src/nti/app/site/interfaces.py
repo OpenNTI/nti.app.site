@@ -26,9 +26,9 @@ class ISite(IContained, ILastModified, ICreated):
     """
     Defines a site
     """
-    name = TextLine(title=u"Site uri", required=False)
+    Name = TextLine(title=u"Site uri", required=False)
 
-    provider = TextLine(title=u"Site provider",
+    Provider = TextLine(title=u"Site provider",
                         required=False,
                         default=NTI)
 

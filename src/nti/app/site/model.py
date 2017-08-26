@@ -37,10 +37,11 @@ class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
     createDirectFieldProperties(ISite)
 
     __parent__ = None
-    __name__ = alias('name')
+    __name__ = alias('Name')
 
-    Name = alias('name')
-    Provider = alias('provider')
+    creator = None
+    name = alias('Name')
+    provider = alias('Provider')
     
     parameters = {}  # IContentTypeAware
 
