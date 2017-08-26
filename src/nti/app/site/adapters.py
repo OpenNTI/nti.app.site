@@ -23,6 +23,9 @@ from nti.app.site.model import Site
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
+from nti.base.interfaces import ICreated
+from nti.base.interfaces import ILastModified
+
 from nti.dataserver.interfaces import ICommunity
 
 from nti.dataserver.users.communities import Community
@@ -54,6 +57,11 @@ def _folder_to_site(folder):
         site_policy = component.queryUtility(ISitePolicyUserEventListener)
         provider = getattr(site_policy, 'PROVIDER', '')
     result.provider = provider or NTI
+    if ICreated.providedBy(folder):
+        result.creator = folder.creator
+    if ILastModified.providedBy(folder):
+        result.createdTime = folder.createdTime
+        result.lastModified = folder.lastModified
     return result
 
 
