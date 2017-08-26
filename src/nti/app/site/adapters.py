@@ -50,7 +50,7 @@ def _folder_to_community(site):
 @interface.implementer(ISite)
 def _folder_to_site(folder):
     result = Site()
-    result.name = folder.__name__
+    result.Name = folder.__name__
     annotations = IAnnotations(folder, None) or {}
     provider = annotations.get('Provider')
     if not provider:
@@ -68,4 +68,4 @@ def _folder_to_site(folder):
 @component.adapter(ISite)
 @interface.implementer(IFolder)
 def _site_to_folder(site):
-    return get_host_site(site.name, True)
+    return get_host_site(site.Name, True)
