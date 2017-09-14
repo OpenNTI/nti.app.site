@@ -19,7 +19,7 @@ from nti.externalization.interfaces import IInternalObjectExternalizer
 
 from nti.externalization.externalization import to_external_object
 
-from nti.externalization.oids import to_external_ntiid_oid
+from nti.ntiids.oids import to_external_ntiid_oid
 
 from nti.site.interfaces import IHostPolicyFolder
 
