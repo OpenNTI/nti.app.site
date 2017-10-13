@@ -4,10 +4,9 @@
 Support for host policies and sites
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import re
 
@@ -30,6 +29,8 @@ from nti.site.utils import registerUtility
 
 pattern = r'^([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])(\.([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9]))*$'
 pattern = re.compile(pattern)
+
+logger = __import__('logging').getLogger(__name__)
 
 
 def is_valid_site_name(name):
