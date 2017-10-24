@@ -23,7 +23,7 @@ from nti.app.site import SITE_ADMIN
 
 from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
-from nti.dataserver.authorization import is_admin
+from nti.dataserver.authorization import is_admin_or_content_admin_or_site_admin
 
 from nti.property.property import alias
 
@@ -57,7 +57,7 @@ class _SiteAdminWorkspace(object):
         pass
 
     def predicate(self):
-        return is_admin(self.user) or is_site_admin(self.user)
+        return is_admin_or_content_admin_or_site_admin(self.user)
 
 
 @interface.implementer(ISiteAdminWorkspace)
