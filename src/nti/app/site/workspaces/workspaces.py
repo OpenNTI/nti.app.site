@@ -15,8 +15,6 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.location.interfaces import IContained
 
-from nti.app.site.authorization import is_site_admin
-
 from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site import SITE_ADMIN
