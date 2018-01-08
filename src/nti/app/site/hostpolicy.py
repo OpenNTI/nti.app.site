@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Support for host policies and sites
+
+.. $Id$
 """
 
 from __future__ import division

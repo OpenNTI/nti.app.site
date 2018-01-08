@@ -151,6 +151,7 @@ class CreateSiteView(AbstractAuthenticatedView,
         # mark site
         interface.alsoProvides(folder, ICreated)
         interface.alsoProvides(folder, ILastModified)
+        # pylint: disable=no-member
         folder.creator = self.remoteUser.username
         folder.lastModified = folder.createdTime = time.time()
         lifecycleevent.created(folder)
