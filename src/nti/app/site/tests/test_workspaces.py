@@ -29,6 +29,7 @@ CLASS = StandardExternalFields.CLASS
 ITEMS = StandardExternalFields.ITEMS
 LINKS = StandardExternalFields.LINKS
 
+
 class TestSiteAdminWorkspace(ApplicationLayerTest):
 
     basic_user = "pgreazy"
@@ -65,7 +66,7 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
             self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
                              extra_environ=self._make_extra_environ(),
                              status=404)
-        
+
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_admin_decoration(self):
         # Get Site Admin workspace
