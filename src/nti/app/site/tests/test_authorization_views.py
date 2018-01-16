@@ -16,7 +16,7 @@ from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 
-from nti.app.users import VIEW_SITE_ADMINS
+from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.users.utils import set_user_creation_site
 from nti.app.users.utils import get_user_creation_sitename
