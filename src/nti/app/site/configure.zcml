@@ -12,7 +12,7 @@
 	<!-- Path Adapters -->
 	<adapter name="SiteAdmin"
 			 for="nti.dataserver.interfaces.IUser pyramid.interfaces.IRequest"
-			 factory=".views.SiteAdminWorkspacePathAdapter" 
+			 factory=".views.SiteAdminWorkspacePathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
 	<adapter name="sites"
@@ -24,7 +24,7 @@
 	<adapter factory=".adapters._folder_to_site" />
 	<adapter factory=".adapters._site_to_folder" />
 	<adapter factory=".adapters._folder_to_community" />
-	
+
 	<!-- Workspaces -->
 	<!-- A subscriber for enumeration -->
 	<subscriber factory=".workspaces.workspaces.SiteAdminWorkspace"
@@ -41,6 +41,8 @@
 			 for="nti.dataserver.interfaces.IUser"
 			 factory=".authorization.NextthoughtDotComSiteAdmin"
 			 provides="nti.dataserver.interfaces.IGroupMember" />
+
+
 
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
@@ -61,5 +63,11 @@
 
 	<!-- Subscribers -->
 	<subscriber handler=".subscribers._on_site_created" />
+
+
+    <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace
+                     pyramid.interfaces.IRequest"/>
 
 </configure>
