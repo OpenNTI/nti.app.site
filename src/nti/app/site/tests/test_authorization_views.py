@@ -76,7 +76,8 @@ class TestAuthorization(ApplicationLayerTest):
         assert_that(res, has_entry('Items', has_length(0)))
 
         # Missing user/no user
-        self.testapp.post(admin_site_href, extra_environ=admin_environ, status=422)
+        self.testapp.post(admin_site_href,
+                          extra_environ=admin_environ, status=422)
         self.testapp.post('%s/missing_user' % admin_site_href,
                           extra_environ=admin_environ,
                           status=404)
@@ -100,21 +101,23 @@ class TestAuthorization(ApplicationLayerTest):
         # Update
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=admin_environ).json_body
+        res = self.testapp.get(admin_site_href,
+                               extra_environ=admin_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
         assert_that(items[0]['Username'], is_(regular_username))
 
         # Regular user
         admin_site_href = self._get_site_admin_href(regular_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=regular_environ).json_body
+        res = self.testapp.get(admin_site_href,
+                               extra_environ=regular_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
         assert_that(items[0]['Username'], is_(regular_username))
 
         # Invalid creation site
         # Can't test unless we had a legit user_creation_site
-        #self.testapp.post('%s/%s' % (admin_site_href, other_site_username),
+        # self.testapp.post('%s/%s' % (admin_site_href, other_site_username),
         #                  extra_environ=regular_environ,
         #                  status=422)
 
@@ -130,7 +133,8 @@ class TestAuthorization(ApplicationLayerTest):
                 assert_that(user_site, is_('mathcounts.nextthought.com'))
                 assert_that(is_site_admin(user), is_(True))
 
-        res = self.testapp.get(admin_site_href, extra_environ=other_site_environ)
+        res = self.testapp.get(admin_site_href,
+                               extra_environ=other_site_environ)
         res = res.json_body
         items = res['Items']
         assert_that(items, has_length(2))
@@ -143,7 +147,8 @@ class TestAuthorization(ApplicationLayerTest):
                             extra_environ=regular_environ)
 
         admin_site_href = self._get_site_admin_href(regular_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=regular_environ).json_body
+        res = self.testapp.get(admin_site_href,
+                               extra_environ=regular_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
         assert_that(items[0]['Username'], is_(regular_username))
@@ -177,4 +182,3 @@ class TestAuthorization(ApplicationLayerTest):
         # Adding a user with no site (dataserver2) fails.
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           status=422)
-

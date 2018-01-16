@@ -49,21 +49,21 @@ class TestGeneralViews(ApplicationLayerTest):
     def test_all_sites(self):
         href = '/dataserver2/sites/@@all'
         res = self.testapp.get(href, status=200)
-        assert_that(res.json_body, 
+        assert_that(res.json_body,
                     has_entry('Items', has_length(greater_than(0))))
-        
+
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_create_stie(self):
         href = '/dataserver2/sites/@@create'
-        res = self.testapp.post_json(href, 
-                                     {'name':'abydos.nextthought.com',
-                                      'provider': 'seti'}, 
+        res = self.testapp.post_json(href,
+                                     {'name': 'abydos.nextthought.com',
+                                      'provider': 'seti'},
                                      status=200)
-        assert_that(res.json_body, 
+        assert_that(res.json_body,
                     has_entries('Name', is_('abydos.nextthought.com'),
                                 'Class', is_('Site'),
                                 'MimeType', is_('application/vnd.nextthought.site')))
-        
+
         with mock_dataserver.mock_db_trans():
             result = Community.get_community('abydos.nextthought.com')
             assert_that(result, is_not(none()))
@@ -73,26 +73,26 @@ class TestGeneralViews(ApplicationLayerTest):
             site = get_host_site('abydos.nextthought.com')
             assert_that(ICreated.providedBy(site), is_(True))
             assert_that(ILastModified.providedBy(site), is_(True))
-            assert_that(site, 
+            assert_that(site,
                         has_property('creator', is_(self.default_username.lower())))
-            
+
             annotations = IAnnotations(site)
             assert_that(annotations, has_entry('PROVIDER', 'SETI'))
-            
+
             community = ICommunity(site, None)
             assert_that(community, is_(result))
-            
+
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
-        res = self.testapp.post_json(href, 
-                                     {'name':'seti.nextthought.com'}, 
+        res = self.testapp.post_json(href,
+                                     {'name': 'seti.nextthought.com'},
                                      status=200)
 
-        assert_that(res.json_body, 
+        assert_that(res.json_body,
                     has_entries('Name', is_('seti.nextthought.com'),
                                 'CreatedTime', is_not(none()),
                                 'Last Modified', is_not(none())))
 
         href = '/dataserver2/sites/@@create'
-        self.testapp.post_json(href, 
-                               {'name':'seti.nextthought.com'}, 
+        self.testapp.post_json(href,
+                               {'name': 'seti.nextthought.com'},
                                status=422)

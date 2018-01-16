@@ -60,7 +60,7 @@ class TestHostPolicy(ApplicationLayerTest):
             assert_that(sm,
                         has_property('__bases__', is_(bases)))
 
-            comps = component.queryUtility(IComponents, 
+            comps = component.queryUtility(IComponents,
                                            name='abydos.nextthought.com')
             assert_that(comps, is_not(none()))
             assert_that(comps,
@@ -95,9 +95,9 @@ class TestHostPolicy(ApplicationLayerTest):
             assert_that(sm,
                         has_property('__bases__', is_(bases)))
 
-            parent = component.getUtility(IComponents, 
+            parent = component.getUtility(IComponents,
                                           name='abydos.nextthought.com')
-            comps = component.queryUtility(IComponents, 
+            comps = component.queryUtility(IComponents,
                                            name='seti.nextthought.com')
             assert_that(comps, is_not(none()))
             assert_that(comps,
@@ -110,5 +110,5 @@ class TestHostPolicy(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans(site_name='seti.nextthought.com'):
             names = get_component_hierarchy_names()
             assert_that(names, has_length(2))
-            assert_that(names, 
+            assert_that(names,
                         is_(['seti.nextthought.com', 'abydos.nextthought.com']))
