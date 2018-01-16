@@ -42,7 +42,7 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
     def _predicate(self, unused_context, unused_result):
         return is_admin_or_site_admin(self.remoteUser)
 
-    def _do_decorate_external(self, context, result_map):
+    def _do_decorate_external(self, context, result_map):  # pylint: disable=arguments-differ
         links = result_map.setdefault("Links", [])
         rels = [VIEW_SITE_ADMINS]
         ds2 = find_interface(context, IDataserverFolder)

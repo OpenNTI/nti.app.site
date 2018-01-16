@@ -79,6 +79,7 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
     def _get_site_admins(self):
         principal_role_manager = IPrincipalRoleManager(getSite())
         result = []
+        # pylint: disable=too-many-function-args
         principal_access = principal_role_manager.getPrincipalsForRole(ROLE_SITE_ADMIN.id)
         for principal_id, access in principal_access:
             if access == Allow:
@@ -112,7 +113,7 @@ class SiteAdminGetView(SiteAdminAbstractView):
         return self._get_site_admin_external()
 
 
-class SiteAdminAbstractUpdateView(SiteAdminAbstractView,
+class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abstract-method
                                   ModeledContentUploadRequestUtilsMixin):
 
     def readInput(self, unused_value=None):
@@ -128,6 +129,7 @@ class SiteAdminAbstractUpdateView(SiteAdminAbstractView,
         return self.readInput()
 
     def _get_usernames(self):
+        # pylint: disable=no-member
         values = self._params
         result = values.get('name') \
               or values.get('user') \
@@ -156,6 +158,7 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
 
     @Lazy
     def update_creation_site(self):
+        # pylint: disable=no-member
         values = self._params
         result = values.get('force') \
               or values.get('update_site') \
@@ -200,6 +203,7 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
             logger.info("Adding user to site admin role (site=%s) (user=%s)",
                         site.__name__,
                         username)
+            # pylint: disable=too-many-function-args
             principal_role_manager.assignRoleToPrincipal(ROLE_SITE_ADMIN.id,
                                                          username)
         return self._get_site_admin_external()
@@ -229,6 +233,7 @@ class SiteAdminDeleteView(SiteAdminAbstractUpdateView):
             logger.info("Removing user from site admin role (site=%s) (user=%s)",
                         site.__name__,
                         username)
+            # pylint: disable=too-many-function-args
             principal_role_manager.removeRoleFromPrincipal(ROLE_SITE_ADMIN.id,
                                                            username)
         return self._get_site_admin_external()
