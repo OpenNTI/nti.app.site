@@ -23,12 +23,11 @@ from nti.testing.matchers import verifiably_provides
 
 from zope.annotation.interfaces import IAnnotations
 
-from nti.app.site.interfaces import ISiteCommunity
-
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
 from nti.dataserver.interfaces import ICommunity
+from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.dataserver.users.communities import Community
 

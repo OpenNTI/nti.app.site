@@ -10,7 +10,7 @@ from __future__ import absolute_import
 
 from zope import interface
 
-from nti.app.site.interfaces import ISiteCommunity
+from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.dataserver.users.communities import Community
 

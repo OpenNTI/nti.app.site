@@ -13,13 +13,15 @@ from zope.location.interfaces import IContained
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
-from nti.dataserver.interfaces import ICommunity
+from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import TextLine
 
 #: Default provider
 NTI = u'NTI'
 
+# BWC
+ISiteCommunity = ISiteCommunity
 
 class ISite(IContained, ILastModified, ICreated):
     """
@@ -30,9 +32,3 @@ class ISite(IContained, ILastModified, ICreated):
     Provider = TextLine(title=u"Site provider",
                         required=False,
                         default=NTI)
-
-
-class ISiteCommunity(ICommunity):
-    """
-    Defines a site community
-    """
