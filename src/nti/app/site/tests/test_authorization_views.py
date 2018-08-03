@@ -18,8 +18,9 @@ from hamcrest import contains_inanyorder
 
 from nti.app.site import VIEW_SITE_ADMINS
 
+from nti.app.users.common import get_user_creation_sitename
+
 from nti.app.users.utils import set_user_creation_site
-from nti.app.users.utils import get_user_creation_sitename
 
 from nti.dataserver.authorization import is_site_admin
 
