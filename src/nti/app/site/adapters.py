@@ -38,14 +38,12 @@ logger = __import__('logging').getLogger(__name__)
 
 @component.adapter(IFolder)
 @interface.implementer(ICommunity)
-def _folder_to_community(site):
+def _folder_to_community(unused_site):
     result = None
     site_policy = component.queryUtility(ISitePolicyUserEventListener)
     community_username = getattr(site_policy, 'COM_USERNAME', '')
     if community_username:
         result = Community.get_community(community_username)
-    if result is None:
-        result = Community.get_community(site.__name__)
     return result
 
 

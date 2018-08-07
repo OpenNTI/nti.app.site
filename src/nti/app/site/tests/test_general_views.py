@@ -52,7 +52,7 @@ class TestGeneralViews(ApplicationLayerTest):
                     has_entry('Items', has_length(greater_than(0))))
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
-    def test_create_stie(self):
+    def test_create_site(self):
         href = '/dataserver2/sites/@@create'
         res = self.testapp.post_json(href,
                                      {'name': 'abydos.nextthought.com',
@@ -79,7 +79,7 @@ class TestGeneralViews(ApplicationLayerTest):
             assert_that(annotations, has_entry('PROVIDER', 'SETI'))
 
             community = ICommunity(site, None)
-            assert_that(community, is_(result))
+            assert_that(community, none())
 
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href,
