@@ -18,9 +18,13 @@ from pyramid.view import view_config
 
 from requests.structures import CaseInsensitiveDict
 
+from zope import component
+
 from zope.cachedescriptors.property import Lazy
 
 from zope.component.hooks import getSite
+
+from zope.intid.interfaces import IIntIds
 
 from zope.securitypolicy.interfaces import Allow
 from zope.securitypolicy.interfaces import IPrincipalRoleManager
@@ -46,9 +50,19 @@ from nti.dataserver.authorization import ROLE_SITE_ADMIN
 
 from nti.dataserver.authorization import is_admin_or_site_admin
 
+from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserverFolder
 
-from nti.dataserver.users import User
+from nti.dataserver.metadata.index import IX_CREATEDTIME
+from nti.dataserver.metadata.index import get_metadata_catalog
+
+from nti.dataserver.users.index import IX_ALIAS
+from nti.dataserver.users.index import IX_REALNAME
+from nti.dataserver.users.index import IX_DISPLAYNAME
+from nti.dataserver.users.index import IX_LASTSEEN_TIME
+from nti.dataserver.users.index import get_entity_catalog
+
+from nti.dataserver.users.users import User
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
@@ -84,7 +98,7 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
         for principal_id, access in principal_access:
             if access == Allow:
                 user = User.get_user(principal_id)
-                if user is not None:
+                if IUser.providedBy(user):
                     result.append(user)
         return result
 
@@ -108,6 +122,57 @@ class SiteAdminGetView(SiteAdminAbstractView):
     """
     Return all site admins for the given site.
     """
+
+    _ALLOWED_SORTING = (IX_CREATEDTIME, IX_ALIAS, IX_REALNAME, IX_DISPLAYNAME,
+                        IX_LASTSEEN_TIME)
+ 
+    @Lazy
+    def params(self):
+        return CaseInsensitiveDict(**self.request.params)
+
+    @Lazy
+    def sortOn(self):
+        # pylint: disable=no-member
+        sort = self.params.get('sortOn')
+        return sort if sort in self._ALLOWED_SORTING else None
+
+    @property
+    def sortOrder(self):
+        # pylint: disable=no-member
+        return self.params.get('sortOrder', 'ascending')
+
+    @Lazy
+    def sortMap(self):
+        return {
+            IX_ALIAS: get_entity_catalog(),
+            IX_REALNAME: get_entity_catalog(),
+            IX_DISPLAYNAME: get_entity_catalog(),
+            IX_CREATEDTIME: get_metadata_catalog(),
+            IX_LASTSEEN_TIME: get_entity_catalog(),
+        }
+
+    def _get_doc_ids(self, users):
+        intids = component.getUtility(IIntIds)
+        result = {intids.queryId(x) for x in users}
+        result.discard(None)
+        return result
+
+    def _reify_ids(self, doc_ids):
+        intids = component.getUtility(IIntIds)
+        result = [intids.getObject(uid) for uid in doc_ids]
+        return result
+    
+    def _get_site_admins(self):
+        result = super(SiteAdminGetView, self)._get_site_admins()
+        # pylint: disable=unsupported-membership-test
+        if result and self.sortOn and self.sortOn in self.sortMap:
+            # pylint: disable=no-member
+            doc_ids = self._get_doc_ids(result)
+            catalog = self.sortMap.get(self.sortOn)
+            reverse = self.sortOrder == 'descending'
+            doc_ids = catalog[self.sortOn].sort(doc_ids, reverse=reverse)
+            result = self._reify_ids(doc_ids)
+        return result
 
     def _do_call(self):
         return self._get_site_admin_external()
@@ -167,7 +232,7 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
 
     def _validate_site_admin(self, username, site):
         user = User.get_user(username)
-        if user is None:
+        if not IUser.providedBy(user):
             raise_error({
                     'message': _(u"User not found."),
                     'code': 'UserNotFoundError',
@@ -224,7 +289,7 @@ class SiteAdminDeleteView(SiteAdminAbstractUpdateView):
         principal_role_manager = IPrincipalRoleManager(site)
         for username in self._get_usernames():
             user = User.get_user(username)
-            if user is None:
+            if not IUser.providedBy(user):
                 raise_error({
                         'message': _(u"User not found."),
                         'code': 'UserNotFoundError',

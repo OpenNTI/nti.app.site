@@ -110,7 +110,8 @@ class TestAuthorization(ApplicationLayerTest):
 
         # Regular user
         admin_site_href = self._get_site_admin_href(regular_environ)
-        res = self.testapp.get(admin_site_href,
+        params = {'sortOn': 'createdTime'}
+        res = self.testapp.get(admin_site_href, params=params,
                                extra_environ=regular_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
