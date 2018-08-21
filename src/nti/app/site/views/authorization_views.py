@@ -18,6 +18,8 @@ from pyramid.view import view_config
 
 from requests.structures import CaseInsensitiveDict
 
+from six.moves.urllib_parse import unquote
+
 from zope import component
 
 from zope.cachedescriptors.property import Lazy
@@ -61,6 +63,8 @@ from nti.dataserver.users.index import IX_REALNAME
 from nti.dataserver.users.index import IX_DISPLAYNAME
 from nti.dataserver.users.index import IX_LASTSEEN_TIME
 from nti.dataserver.users.index import get_entity_catalog
+
+from nti.dataserver.users.interfaces import IFriendlyNamed
 
 from nti.dataserver.users.users import User
 
@@ -142,6 +146,12 @@ class SiteAdminGetView(SiteAdminAbstractView):
         return self.params.get('sortOrder', 'ascending')
 
     @Lazy
+    def searchTerm(self):
+        # pylint: disable=no-member
+        result = self.params.get('searchTerm')
+        return unquote(result).lower() if result else None
+
+    @Lazy
     def sortMap(self):
         return {
             IX_ALIAS: get_entity_catalog(),
@@ -150,6 +160,22 @@ class SiteAdminGetView(SiteAdminAbstractView):
             IX_CREATEDTIME: get_metadata_catalog(),
             IX_LASTSEEN_TIME: get_entity_catalog(),
         }
+
+    def search_prefix_match(self, compare, search_term):
+        compare = compare.lower() if compare else ''
+        for k in compare.split():
+            if k.startswith(search_term):
+                return True
+        return compare.startswith(search_term)
+
+    def search_include(self, user):
+        op = self.search_prefix_match
+        names = IFriendlyNamed(user, None)
+        result = (op(user.username, self.searchTerm)) \
+              or (names is not None 
+                  and (op(names.realname, self.searchTerm)
+                       or op(names.alias, self.searchTerm)))
+        return result
 
     def _get_doc_ids(self, users):
         intids = component.getUtility(IIntIds)
@@ -162,8 +188,15 @@ class SiteAdminGetView(SiteAdminAbstractView):
         result = [intids.getObject(uid) for uid in doc_ids]
         return result
     
+    def _filter_users(self, users):
+        result = users
+        if self.searchTerm:
+            result = [x for x in users if self.search_include(x)]
+        return result
+
     def _get_site_admins(self):
         result = super(SiteAdminGetView, self)._get_site_admins()
+        result = self._filter_users(result)
         # pylint: disable=unsupported-membership-test
         if result and self.sortOn and self.sortOn in self.sortMap:
             # pylint: disable=no-member
