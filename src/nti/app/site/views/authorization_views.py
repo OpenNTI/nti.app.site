@@ -37,6 +37,7 @@ from nti.app.externalization.error import raise_json_error
 
 from nti.app.externalization.internalization import read_body_as_external_object
 
+from nti.app.externalization.view_mixins import BatchingUtilsMixin
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
 from nti.app.site import VIEW_SITE_ADMINS
@@ -95,8 +96,8 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
             raise hexc.HTTPForbidden(_('Cannot view site administrators.'))
 
     def _get_site_admins(self):
-        principal_role_manager = IPrincipalRoleManager(getSite())
         result = []
+        principal_role_manager = IPrincipalRoleManager(getSite())
         # pylint: disable=too-many-function-args
         principal_access = principal_role_manager.getPrincipalsForRole(ROLE_SITE_ADMIN.id)
         for principal_id, access in principal_access:
@@ -122,10 +123,14 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
              context=IDataserverFolder,
              name=VIEW_SITE_ADMINS,
              request_method='GET')
-class SiteAdminGetView(SiteAdminAbstractView):
+class SiteAdminGetView(SiteAdminAbstractView,
+                       BatchingUtilsMixin):
     """
     Return all site admins for the given site.
     """
+
+    _DEFAULT_BATCH_SIZE = 30
+    _DEFAULT_BATCH_START = 0
 
     _ALLOWED_SORTING = (IX_CREATEDTIME, IX_ALIAS, IX_REALNAME, IX_DISPLAYNAME,
                         IX_LASTSEEN_TIME)
@@ -205,6 +210,13 @@ class SiteAdminGetView(SiteAdminAbstractView):
             reverse = self.sortOrder == 'descending'
             doc_ids = catalog[self.sortOn].sort(doc_ids, reverse=reverse)
             result = self._reify_ids(doc_ids)
+        return result
+
+    def _get_site_admin_external(self):
+        result = LocatedExternalDict()
+        site_admins = self._get_site_admins()
+        self._batch_items_iterable(result, site_admins)
+        result[TOTAL] = len(site_admins)
         return result
 
     def _do_call(self):
