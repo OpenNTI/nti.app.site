@@ -11,6 +11,11 @@ from __future__ import absolute_import
 import time
 import string
 
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
+from pyramid.view import view_defaults
+
 from zope import component
 from zope import interface
 from zope import lifecycleevent
@@ -20,11 +25,6 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component.hooks import site as curre_site
 
 from zope.traversing.interfaces import IEtcNamespace
-
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
-from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
@@ -51,9 +51,8 @@ from nti.base.interfaces import ILastModified
 
 from nti.dataserver.authorization import ACT_READ
 
-from nti.externalization.externalization import StandardExternalFields
-
 from nti.externalization.interfaces import LocatedExternalDict
+from nti.externalization.interfaces import StandardExternalFields
 
 from nti.ntiids.ntiids import escape_provider
 
