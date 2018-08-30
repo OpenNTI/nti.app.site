@@ -216,6 +216,15 @@ class SiteAdminGetView(SiteAdminAbstractView,
         result = LocatedExternalDict()
         site_admins = self._get_site_admins()
         self._batch_items_iterable(result, site_admins)
+
+        if self.sortOn in (IX_CREATEDTIME, IX_LASTSEEN_TIME):
+            # If we are sorting by time, we are indexed normalized to a minute.
+            # We sort here by the actual value to correct this.
+            reverse = self.sortOrder == 'descending'
+            result[ITEMS] = sorted(result[ITEMS],
+                                   key=lambda x: getattr(x, self.sortOn, 0),
+                                   reverse=reverse)
+
         result[TOTAL] = len(site_admins)
         return result
 
@@ -243,7 +252,9 @@ class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abst
         values = self._params
         result = values.get('name') \
               or values.get('user') \
-              or values.get('users')
+              or values.get('users') \
+              or values.get('username') \
+              or values.get('usernames')
         if not result and self.request.subpath:
             result = self.request.subpath[0]
         if not result:
