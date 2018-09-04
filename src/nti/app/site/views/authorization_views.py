@@ -351,6 +351,13 @@ class SiteAdminDeleteView(SiteAdminAbstractUpdateView):
                         'code': 'UserNotFoundError',
                         },
                         factory=hexc.HTTPNotFound)
+            user_creation_site = get_user_creation_site(user)
+            if user_creation_site != site:
+                raise_error({
+                    'message': _(u"Admin roles cannot be changed for users created in other sites."),
+                    'code': 'AdminRoleChangeError',
+                    },
+                    factory=hexc.HTTPUnprocessableEntity)
             logger.info("Removing user from site admin role (site=%s) (user=%s)",
                         site.__name__,
                         username)
