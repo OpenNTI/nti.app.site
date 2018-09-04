@@ -18,8 +18,6 @@ from pyramid.view import view_config
 
 from requests.structures import CaseInsensitiveDict
 
-from six.moves.urllib_parse import unquote
-
 from zope import component
 
 from zope.cachedescriptors.property import Lazy
@@ -37,8 +35,9 @@ from nti.app.externalization.error import raise_json_error
 
 from nti.app.externalization.internalization import read_body_as_external_object
 
-from nti.app.externalization.view_mixins import BatchingUtilsMixin
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
+from nti.app.users.views.view_mixins import AbstractEntityViewMixin
 
 from nti.app.site import VIEW_SITE_ADMINS
 
@@ -64,8 +63,6 @@ from nti.dataserver.users.index import IX_REALNAME
 from nti.dataserver.users.index import IX_DISPLAYNAME
 from nti.dataserver.users.index import IX_LASTSEEN_TIME
 from nti.dataserver.users.index import get_entity_catalog
-
-from nti.dataserver.users.interfaces import IFriendlyNamed
 
 from nti.dataserver.users.users import User
 
@@ -95,9 +92,10 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
         if not is_admin_or_site_admin(self.remoteUser):
             raise hexc.HTTPForbidden(_('Cannot view site administrators.'))
 
-    def _get_site_admins(self):
+    def _get_site_admins(self, site=None):
         result = []
-        principal_role_manager = IPrincipalRoleManager(getSite())
+        site = getSite() if site is None else site
+        principal_role_manager = IPrincipalRoleManager(site)
         # pylint: disable=too-many-function-args
         principal_access = principal_role_manager.getPrincipalsForRole(ROLE_SITE_ADMIN.id)
         for principal_id, access in principal_access:
@@ -124,38 +122,20 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
              name=VIEW_SITE_ADMINS,
              request_method='GET')
 class SiteAdminGetView(SiteAdminAbstractView,
-                       BatchingUtilsMixin):
+                       AbstractEntityViewMixin):
     """
     Return all site admins for the given site.
     """
 
-    _DEFAULT_BATCH_SIZE = 30
-    _DEFAULT_BATCH_START = 0
+    _ALLOWED_SORTING = AbstractEntityViewMixin._ALLOWED_SORTING + (IX_LASTSEEN_TIME,)
+    _NUMERIC_SORTING = AbstractEntityViewMixin._NUMERIC_SORTING + (IX_LASTSEEN_TIME,)
 
-    _ALLOWED_SORTING = (IX_CREATEDTIME, IX_ALIAS, IX_REALNAME, IX_DISPLAYNAME,
-                        IX_LASTSEEN_TIME)
- 
-    @Lazy
-    def params(self):
-        return CaseInsensitiveDict(**self.request.params)
-
-    @Lazy
-    def sortOn(self):
-        # pylint: disable=no-member
-        sort = self.params.get('sortOn')
-        return sort if sort in self._ALLOWED_SORTING else None
-
-    @property
-    def sortOrder(self):
-        # pylint: disable=no-member
-        return self.params.get('sortOrder', 'ascending')
-
-    @Lazy
-    def searchTerm(self):
-        # pylint: disable=no-member
-        result = self.params.get('searchTerm')
-        return unquote(result).lower() if result else None
-
+    def get_entity_intids(self, site=None):
+        intids = component.getUtility(IIntIds)
+        for user in self._get_site_admins(site):
+            doc_id = intids.getId(user)
+            yield doc_id
+    
     @Lazy
     def sortMap(self):
         return {
@@ -166,70 +146,8 @@ class SiteAdminGetView(SiteAdminAbstractView,
             IX_LASTSEEN_TIME: get_entity_catalog(),
         }
 
-    def search_prefix_match(self, compare, search_term):
-        compare = compare.lower() if compare else ''
-        for k in compare.split():
-            if k.startswith(search_term):
-                return True
-        return compare.startswith(search_term)
-
-    def search_include(self, user):
-        op = self.search_prefix_match
-        names = IFriendlyNamed(user, None)
-        result = (op(user.username, self.searchTerm)) \
-              or (names is not None 
-                  and (op(names.realname, self.searchTerm)
-                       or op(names.alias, self.searchTerm)))
-        return result
-
-    def _get_doc_ids(self, users):
-        intids = component.getUtility(IIntIds)
-        result = {intids.queryId(x) for x in users}
-        result.discard(None)
-        return result
-
-    def _reify_ids(self, doc_ids):
-        intids = component.getUtility(IIntIds)
-        result = [intids.getObject(uid) for uid in doc_ids]
-        return result
-    
-    def _filter_users(self, users):
-        result = users
-        if self.searchTerm:
-            result = [x for x in users if self.search_include(x)]
-        return result
-
-    def _get_site_admins(self):
-        result = super(SiteAdminGetView, self)._get_site_admins()
-        result = self._filter_users(result)
-        # pylint: disable=unsupported-membership-test
-        if result and self.sortOn and self.sortOn in self.sortMap:
-            # pylint: disable=no-member
-            doc_ids = self._get_doc_ids(result)
-            catalog = self.sortMap.get(self.sortOn)
-            reverse = self.sortOrder == 'descending'
-            doc_ids = catalog[self.sortOn].sort(doc_ids, reverse=reverse)
-            result = self._reify_ids(doc_ids)
-        return result
-
-    def _get_site_admin_external(self):
-        result = LocatedExternalDict()
-        site_admins = self._get_site_admins()
-        self._batch_items_iterable(result, site_admins)
-
-        if self.sortOn in (IX_CREATEDTIME, IX_LASTSEEN_TIME):
-            # If we are sorting by time, we are indexed normalized to a minute.
-            # We sort here by the actual value to correct this.
-            reverse = self.sortOrder == 'descending'
-            result[ITEMS] = sorted(result[ITEMS],
-                                   key=lambda x: getattr(x, self.sortOn, 0),
-                                   reverse=reverse)
-
-        result[TOTAL] = len(site_admins)
-        return result
-
     def _do_call(self):
-        return self._get_site_admin_external()
+        return AbstractEntityViewMixin._do_call(self)
 
 
 class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abstract-method
