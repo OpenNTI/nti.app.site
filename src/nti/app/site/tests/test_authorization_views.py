@@ -99,7 +99,7 @@ class TestAuthorization(ApplicationLayerTest):
                           extra_environ=other_site_environ,
                           status=401)
 
-        # Update
+        # Update (regular_username is now a site admin)
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
         res = self.testapp.get(admin_site_href,
@@ -118,13 +118,14 @@ class TestAuthorization(ApplicationLayerTest):
         assert_that(items[0]['Username'], is_(regular_username))
 
         # Invalid creation site
-        # Can't test unless we had a legit user_creation_site
-        # self.testapp.post('%s/%s' % (admin_site_href, other_site_username),
-        #                  extra_environ=regular_environ,
-        #                  status=422)
+        # Cannot change user creation site for not-administered user.
+        self.testapp.post('%s/%s' % (admin_site_href, other_site_username),
+                         extra_environ=regular_environ,
+                         status=403)
 
+        # NT admin can though
         self.testapp.post('%s/%s?force=True' % (admin_site_href, other_site_username),
-                          extra_environ=regular_environ)
+                          extra_environ=admin_environ)
 
         # User has new creation site
         with mock_dataserver.mock_db_trans(self.ds,
