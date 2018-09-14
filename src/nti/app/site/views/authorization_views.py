@@ -50,10 +50,12 @@ from nti.common.string import is_true
 
 from nti.dataserver.authorization import ROLE_SITE_ADMIN
 
-from nti.dataserver.authorization import is_admin_or_site_admin
+from nti.dataserver.authorization import is_admin
+from nti.dataserver.authorization import is_site_admin
 
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserverFolder
+from nti.dataserver.interfaces import ISiteAdminUtility
 
 from nti.dataserver.metadata.index import IX_CREATEDTIME
 from nti.dataserver.metadata.index import get_metadata_catalog
@@ -88,8 +90,12 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
     def _do_call(self):
         raise NotImplementedError()
 
+    @Lazy
+    def is_admin(self):
+        return is_admin(self.remoteUser)
+
     def _predicate(self):
-        if not is_admin_or_site_admin(self.remoteUser):
+        if not self.is_admin and not is_site_admin(self.remoteUser):
             raise hexc.HTTPForbidden(_('Cannot view site administrators.'))
 
     def _get_site_admins(self, site=None):
@@ -101,8 +107,18 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
         for principal_id, access in principal_access:
             if access == Allow:
                 user = User.get_user(principal_id)
-                if IUser.providedBy(user):
+                if IUser.providedBy(user) and self.can_administer_user(user):
                     result.append(user)
+        return result
+
+    @Lazy
+    def site_admin_utility(self):
+        return component.getUtility(ISiteAdminUtility)
+
+    def can_administer_user(self, user):
+        result = True
+        if not self.is_admin:
+            result = self.site_admin_utility.can_administer_user(self.remoteUser, user)
         return result
 
     def _get_site_admin_external(self):
@@ -135,7 +151,7 @@ class SiteAdminGetView(SiteAdminAbstractView,
         for user in self._get_site_admins(site):
             doc_id = intids.getId(user)
             yield doc_id
-    
+
     @Lazy
     def sortMap(self):
         return {
@@ -183,6 +199,20 @@ class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abst
         result = result.split(',')
         return result
 
+    def validate_user(self, user):
+        if not IUser.providedBy(user):
+            raise_error({
+                    'message': _(u"User not found."),
+                    'code': 'UserNotFoundError',
+                    },
+                    factory=hexc.HTTPNotFound)
+        if not self.can_administer_user(user):
+            raise_error({
+                    'message': _(u"Cannot admin this user."),
+                    'code': 'UserAdminPermissionError',
+                    },
+                    factory=hexc.HTTPForbidden)
+
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
@@ -206,12 +236,7 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
 
     def _validate_site_admin(self, username, site):
         user = User.get_user(username)
-        if not IUser.providedBy(user):
-            raise_error({
-                    'message': _(u"User not found."),
-                    'code': 'UserNotFoundError',
-                    },
-                    factory=hexc.HTTPNotFound)
+        self.validate_user(user)
         user_creation_site = get_user_creation_site(user)
         if      user_creation_site is not None \
             and user_creation_site != site:
@@ -263,12 +288,7 @@ class SiteAdminDeleteView(SiteAdminAbstractUpdateView):
         principal_role_manager = IPrincipalRoleManager(site)
         for username in self._get_usernames():
             user = User.get_user(username)
-            if not IUser.providedBy(user):
-                raise_error({
-                        'message': _(u"User not found."),
-                        'code': 'UserNotFoundError',
-                        },
-                        factory=hexc.HTTPNotFound)
+            self.validate_user(user)
             user_creation_site = get_user_creation_site(user)
             if user_creation_site != site:
                 raise_error({
