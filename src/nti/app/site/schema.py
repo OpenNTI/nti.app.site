@@ -29,7 +29,7 @@ class BaseComponentResolveWrapper(object):
     def __init__(self, wrapped):
         self.wrapped = wrapped
 
-    def __getattr__(self, name):
+    def __getattr__(self, name): # pragma: no cover
         # delegate what we don't implement
         return getattr(self.wrapped, name)
 
