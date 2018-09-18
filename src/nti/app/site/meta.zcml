@@ -7,7 +7,7 @@
 								handler=".zcml.Sites" />
 
 		<meta:groupingDirective name="createSite"
-								usedIn=".zcml.ISites"
+								usedIn=".zcml.ICreateSites"
 								schema=".zcml.ICreateSite"
 								handler=".zcml.Site" />
 	</meta:directives>

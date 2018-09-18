@@ -27,62 +27,15 @@ from zope.configuration.interfaces import IConfigurationContext
 
 from zope.interface.interfaces import IComponents
 
-from zope.schema._bootstrapinterfaces import IFromUnicode
+from nti.app.site.schema import SiteComponent
+from nti.app.site.schema import Tuple
 
-from nti.schema.field import Dict
 from nti.schema.field import Object
 from nti.schema.field import TextLine
-from nti.schema.field import Tuple
 
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
-
-
-class BaseComponentResolveWrapper(object):
-    """
-    A custom resolve wrapper for GlobalObjects to allow
-    BaseComponent resolution if a package name is not provided
-    """
-
-    def __init__(self, wrapped):
-        self.wrapped = wrapped
-
-    def __getattr__(self, name):
-        # delegate what we don't implement
-        return getattr(self.wrapped, name)
-
-    def resolve(self, name):
-        try:
-            comp = self.wrapped.resolve(name)
-        except ConfigurationError:
-            comp = self.wrapped.sites.get(name)
-            if comp is None:
-                raise ConfigurationError(u'Unable to find component %s' % name)
-        return comp
-
-
-class SiteComponent(GlobalObject):
-    """
-    A class to wrap context binding for GlobalObjects
-    """
-
-    def bind(self, context):
-        new_field = super(SiteComponent, self).bind(context)
-        assert new_field.__class__ == self.__class__
-        new_field.context = BaseComponentResolveWrapper(new_field.context)
-        return new_field
-
-
-@interface.implementer(IFromUnicode)
-class Tuple(Tuple):
-    """
-    An Tuple schema type that implements fromUnicode to allow schema validation from ZCML input
-    """
-
-    def fromUnicode(self, value):
-        result = tuple(self.value_type.fromUnicode(tup) for tup in value.split(u',') if tup)
-        return result
 
 
 class ICreateSite(interface.Interface):
@@ -118,29 +71,12 @@ def createSite(_context,
 
 
 class ICreateSites(interface.Interface):
-    package = GlobalObject(title=u'The package in which these sites will be registered.',
-                           required=True)
-
-
-class ISites(interface.Interface):
-    sites = Dict(title=u'The sites to be created.')
 
     package = GlobalObject(title=u'The package in which these sites will be registered.',
                            required=True)
 
 
-def persistentSiteRegistration(package, sites):
-    """
-    This function is a placeholder for future development.
-    We have discussed the desire to persist site registrations in a more accessible manner
-    to allow for a site management API. This could be a logical place to persist these sites;
-    however, it may be challenging depending upon what state the server is in during
-    the initialization process at this point.
-    """
-    pass
-
-
-@interface.implementer(IConfigurationContext, ISites)
+@interface.implementer(IConfigurationContext, ICreateSites)
 class Sites(GroupingContextDecorator):
     """
     Handle the creation of sites
@@ -150,13 +86,6 @@ class Sites(GroupingContextDecorator):
         self.context = context
         self.package = package
         self.sites = {}
-
-    def after(self):
-        self.action(
-            discriminator=('PersistentSiteRegistration', self.package),
-            callable=persistentSiteRegistration,
-            args=(self.package, self.sites),
-        )
 
 
 @interface.implementer(IConfigurationContext, ICreateSite)

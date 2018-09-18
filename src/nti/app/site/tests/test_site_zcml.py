@@ -53,7 +53,7 @@ ZCML_REGISTRATION = """
 </configure>"""
 
 
-class TestChildSiteZCMLRegistration(nti.testing.base.ConfiguringTestBase):
+class TestSiteZCMLRegistration(nti.testing.base.ConfiguringTestBase):
 
     def test_zcml_directive(self):
         self.configure_string(ZCML_REGISTRATION)
