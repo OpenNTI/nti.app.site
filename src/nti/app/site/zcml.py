@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 # pylint: disable=inherit-non-class
+
 from z3c.baseregistry.baseregistry import BaseComponents
 
 from z3c.baseregistry.zcml import RegisterIn
@@ -27,13 +28,11 @@ from zope.configuration.interfaces import IConfigurationContext
 
 from zope.interface.interfaces import IComponents
 
-from nti.app.site.schema import SiteComponent
 from nti.app.site.schema import Tuple
+from nti.app.site.schema import SiteComponent
 
 from nti.schema.field import Object
 from nti.schema.field import TextLine
-
-__docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -57,15 +56,17 @@ def createSite(_context,
                base_names,
                parent_name):
     site_registry = _context.sites
-
+    if site_name in site_registry:
+        raise ConfigurationError(
+            u'A site has already been registered with name %s' % site_name
+        )
     site_component = BaseComponents(parent_name,
                                     name=site_name,
                                     bases=base_names)
-    if site_name in site_registry:
-        raise ConfigurationError(u'A site has already been registered with name %s' % site_name)
     site_registry[site_name] = site_component
 
-    utility(_context, provides=IComponents, component=site_component, name=site_name)
+    utility(_context, provides=IComponents,
+            component=site_component, name=site_name)
 
     return site_component
 
@@ -83,7 +84,7 @@ class Sites(GroupingContextDecorator):
     """
 
     def __init__(self, context, package):
-        self.context = context
+        GroupingContextDecorator.__init__(self, context)
         self.package = package
         self.sites = {}
 
