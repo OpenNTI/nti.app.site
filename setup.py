@@ -49,6 +49,7 @@ setup(
     namespace_packages=['nti', 'nti.app'],
     tests_require=TESTS_REQUIRE,
     install_requires=[
+        'anytree',
         'setuptools',
         'nti.base',
         'nti.externalization',

@@ -11,6 +11,7 @@ from __future__ import absolute_import
 import time
 import string
 
+from anytree.exporter import JsonExporter
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -51,6 +52,8 @@ from nti.base.interfaces import ILastModified
 
 from nti.dataserver.authorization import ACT_READ
 
+from nti.dataserver.interfaces import ISiteHierarchy
+
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
 
@@ -83,6 +86,34 @@ class AllSitesView(AbstractAuthenticatedView):
         result[ITEMS] = items = list(get_all_host_sites())
         result[TOTAL] = result[ITEM_COUNT] = len(items)
         return result
+
+
+@view_config(name='site_hierarchy')
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               request_method='GET',
+               context=SitesPathAdapter,
+               permission=ACT_READ)
+class GetSiteHierarchyView(AbstractAuthenticatedView):
+
+    def __call__(self):
+        site_hierarchy = component.getUtility(ISiteHierarchy)
+        # TODO make an externalizer for this tree?
+        # Default is set so host policies can get dumped
+        exporter = JsonExporter(indent=4, sort_keys=True, default=lambda x: x.__name__)
+        return exporter.export(site_hierarchy.tree)
+
+
+@view_config(name="view_hierarchy")
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='../templates/site_hierarchy_view.pt',
+               request_method='GET',
+               context=SitesPathAdapter,
+               permission=ACT_READ)
+class SiteHierarchyView(AbstractAuthenticatedView):
+
+    def __call__(self):
+        return {}
 
 
 @view_config(context=SitesPathAdapter)
