@@ -106,7 +106,7 @@ MISSING_ZCML_REGISTRATION = """
 
 class TestSiteZCMLRegistration(nti.testing.base.ConfiguringTestBase):
 
-    def test_zcml_erros(self):
+    def test_zcml_errors(self):
         # Coverage on error cases
         with self.assertRaises(ConfigurationError):
             self.configure_string(DOUBLE_ZCML_REGISTRATION)
