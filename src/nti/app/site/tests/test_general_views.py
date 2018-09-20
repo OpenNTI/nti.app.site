@@ -23,21 +23,23 @@ from nti.testing.matchers import verifiably_provides
 
 from zope.annotation.interfaces import IAnnotations
 
+from nti.app.site.interfaces import ISite
+
+from nti.app.testing.application_webtest import ApplicationLayerTest
+
+from nti.app.testing.decorators import WithSharedApplicationMockDS
+
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
 from nti.dataserver.interfaces import ICommunity
 from nti.dataserver.interfaces import ISiteCommunity
 
+from nti.dataserver.tests import mock_dataserver
+
 from nti.dataserver.users.communities import Community
 
 from nti.site.hostpolicy import get_host_site
-
-from nti.app.testing.application_webtest import ApplicationLayerTest
-
-from nti.app.testing.decorators import WithSharedApplicationMockDS
-
-from nti.dataserver.tests import mock_dataserver
 
 
 class TestGeneralViews(ApplicationLayerTest):
@@ -95,3 +97,22 @@ class TestGeneralViews(ApplicationLayerTest):
         self.testapp.post_json(href,
                                {'name': 'seti.nextthought.com'},
                                status=422)
+        
+    @WithSharedApplicationMockDS(testapp=True, users=True)
+    def test_adapters(self):
+        with mock_dataserver.mock_db_trans():
+            Community.create_community(username='ifsta.nextthought.com')
+
+        href = '/dataserver2/sites/ifsta.nextthought.com/@@create'
+        self.testapp.post_json(href,
+                               {'name': 'myfirehouse.ifsta.com'},
+                                status=200)
+
+        with mock_dataserver.mock_db_trans():
+            site = get_host_site('myfirehouse.ifsta.com')
+            community = ICommunity(site, None)
+            assert_that(community, is_not(none()))
+
+            site = ISite(site, None)
+            assert_that(site, is_not(none()))
+            assert_that(site, has_property('Provider', 'IFSTA'))
