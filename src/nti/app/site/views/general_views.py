@@ -171,8 +171,8 @@ class CreateSiteView(AbstractAuthenticatedView,
         provider = site.Provider
         if IHostPolicyFolder.providedBy(self.context):
             parent = get_host_site(self.context.__name__)
-            provider = provider or NTI
         else:
+            provider = provider or NTI
             hostsites = component.getUtility(IEtcNamespace, name='hostsites')
             parent = hostsites.__parent__  # by definiton
         # set proper site
