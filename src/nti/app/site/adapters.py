@@ -13,6 +13,8 @@ from zope import interface
 
 from zope.annotation.interfaces import IAnnotations
 
+from zope.interface.interfaces import ComponentLookupError
+
 from zope.site.interfaces import IFolder
 
 from nti.app.site import SITE_PROVIDER
@@ -36,12 +38,19 @@ from nti.site.hostpolicy import get_host_site
 logger = __import__('logging').getLogger(__name__)
 
 
+def site_manager(folder):
+    try:
+        result = folder.getSiteManager()
+    except (AttributeError, ComponentLookupError):
+        result = component.getSiteManager()
+    return result
+
+
 @component.adapter(IFolder)
 @interface.implementer(ICommunity)
 def _folder_to_community(folder):
     result = None
-    registry = folder.getSiteManager()
-    registry = component if registry is None else registry
+    registry = site_manager(folder)
     site_policy = registry.queryUtility(ISitePolicyUserEventListener)
     community_username = getattr(site_policy, 'COM_USERNAME', '')
     if community_username:
@@ -49,19 +58,22 @@ def _folder_to_community(folder):
     return result
 
 
+def site_provider(folder):
+    annots = IAnnotations(folder, None)
+    provider = annots.get(SITE_PROVIDER) if annots else None
+    if not provider:
+        registry = site_manager(folder)
+        site_policy = registry.queryUtility(ISitePolicyUserEventListener)
+        provider = getattr(site_policy, SITE_PROVIDER, '')
+    return provider
+
+
 @component.adapter(IFolder)
 @interface.implementer(ISite)
 def _folder_to_site(folder):
     result = Site()
     result.Name = folder.__name__
-    annotations = IAnnotations(folder, None) or {}
-    provider = annotations.get(SITE_PROVIDER)
-    if not provider:
-        registry = folder.getSiteManager()
-        registry = component if registry is None else registry
-        site_policy = registry.queryUtility(ISitePolicyUserEventListener)
-        provider = getattr(site_policy, SITE_PROVIDER, '')
-    result.Provider = provider or NTI
+    result.Provider = site_provider(folder) or NTI
     if ICreated.providedBy(folder):
         result.creator = folder.creator
     if ILastModified.providedBy(folder):
