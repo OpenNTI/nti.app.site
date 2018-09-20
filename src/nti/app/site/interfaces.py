@@ -15,7 +15,7 @@ from nti.base.interfaces import ILastModified
 
 from nti.dataserver.interfaces import ISiteCommunity
 
-from nti.schema.field import TextLine
+from nti.schema.field import DecodingValidTextLine as TextLine
 
 #: Default provider
 NTI = u'NTI'
@@ -30,5 +30,4 @@ class ISite(IContained, ILastModified, ICreated):
     Name = TextLine(title=u"Site uri", required=False)
 
     Provider = TextLine(title=u"Site provider",
-                        required=False,
-                        default=NTI)
+                        required=False)

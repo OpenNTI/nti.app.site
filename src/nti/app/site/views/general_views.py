@@ -12,6 +12,7 @@ import time
 import string
 
 from anytree.exporter import JsonExporter
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -41,6 +42,7 @@ from nti.app.site import MessageFactory as _
 from nti.app.site.hostpolicy import is_valid_site_name
 from nti.app.site.hostpolicy import create_site as create_site_folder
 
+from nti.app.site.interfaces import NTI
 from nti.app.site.interfaces import ISite
 
 from nti.app.site.views import SitesPathAdapter
@@ -98,7 +100,7 @@ class GetSiteHierarchyView(AbstractAuthenticatedView):
 
     def __call__(self):
         site_hierarchy = component.getUtility(ISiteHierarchy)
-        # TODO make an externalizer for this tree?
+        # Make an externalizer for this tree?
         # Default is set so host policies can get dumped
         exporter = JsonExporter(indent=4, sort_keys=True, default=lambda x: x.__name__)
         return exporter.export(site_hierarchy.tree)
@@ -166,15 +168,16 @@ class CreateSiteView(AbstractAuthenticatedView,
                                  'code': 'SiteAlreadyExists',
                              },
                              None)
+        provider = site.Provider
         if IHostPolicyFolder.providedBy(self.context):
             parent = get_host_site(self.context.__name__)
         else:
+            provider = provider or NTI
             hostsites = component.getUtility(IEtcNamespace, name='hostsites')
             parent = hostsites.__parent__  # by definiton
         # set proper site
         with curre_site(parent):
             folder = create_site_folder(site.Name)
-        provider = site.provider
         if provider:
             annotations = IAnnotations(folder)
             annotations[SITE_PROVIDER] = escape_provider(text_(provider))

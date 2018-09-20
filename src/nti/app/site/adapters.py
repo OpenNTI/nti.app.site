@@ -38,9 +38,11 @@ logger = __import__('logging').getLogger(__name__)
 
 @component.adapter(IFolder)
 @interface.implementer(ICommunity)
-def _folder_to_community(unused_site):
+def _folder_to_community(folder):
     result = None
-    site_policy = component.queryUtility(ISitePolicyUserEventListener)
+    registry = folder.getSiteManager()
+    registry = component if registry is None else registry
+    site_policy = registry.queryUtility(ISitePolicyUserEventListener)
     community_username = getattr(site_policy, 'COM_USERNAME', '')
     if community_username:
         result = Community.get_community(community_username)
@@ -55,7 +57,9 @@ def _folder_to_site(folder):
     annotations = IAnnotations(folder, None) or {}
     provider = annotations.get(SITE_PROVIDER)
     if not provider:
-        site_policy = component.queryUtility(ISitePolicyUserEventListener)
+        registry = folder.getSiteManager()
+        registry = component if registry is None else registry
+        site_policy = registry.queryUtility(ISitePolicyUserEventListener)
         provider = getattr(site_policy, SITE_PROVIDER, '')
     result.Provider = provider or NTI
     if ICreated.providedBy(folder):
