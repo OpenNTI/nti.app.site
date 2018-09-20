@@ -42,6 +42,7 @@ from nti.app.site import MessageFactory as _
 from nti.app.site.hostpolicy import is_valid_site_name
 from nti.app.site.hostpolicy import create_site as create_site_folder
 
+from nti.app.site.interfaces import NTI
 from nti.app.site.interfaces import ISite
 
 from nti.app.site.views import SitesPathAdapter
@@ -167,15 +168,16 @@ class CreateSiteView(AbstractAuthenticatedView,
                                  'code': 'SiteAlreadyExists',
                              },
                              None)
+        provider = site.Provider
         if IHostPolicyFolder.providedBy(self.context):
             parent = get_host_site(self.context.__name__)
+            provider = provider or NTI
         else:
             hostsites = component.getUtility(IEtcNamespace, name='hostsites')
             parent = hostsites.__parent__  # by definiton
         # set proper site
         with curre_site(parent):
             folder = create_site_folder(site.Name)
-        provider = site.provider
         if provider:
             annotations = IAnnotations(folder)
             annotations[SITE_PROVIDER] = escape_provider(text_(provider))
