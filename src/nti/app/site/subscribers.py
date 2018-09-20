@@ -22,7 +22,7 @@ logger = __import__('logging').getLogger(__name__)
 
 
 @component.adapter(IHostPolicyFolder, IObjectCreatedEvent)
-def _on_site_created(site, unused_event):
+def _on_site_created(site, unused_event=None):
     if ICreated.providedBy(site):
         name = site.__name__
         if SiteCommunity.get_community(name) is None:
