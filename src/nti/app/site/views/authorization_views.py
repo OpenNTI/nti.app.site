@@ -118,6 +118,7 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
     def can_administer_user(self, user):
         result = True
         if not self.is_admin:
+            # pylint: disable=no-member
             result = self.site_admin_utility.can_administer_user(self.remoteUser, user)
         return result
 
