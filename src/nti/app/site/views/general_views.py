@@ -12,6 +12,7 @@ import time
 import string
 
 from anytree.exporter import JsonExporter
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -98,7 +99,7 @@ class GetSiteHierarchyView(AbstractAuthenticatedView):
 
     def __call__(self):
         site_hierarchy = component.getUtility(ISiteHierarchy)
-        # TODO make an externalizer for this tree?
+        # Make an externalizer for this tree?
         # Default is set so host policies can get dumped
         exporter = JsonExporter(indent=4, sort_keys=True, default=lambda x: x.__name__)
         return exporter.export(site_hierarchy.tree)
