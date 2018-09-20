@@ -64,6 +64,6 @@ class Tuple(SchemaTuple):
 
     def fromUnicode(self, value):
         result = tuple(
-            self.value_type.fromUnicode(tup) for tup in value.split(u',') if tup
+            self.value_type.fromUnicode(tup) for tup in value.split(',') if tup
         )
         return result
