@@ -99,7 +99,6 @@ class AllSitesView(AbstractAuthenticatedView):
 class GetSiteRegistry(AbstractAuthenticatedView):
 
     def __call__(self):
-        from IPython.terminal.debugger import set_trace;set_trace()
         site_name = self.request.params.get('site_name', 'dataserver2')
         # TODO safety
         site = self.context[site_name]
