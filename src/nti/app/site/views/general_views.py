@@ -18,13 +18,18 @@ from pyramid import httpexceptions as hexc
 from pyramid.view import view_config
 from pyramid.view import view_defaults
 
+from requests.structures import CaseInsensitiveDict
+
 from zope import component
 from zope import interface
 from zope import lifecycleevent
 
 from zope.annotation.interfaces import IAnnotations
 
+from zope.cachedescriptors.property import Lazy
+
 from zope.component.hooks import site as curre_site
+
 from zope.interface.interfaces import IComponents
 
 from zope.traversing.interfaces import IEtcNamespace
@@ -99,9 +104,16 @@ class AllSitesView(AbstractAuthenticatedView):
              permission=ACT_READ)
 class GetSiteRegistry(AbstractAuthenticatedView):
 
+    @Lazy
+    def params(self):
+        return CaseInsensitiveDict(self.request.params)
+
     def __call__(self):
-        site_name = self.request.params.get('site_name', 'dataserver2')
-        # TODO safety
+        # pylint: disable=no-member
+        site_name = self.params.get('name') \
+                 or self.params.get('site') \
+                 or self.params.get('site_name')
+        # pylint: disable=unsubscriptable-object
         site = self.context[site_name]
         ld = LocatedExternalDict({'PersistentManager': site.getSiteManager(),
                                   'RuntimeManager': component.getUtility(IComponents, name=site_name)})
