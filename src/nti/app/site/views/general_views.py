@@ -12,6 +12,7 @@ import time
 import string
 
 from anytree.exporter import JsonExporter
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -45,7 +46,6 @@ from nti.app.site.hostpolicy import create_site as create_site_folder
 from nti.app.site.interfaces import ISite
 
 from nti.app.site.views import SitesPathAdapter
-from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
 from nti.base._compat import text_
 
@@ -96,16 +96,16 @@ class AllSitesView(AbstractAuthenticatedView):
              request_method='GET',
              context=SitesPathAdapter,
              permission=ACT_READ)
-class GetSitePolicy(AbstractAuthenticatedView):
+class GetSiteRegistry(AbstractAuthenticatedView):
 
     def __call__(self):
         from IPython.terminal.debugger import set_trace;set_trace()
         site_name = self.request.params.get('site_name', 'dataserver2')
         # TODO safety
         site = self.context[site_name]
-        with curre_site(site):
-            policy = component.getUtility(ICommunitySitePolicyUserEventListener)
-        return site.getSiteManager()
+        ld = LocatedExternalDict({'PersistentManager': site.getSiteManager(),
+                                  'RuntimeManager': component.getUtility(IComponents, name=site_name)})
+        return ld
 
 
 @view_config(name='site_hierarchy')

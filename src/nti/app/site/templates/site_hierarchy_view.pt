@@ -36,7 +36,7 @@
                                 $("#right-pane").addClass("col offset-2 offset-sm-6 py-2");
                                 var url = "@@component_registry?site_name=" + data.text;
                                 $.ajax({url: url, success: function (result) {
-                                    var res = result;
+                                    document.getElementById("json").innerHTML = JSON.stringify(result, undefined, 2);
                                     }
                                 });
                             },
@@ -58,7 +58,7 @@
     <div class="container-fluid h-100">
 		<div id="site-tree"></div>
         <div id="buffer"></div>
-        <div id="right-pane"></div>
+        <div id="right-pane"><pre id="json" style="height:auto;max-height:150%;overflow:auto;"></pre></div>
     </div>
 	</body>
 </html>
