@@ -25,6 +25,7 @@ from zope import lifecycleevent
 from zope.annotation.interfaces import IAnnotations
 
 from zope.component.hooks import site as curre_site
+from zope.interface.interfaces import IComponents
 
 from zope.traversing.interfaces import IEtcNamespace
 
@@ -88,6 +89,23 @@ class AllSitesView(AbstractAuthenticatedView):
         result[ITEMS] = items = list(get_all_host_sites())
         result[TOTAL] = result[ITEM_COUNT] = len(items)
         return result
+
+
+@view_config(name='component_registry',
+             route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='GET',
+             context=SitesPathAdapter,
+             permission=ACT_READ)
+class GetSiteRegistry(AbstractAuthenticatedView):
+
+    def __call__(self):
+        site_name = self.request.params.get('site_name', 'dataserver2')
+        # TODO safety
+        site = self.context[site_name]
+        ld = LocatedExternalDict({'PersistentManager': site.getSiteManager(),
+                                  'RuntimeManager': component.getUtility(IComponents, name=site_name)})
+        return ld
 
 
 @view_config(name='site_hierarchy')

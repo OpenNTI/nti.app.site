@@ -24,13 +24,28 @@
                 return parsedTree;
             }
             $(function() {
-                var tree = [];
                 $.ajax({url: "@@site_hierarchy", success: function(result) {
-                        tree = JSON.parse(result);
+                        var tree = JSON.parse(result);
                         // Ok, lets reformat this tree
                         tree = [parseTree(tree)];
                         $('#site-tree').treeview({
-                            data: tree
+                            data: tree,
+                            onNodeSelected: function (event, data) {
+                                $(this).addClass("col-sm-6 col-2 h-100 py-2 d-flex");
+                                $("#buffer").addClass("col-sm-6 invisible col-2");
+                                $("#right-pane").addClass("col offset-2 offset-sm-6 py-2");
+                                var url = "@@component_registry?site_name=" + data.text;
+                                $.ajax({url: url, success: function (result) {
+                                    document.getElementById("json").innerHTML = JSON.stringify(result, undefined, 2);
+                                    }
+                                });
+                            },
+                            onNodeUnselected: function (event, data) {
+                                $(this).removeClass("col-sm-6 col-2 h-100 py-2 d-flex");
+                                $("#buffer").removeClass("col-sm-6 invisible col-2");
+                                $("#right-pane").removeClass("col offset-2 offset-sm-6 py-2");
+
+                            }
                         });
                     }
                 });
@@ -40,9 +55,10 @@
     </head>
 
 	<body>
-		<div id="site-tree">
-
-        </div>
-
+    <div class="container-fluid h-100">
+		<div id="site-tree"></div>
+        <div id="buffer"></div>
+        <div id="right-pane"><pre id="json" style="height:auto;max-height:150%;overflow:auto;"></pre></div>
+    </div>
 	</body>
 </html>

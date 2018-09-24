@@ -56,6 +56,26 @@
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
 
+	<adapter factory=".object_io.ComponentObjectIO"
+			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
+			 for="zope.interface.interfaces.IComponentRegistry" />
+
+	<adapter factory=".object_io.UtilityRegistrationObjectIO"
+			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
+			 for="zope.interface.interfaces.IUtilityRegistration" />
+
+	<adapter factory=".object_io.AdapterRegistrationObjectIO"
+			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
+			 for="zope.interface.interfaces.IAdapterRegistration" />
+
+	<adapter factory=".object_io.SubscriptionAdapterRegistrationObjectIO"
+			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
+			 for="zope.interface.interfaces.ISubscriptionAdapterRegistration" />
+
+	<adapter factory=".object_io.HandlerRegistrationObjectIO"
+			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
+			 for="zope.interface.interfaces.IHandlerRegistration" />
+
 	<!-- Traversal -->
 	<adapter factory=".traversal.HostPolicyTraversable"
 			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
