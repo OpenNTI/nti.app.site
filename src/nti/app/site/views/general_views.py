@@ -132,7 +132,7 @@ class GetSiteHierarchyView(AbstractAuthenticatedView):
         site_hierarchy = component.getUtility(ISiteHierarchy)
         # Make an externalizer for this tree?
         # Default is set so host policies can get dumped
-        exporter = JsonExporter(indent=4, sort_keys=True, default=lambda x: x.__name__)
+        exporter = JsonExporter(indent=4, sort_keys=True, default=lambda x: x)
         return exporter.export(site_hierarchy.tree)
 
 
