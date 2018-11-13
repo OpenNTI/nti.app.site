@@ -107,13 +107,18 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
         for principal_id, access in principal_access:
             if access == Allow:
                 user = User.get_user(principal_id)
-                if IUser.providedBy(user) and self.can_administer_user(user):
+                if      IUser.providedBy(user) \
+                    and self.can_administer_user(user) \
+                    and self.is_user_created_in_site(site, user):
                     result.append(user)
         return result
 
     @Lazy
     def site_admin_utility(self):
         return component.getUtility(ISiteAdminUtility)
+
+    def is_user_created_in_site(self, site, user):
+        return site == get_user_creation_site(user)
 
     def can_administer_user(self, user):
         result = True
