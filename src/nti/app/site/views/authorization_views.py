@@ -24,6 +24,8 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.component.hooks import getSite
 
+from zope.event import notify
+
 from zope.intid.interfaces import IIntIds
 
 from zope.securitypolicy.interfaces import Allow
@@ -42,6 +44,9 @@ from nti.app.users.views.view_mixins import AbstractEntityViewMixin
 from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.site import MessageFactory as _
+
+from nti.app.site.interfaces import SiteAdminAddedEvent
+from nti.app.site.interfaces import SiteAdminRemovedEvent
 
 from nti.app.users.utils import get_user_creation_site
 from nti.app.users.utils import set_user_creation_site
@@ -276,6 +281,8 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
             # pylint: disable=too-many-function-args
             principal_role_manager.assignRoleToPrincipal(ROLE_SITE_ADMIN.id,
                                                          username)
+            user = User.get_user(username)
+            notify(SiteAdminAddedEvent(user))
         return self._get_site_admin_external()
 
 
@@ -308,4 +315,6 @@ class SiteAdminDeleteView(SiteAdminAbstractUpdateView):
             # pylint: disable=too-many-function-args
             principal_role_manager.removeRoleFromPrincipal(ROLE_SITE_ADMIN.id,
                                                            username)
+            user = User.get_user(username)
+            notify(SiteAdminRemovedEvent(user))
         return self._get_site_admin_external()
