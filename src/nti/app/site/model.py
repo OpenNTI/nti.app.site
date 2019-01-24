@@ -19,8 +19,6 @@ from zope.component.hooks import getSite
 
 from zope.container.contained import Contained
 
-from zope.intid import IIntIds
-
 from zope.schema.fieldproperty import createFieldProperties
 
 from nti.app.site.interfaces import ISite
@@ -33,8 +31,6 @@ from nti.app.site import SITE_MIMETYPE
 from nti.base.mixins import CreatedAndModifiedTimeMixin
 
 from nti.coremetadata.interfaces import IDataserver
-
-from nti.dataserver.authorization import is_admin_or_content_admin_or_site_admin
 
 from nti.dataserver.users.utils import intids_of_users_by_site
 
@@ -94,10 +90,4 @@ class SiteSeatLimit(Persistent, Contained):
     @CachedProperty('lastModified', 'current_site')
     def used_seats(self):
         user_ids = intids_of_users_by_site(self.current_site)
-        intids = component.getUtility(IIntIds)
-        num_users = 0
-        for user_id in user_ids:
-            user = intids.queryObject(user_id)
-            if user is not None and not is_admin_or_content_admin_or_site_admin(user.username):
-                num_users += 1
-        return num_users
+        return len(user_ids)  # Includes site admins

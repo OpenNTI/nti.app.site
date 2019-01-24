@@ -15,8 +15,6 @@ from zope import lifecycleevent
 
 from zope.component.hooks import site
 
-from zope.securitypolicy.interfaces import IPrincipalRoleManager
-
 from zope.traversing.interfaces import IEtcNamespace
 
 from nti.app.site.interfaces import ISiteSeatLimit
@@ -24,8 +22,6 @@ from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
-
-from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
 from nti.dataserver.tests import mock_dataserver
 
@@ -69,17 +65,8 @@ class TestSeatLimit(ApplicationLayerTest):
                 used = seat_limit.used_seats
                 assert_that(used, is_(2))
 
-            # Check caching is wokring as expected
+            # Check caching is working as expected
             self._create_user_in_site(username=u'foo3@bar', creation_site='ifsta.nextthought.com')
-            with site(ifsta):
-                seat_limit = component.queryUtility(ISiteSeatLimit)
-                used = seat_limit.used_seats
-                assert_that(used, is_(3))
-
-            # Check admins arent included (TODO we are lacking coverage on content and nti admins)
-            site_admin = self._create_user_in_site(username=u'foo4@bar', creation_site='ifsta.nextthought.com')
-            prm = IPrincipalRoleManager(ifsta)
-            prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME, site_admin.username)
             with site(ifsta):
                 seat_limit = component.queryUtility(ISiteSeatLimit)
                 used = seat_limit.used_seats
