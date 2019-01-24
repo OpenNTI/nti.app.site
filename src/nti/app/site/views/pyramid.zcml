@@ -8,5 +8,6 @@
 
 	<pyramid:scan package=".general_views" />
 	<pyramid:scan package='.authorization_views' />
+    <pyramid:scan package='.seat_limit_views' />
 
 </configure>

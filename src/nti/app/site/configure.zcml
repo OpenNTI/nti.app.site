@@ -43,13 +43,16 @@
 			 provides="nti.dataserver.interfaces.IGroupMember" />
 
 
+    <!-- Seat Limit -->
+    <utility factory=".model.SiteSeatLimit"
+             provides=".interfaces.ISiteSeatLimit"/>
 
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />
 
 	<ext:registerAutoPackageIO
-		root_interfaces=".interfaces.ISite"
+		root_interfaces=".interfaces.ISite .interfaces.ISiteSeatLimit"
 		modules=".model" />
 
 	<adapter factory=".externalization._SiteExternalizer"
