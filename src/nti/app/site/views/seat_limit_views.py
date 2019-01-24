@@ -5,8 +5,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
-from ZODB.interfaces import IConnection
-
 from pyramid.view import view_config
 from pyramid.view import view_defaults
 
@@ -27,6 +25,9 @@ from nti.dataserver import authorization as nauth
 from nti.dataserver.interfaces import IDataserverFolder
 
 from nti.externalization import update_from_external_object
+
+from nti.site.localutility import install_utility
+
 
 __docformat__ = "restructuredtext en"
 
@@ -53,13 +54,13 @@ class SeatLimitView(AbstractAuthenticatedView):
             # If we don't have one, create one
             seat_limit = SiteSeatLimit()
             seat_limit.__parent__ = site
-            # Because this object doesn't live in a container
-            # with a connection already established we must
-            # explicitly add it
-            conn = IConnection(site)
-            conn.add(seat_limit)
             sm = site.getSiteManager()
-            sm.registerUtility(seat_limit, ISiteSeatLimit)
+            # We use install_utility to ensure
+            # the object lineage is properly set
+            install_utility(seat_limit,
+                            utility_name='',
+                            provided=ISiteSeatLimit,
+                            local_site_manager=sm)
 
         ext_values = read_body_as_external_object(self.request)
         update_from_external_object(seat_limit, ext_values)

@@ -17,6 +17,8 @@ from zope.cachedescriptors.property import CachedProperty
 
 from zope.component.hooks import getSite
 
+from zope.container.contained import Contained
+
 from zope.intid import IIntIds
 
 from zope.schema.fieldproperty import createFieldProperties
@@ -68,9 +70,8 @@ class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
 
 
 @interface.implementer(ISiteSeatLimit)
-class SiteSeatLimit(Persistent):
+class SiteSeatLimit(Persistent, Contained):
 
-    __parent__ = None
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
