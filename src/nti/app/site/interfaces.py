@@ -16,13 +16,14 @@ from zope.interface.interfaces import ObjectEvent
 from zope.interface.interfaces import IObjectEvent
 
 from zope.location.interfaces import IContained
+from zope.schema import Bool
 
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
 from nti.dataserver.interfaces import ISiteCommunity
 
-from nti.schema.field import DecodingValidTextLine as TextLine
+from nti.schema.field import DecodingValidTextLine as TextLine, Int
 
 #: Default provider
 NTI = u'NTI'
@@ -68,3 +69,20 @@ class SiteAdminRemovedEvent(ObjectEvent):
     def __init__(self, obj, request=None):
         super(SiteAdminRemovedEvent, self).__init__(obj)
         self.request = request
+
+
+class ISiteSeatLimit(interface.Interface):
+    """
+    A limit upon the number of allowed users in a site.
+    """
+
+    hard = Bool(title=u'Hard Seat Limit',
+                required=True,
+                default=False)
+
+    max_seats = Int(title=u'Maximum Number of Seats',
+                    required=True)
+
+    used_seats = Int(title=u'Used Seats',
+                     description=u'The current number of seats taken in the site.',
+                     required=True)
