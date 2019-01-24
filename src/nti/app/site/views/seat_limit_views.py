@@ -53,6 +53,9 @@ class SeatLimitView(AbstractAuthenticatedView):
             # If we don't have one, create one
             seat_limit = SiteSeatLimit()
             seat_limit.__parent__ = site
+            # Because this object doesn't live in a container
+            # with a connection already established we must
+            # explicitly add it
             conn = IConnection(site)
             conn.add(seat_limit)
             sm = site.getSiteManager()
