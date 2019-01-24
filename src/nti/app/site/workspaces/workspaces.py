@@ -15,15 +15,26 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.location.interfaces import IContained
 
+from nti.appserver.workspaces.interfaces import IGlobalWorkspaceLinkProvider
 from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site import SITE_ADMIN
+from nti.app.site import SITE_SEAT_LIMIT
 
 from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
+from nti.coremetadata.interfaces import IUser
+
+from nti.dataserver.authorization import is_admin_or_site_admin
 from nti.dataserver.authorization import is_admin_or_content_admin_or_site_admin
 
 from nti.property.property import alias
+
+from nti.dataserver.interfaces import IDataserverFolder
+
+from nti.links import Link
+
+from nti.traversal.traversal import find_interface
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -65,3 +76,19 @@ def SiteAdminWorkspace(user_service):
     if workspace.predicate():
         workspace.__parent__ = workspace.user
         return workspace
+
+
+@component.adapter(IUser)
+@interface.implementer(IGlobalWorkspaceLinkProvider)
+class _GlobalWorkspaceSiteSeatLimitLinkProvider(object):
+
+    def __init__(self, user):
+        self.user = user
+
+    def links(self, unused_workspace):
+        if is_admin_or_site_admin(self.user):
+            ds2 = find_interface(self.user, IDataserverFolder)
+            link = Link(ds2, rel=SITE_SEAT_LIMIT,
+                        elements=(SITE_SEAT_LIMIT,))
+            return [link]
+        return ()
