@@ -13,6 +13,8 @@ from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_property
 
+from nti.app.site import SITE_SEAT_LIMIT
+
 from nti.appserver.workspaces.interfaces import IUserService
 
 from nti.app.site.workspaces.workspaces import SiteAdminWorkspace
@@ -74,3 +76,14 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
                                extra_environ=self._make_extra_environ())
         self.require_link_href_with_rel(res.json_body, 'RemoveSyncLock')
         self.require_link_href_with_rel(res.json_body, 'SyncAllLibraries')
+
+    @WithSharedApplicationMockDS(testapp=True, users=True)
+    def test_site_seat_limit_link(self):
+        # Get the global workspace
+        res = self.testapp.get('/dataserver2')
+        for workspace in res.json_body['Items']:
+            if workspace.get('Title', None) == 'Global':
+                global_workspace = workspace
+                break
+        assert_that(global_workspace, is_(not_none()))
+        self.require_link_href_with_rel(global_workspace, SITE_SEAT_LIMIT)
