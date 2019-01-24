@@ -83,7 +83,8 @@ class ISiteSeatLimit(interface.Interface):
                 default=False)
 
     max_seats = Int(title=u'Maximum Number of Seats',
-                    required=True)
+                    required=False,
+                    default=None)
 
     used_seats = Int(title=u'Used Seats',
                      description=u'The current number of seats taken in the site.',

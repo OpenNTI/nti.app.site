@@ -69,9 +69,13 @@ class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
     mimeType = mime_type = SITE_MIMETYPE
 
 
+SITE_SEAT_LIMIT_TRAVERSAL_NAME = '++etc++nti.SiteSeatLimit'
+
+
 @interface.implementer(ISiteSeatLimit)
 class SiteSeatLimit(Persistent, Contained):
 
+    __name__ = SITE_SEAT_LIMIT_TRAVERSAL_NAME
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 

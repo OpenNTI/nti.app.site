@@ -167,3 +167,49 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'max_seats', is_(3),
                                       'used_seats', is_(0)))
 
+        # Check can set unlimited seats (null value)
+        res = self.testapp.post_json('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit',
+                                     {'max_seats': None})
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(none()),
+                                      'used_seats', is_(0)))
+
+        # Test DELETE
+        res = self.testapp.post_json('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit',
+                                     {'max_seats': 25})
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(25),
+                                      'used_seats', is_(0)))
+        self.testapp.delete('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+                            status=204)
+        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
+        updated_parent_utils = self._get_number_of_utilities_for_site('ifsta.nextthought.com')
+        assert_that(updated_child_utils, is_(child_utils))
+        assert_that(parent_utils, is_(updated_parent_utils))
+        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(none()),
+                                      'used_seats', is_(1)))
+        res = self.testapp.get('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(none()),
+                                      'used_seats', is_(0)))
+        res = self.testapp.get('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(25),
+                                      'used_seats', is_(0)))
+
+        # Check recreating works
+        res = self.testapp.post_json('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+                                     {'max_seats': 3})
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(3),
+                                      'used_seats', is_(0)))
+        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
+        assert_that(updated_child_utils, is_(child_utils + 1))
