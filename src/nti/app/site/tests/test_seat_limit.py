@@ -164,6 +164,6 @@ class TestSeatLimit(ApplicationLayerTest):
         res = self.testapp.get('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', is_(False),
-                                      'max_seats', is_(5),
+                                      'max_seats', is_(3),
                                       'used_seats', is_(0)))
 

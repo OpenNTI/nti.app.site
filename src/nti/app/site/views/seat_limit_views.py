@@ -22,8 +22,6 @@ from nti.app.site.interfaces import ISiteSeatLimit
 
 from nti.app.site.model import SiteSeatLimit
 
-from nti.app.site.util import queryUtilityOnlyInManager
-
 from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import IDataserverFolder
@@ -49,17 +47,15 @@ class SeatLimitView(AbstractAuthenticatedView):
     @view_config(request_method=('POST', 'PUT'),
                  permission=nauth.ACT_READ)
     def create_or_update_seat_limit(self):
-        # Query for the seat limit in this site
-        # We directly check the utility registrations so the lookup is
-        # only within this site's persistent registry
         site = getSite()
-        sm = site.getSiteManager()
-        seat_limit = queryUtilityOnlyInManager(sm, ISiteSeatLimit)
-        if seat_limit is None:
+        seat_limit = component.queryUtility(ISiteSeatLimit, context=site)
+        if seat_limit is None or seat_limit.__parent__ != site:
             # If we don't have one, create one
             seat_limit = SiteSeatLimit()
+            seat_limit.__parent__ = site
             conn = IConnection(site)
             conn.add(seat_limit)
+            sm = site.getSiteManager()
             sm.registerUtility(seat_limit, ISiteSeatLimit)
 
         ext_values = read_body_as_external_object(self.request)

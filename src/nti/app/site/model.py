@@ -70,6 +70,7 @@ class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
 @interface.implementer(ISiteSeatLimit)
 class SiteSeatLimit(Persistent):
 
+    __parent__ = None
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
