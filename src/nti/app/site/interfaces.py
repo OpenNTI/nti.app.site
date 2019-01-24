@@ -16,6 +16,7 @@ from zope.interface.interfaces import ObjectEvent
 from zope.interface.interfaces import IObjectEvent
 
 from zope.location.interfaces import IContained
+
 from zope.schema import Bool
 
 from nti.base.interfaces import ICreated
@@ -23,7 +24,8 @@ from nti.base.interfaces import ILastModified
 
 from nti.dataserver.interfaces import ISiteCommunity
 
-from nti.schema.field import DecodingValidTextLine as TextLine, Int
+from nti.schema.field import Int
+from nti.schema.field import DecodingValidTextLine as TextLine
 
 #: Default provider
 NTI = u'NTI'
