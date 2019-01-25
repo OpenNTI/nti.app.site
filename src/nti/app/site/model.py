@@ -13,24 +13,22 @@ from persistent import Persistent
 from zope import component
 from zope import interface
 
-from zope.cachedescriptors.property import CachedProperty
-
 from zope.component.hooks import getSite
 
 from zope.container.contained import Contained
+from zope.interface.interfaces import ComponentLookupError
 
 from zope.schema.fieldproperty import createFieldProperties
 
 from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
+from nti.app.site.interfaces import ISiteSeatLimitAlgorithm
 
 from zope.mimetype.interfaces import IContentTypeAware
 
 from nti.app.site import SITE_MIMETYPE
 
 from nti.base.mixins import CreatedAndModifiedTimeMixin
-
-from nti.coremetadata.interfaces import IDataserver
 
 from nti.dataserver.users.utils import intids_of_users_by_site
 
@@ -75,19 +73,26 @@ class SiteSeatLimit(Persistent, Contained):
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
-    # Because this will be updated on any user CUD in any site
-    # it is likely a minimal gain
     @property
-    def lastModified(self):
-        ds = component.getUtility(IDataserver)
-        users_folder = ds.users_folder
-        return users_folder.lastModified
-
-    @property
-    def current_site(self):
-        return getSite().__name__
-
-    @CachedProperty('lastModified', 'current_site')
     def used_seats(self):
+        algorithm = component.queryMultiAdapter((getSite(), self), ISiteSeatLimitAlgorithm, name=self.seat_algorithm)
+        if algorithm is None and self.seat_algorithm != '':
+            # We were set to a custom algorithm that was unregistered
+            # Fallback to default
+            self.seat_algorithm = ''
+            algorithm = component.getMultiAdapter((getSite(), self), ISiteSeatLimitAlgorithm, name=self.seat_algorithm)
+        elif algorithm is None:
+            # Tried for default and didn't find
+            raise ComponentLookupError
+        return algorithm.used_seats()
+
+
+class DefaultSiteSeatLimitAlgorithm(object):
+
+    def __init__(self, site, seat_limit):
+        self.current_site = site
+        self.seat_limit = seat_limit
+
+    def used_seats(self, *args, **kwargs):
         user_ids = intids_of_users_by_site(self.current_site)
         return len(user_ids)  # Includes site admins
