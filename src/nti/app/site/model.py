@@ -79,6 +79,8 @@ class SiteSeatLimit(Persistent, Contained):
         if algorithm is None and self.seat_algorithm != '':
             # We were set to a custom algorithm that was unregistered
             # Fallback to default
+            logger.debug(u'Unable to find multi adapter %s for site seat limit.'
+                         u' Falling back to default' % self.seat_algorithm)
             self.seat_algorithm = ''
             algorithm = component.getMultiAdapter((getSite(), self), ISiteSeatLimitAlgorithm, name=self.seat_algorithm)
         elif algorithm is None:
