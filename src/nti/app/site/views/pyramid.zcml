@@ -9,5 +9,6 @@
 	<pyramid:scan package=".general_views" />
 	<pyramid:scan package='.authorization_views' />
     <pyramid:scan package='.seat_limit_views' />
+    <pyramid:scan package=".google_logon_configuration_views" />
 
 </configure>
