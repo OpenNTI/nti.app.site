@@ -59,7 +59,7 @@ class Site(CreatedAndModifiedTimeMixin, SchemaConfigured):
     creator = None
     name = alias('Name')
     provider = alias('Provider')
-    
+
     parameters = {}  # IContentTypeAware
 
     mimeType = mime_type = SITE_MIMETYPE

@@ -11,7 +11,7 @@ from __future__ import absolute_import
 from zope import component
 
 from zope.lifecycleevent.interfaces import IObjectCreatedEvent
-    
+
 from nti.app.site.communities import SiteCommunity
 
 from nti.base.interfaces import ICreated
