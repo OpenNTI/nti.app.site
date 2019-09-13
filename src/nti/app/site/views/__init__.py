@@ -45,7 +45,7 @@ logger = __import__('logging').getLogger(__name__)
 @component.adapter(IUser, IRequest)
 def SiteAdminWorkspacePathAdapter(context, unused_request):
     service = IUserService(context)
-    workspace = ISiteAdminWorkspace(service)
+    workspace = ISiteAdminWorkspace(service, None)
     return workspace
 
 
