@@ -65,9 +65,9 @@ class TestSiteAdminWorkspace(ApplicationLayerTest):
         # pgreazy is not an admin, so it should be nothing
         with mock_dataserver.mock_db_trans(self.ds):
             self._create_user(self.basic_user)
-            self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
-                             extra_environ=self._make_extra_environ(),
-                             status=404)
+        self.testapp.get('/dataserver2/users/pgreazy/SiteAdmin',
+                         extra_environ=self._make_extra_environ(),
+                         status=404)
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_admin_decoration(self):
