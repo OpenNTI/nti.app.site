@@ -42,7 +42,6 @@
 			 factory=".authorization.NextthoughtDotComSiteAdmin"
 			 provides="nti.dataserver.interfaces.IGroupMember" />
 
-
     <!-- Seat Limit -->
     <utility factory=".model.SiteSeatLimit"
              provides=".interfaces.ISiteSeatLimit"/>
@@ -86,6 +85,9 @@
 	<adapter factory=".traversal.HostPolicyTraversable"
 			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
 			 provides="zope.traversing.interfaces.ITraversable" />
+
+    <!-- Subscribers -->
+    <subscriber handler=".subscribers._on_site_created" />
 
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
