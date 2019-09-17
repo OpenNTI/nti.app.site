@@ -18,9 +18,6 @@ from hamcrest import greater_than
 from hamcrest import has_property
 does_not = is_not
 
-from nti.testing.matchers import validly_provides
-from nti.testing.matchers import verifiably_provides
-
 from zope.annotation.interfaces import IAnnotations
 
 from nti.app.site.interfaces import ISite
@@ -31,9 +28,6 @@ from nti.app.testing.decorators import WithSharedApplicationMockDS
 
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
-
-from nti.dataserver.interfaces import ICommunity
-from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.dataserver.tests import mock_dataserver
 
@@ -66,11 +60,6 @@ class TestGeneralViews(ApplicationLayerTest):
                                 'MimeType', is_('application/vnd.nextthought.site')))
 
         with mock_dataserver.mock_db_trans():
-            result = Community.get_community('abydos.nextthought.com')
-            assert_that(result, is_not(none()))
-            assert_that(result, validly_provides(ISiteCommunity))
-            assert_that(result, verifiably_provides(ISiteCommunity))
-
             site = get_host_site('abydos.nextthought.com')
             assert_that(ICreated.providedBy(site), is_(True))
             assert_that(ILastModified.providedBy(site), is_(True))
@@ -79,9 +68,6 @@ class TestGeneralViews(ApplicationLayerTest):
 
             annotations = IAnnotations(site)
             assert_that(annotations, has_entry('PROVIDER', 'SETI'))
-
-            community = ICommunity(site, None)
-            assert_that(community, none())
 
         href = '/dataserver2/sites/abydos.nextthought.com/@@create'
         res = self.testapp.post_json(href,
@@ -97,7 +83,7 @@ class TestGeneralViews(ApplicationLayerTest):
         self.testapp.post_json(href,
                                {'name': 'seti.nextthought.com'},
                                status=422)
-        
+
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_adapters(self):
         with mock_dataserver.mock_db_trans():
@@ -110,8 +96,6 @@ class TestGeneralViews(ApplicationLayerTest):
 
         with mock_dataserver.mock_db_trans():
             site = get_host_site('myfirehouse.ifsta.com')
-            community = ICommunity(site, None)
-            assert_that(community, is_not(none()))
 
             site = ISite(site, None)
             assert_that(site, is_not(none()))

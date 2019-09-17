@@ -87,9 +87,6 @@
 			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
 			 provides="zope.traversing.interfaces.ITraversable" />
 
-	<!-- Subscribers -->
-	<subscriber handler=".subscribers._on_site_created" />
-
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace
