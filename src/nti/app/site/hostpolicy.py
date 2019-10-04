@@ -11,6 +11,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import re
+import time
 
 from zope import component
 
@@ -68,6 +69,7 @@ def create_site(name, default_base=BASEADULT):
     # create policy folder
     result = HostPolicyFolder()
     hostsites[name] = result
+    hostsites.lastSynchronized = time.time()
     site_policy = HostPolicySiteManager(result)
     site_policy.__bases__ = (secondary_comps,)
     # set the site manager and return
