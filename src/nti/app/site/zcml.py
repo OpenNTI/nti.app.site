@@ -13,6 +13,7 @@ from __future__ import absolute_import
 from z3c.baseregistry.baseregistry import BaseComponents
 
 from z3c.baseregistry.zcml import RegisterIn
+from z3c.baseregistry.zcml import setActiveRegistry as z3c_setActiveRegistry
 
 from zope import component
 
@@ -152,3 +153,28 @@ def create_and_register_base_components(_context, parent, name):
         args = (parent, name),
         kw = None
         )
+
+class IRegisterInNamedComponents(interface.Interface):
+
+    registry = BCField(title=u'The registry',
+                       description=u'The python path or global utility name of the registry to use',
+                       required=True)
+
+
+def setActiveRegistry(context, registry):
+    registry = _registry_lookup(registry)
+    z3c_setActiveRegistry(context, registry)
+    
+class RegisterInNamedComponents(RegisterIn):
+
+    _registry_or_name = None
+
+    def __init__(self, context, registry):
+        super(RegisterInNamedComponents, self).__init__(context, registry)
+
+    def before(self):
+        self.context.action(
+            discriminator=None,
+            callable=setActiveRegistry,
+            args=(self, self.registry)
+            )

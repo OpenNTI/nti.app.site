@@ -22,6 +22,7 @@ from zope.configuration.exceptions import ConfigurationError
 
 from zope.dottedname import resolve as dottedname
 
+from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interfaces import IComponents
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
@@ -266,3 +267,40 @@ class TestBaseComponentCreation(ConfiguringTestBase):
     def test_zcml_clobber_registered(self):
         with self.assertRaises(ConfigurationError):
             self.configure_string(REGISTER_BASE_COMPONENTS_CLOBBER)
+
+REGISTER_IN_NAMED = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+                                  name="foo" />
+
+    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+                                  name="bar" />
+
+    <appsite:registerInNamedComponents registry="foo">
+        <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+    </appsite:registerInNamedComponents>
+
+</configure>
+"""
+
+class TestRegisterInNamedComponents(ConfiguringTestBase):
+
+    def test_register_in_named(self):
+        self.configure_string(REGISTER_IN_NAMED)
+
+        foo_cmps = component.getGlobalSiteManager().getUtility(IComponents, name='foo')
+        bar_cmps = component.getGlobalSiteManager().getUtility(IComponents, name='bar')
+
+        assert_that(foo_cmps.getUtility(ICommunitySitePolicyUserEventListener), is_not(none()))
+
+        with self.assertRaises(ComponentLookupError):
+            bar_cmps.getUtility(ICommunitySitePolicyUserEventListener)

@@ -12,13 +12,18 @@
 			    schema=".zcml.ICreateSite"
 			    handler=".zcml.Site" />
 
-  </meta:directives>
+    <meta:groupingDirective
+        name="registerInNamedComponents"
+        schema=".zcml.IRegisterInNamedComponents"
+        handler=".zcml.RegisterInNamedComponents"
+        />
 
-     <meta:directive
-	namespace="http://nextthought.com/ntp/appsite"
+    <meta:directive
 	name="createBaseComponents"
 	schema=".zcml.ICreateBaseComponents"
 	handler=".zcml.create_and_register_base_components" />
+
+  </meta:directives>
 
 
 
