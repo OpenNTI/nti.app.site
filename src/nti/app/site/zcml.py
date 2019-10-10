@@ -162,6 +162,10 @@ class IRegisterInNamedComponents(interface.Interface):
 
 
 def setActiveRegistry(context, registry):
+    """
+    Wrap z3c.baseregistry.zcml.setActiveRegistry to lookup the
+    registry by name if needed.
+    """
     registry = _registry_lookup(registry)
     z3c_setActiveRegistry(context, registry)
     
@@ -173,6 +177,9 @@ class RegisterInNamedComponents(RegisterIn):
         super(RegisterInNamedComponents, self).__init__(context, registry)
 
     def before(self):
+        """
+        We need resolve the registry before making it active.
+        """
         self.context.action(
             discriminator=None,
             callable=setActiveRegistry,
