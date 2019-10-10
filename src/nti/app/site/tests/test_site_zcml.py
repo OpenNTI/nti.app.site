@@ -12,7 +12,9 @@ from hamcrest import none
 from hamcrest import is_not
 from hamcrest import assert_that
 
-import nti.testing.base
+from nti.appserver.policies.sites import BASEADULT
+
+from nti.testing.base import ConfiguringTestBase
 
 from zope import component
 
@@ -104,7 +106,7 @@ MISSING_ZCML_REGISTRATION = """
 </configure>"""
 
 
-class TestSiteZCMLRegistration(nti.testing.base.ConfiguringTestBase):
+class TestSiteZCMLRegistration(ConfiguringTestBase):
 
     def test_zcml_errors(self):
         # Coverage on error cases
@@ -145,3 +147,122 @@ class TestSiteZCMLRegistration(nti.testing.base.ConfiguringTestBase):
         # This child site should share the parent component registry
         test_policy = test_sequential_registration.getUtility(ICommunitySitePolicyUserEventListener)
         assert_that(test_policy, is_not(none()))
+
+
+REGISTER_BASE_COMPONENTS = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <configure>
+
+    <!-- We can reference a global object as our parent -->
+    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+                                  name="foo" />
+
+
+    <!-- Or we can reference IComponents registered globally by name -->
+    <appsite:createBaseComponents parent="foo" 
+                                  name="bar" /> 
+    </configure>
+</configure>"""
+
+REGISTER_BASE_COMPONENTS_BAD_NAME = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <configure>
+
+    <!-- Foo doesn't exist -->
+    <appsite:createBaseComponents parent="foo" 
+                                  name="bar" />
+ 
+    </configure>
+</configure>"""
+
+REGISTER_BASE_COMPONENTS_BAD_GLOBAL = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <configure>
+
+    <!-- Foo doesn't exist -->
+    <appsite:createBaseComponents parent="nti.appserver.policies.sites" 
+                                  name="bar" />
+ 
+    </configure>
+</configure>"""
+
+REGISTER_BASE_COMPONENTS_CLOBBER = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <configure>
+
+    <utility
+            component="nti.appserver.policies.sites.BASEADULT"
+            provides="zope.component.interfaces.IComponents"
+            name="genericadultbase" />
+
+    <!-- We can reference a global object as our parent -->
+    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+                                  name="genericadultbase" />
+
+    </configure>
+</configure>"""
+
+class TestBaseComponentCreation(ConfiguringTestBase):
+
+    def test_zcml_creation(self):
+        self.configure_string(REGISTER_BASE_COMPONENTS)
+
+        # We expect two globally registerd IComponents
+        # "foo" whose base is BASEADULT and "bar" whose parent and base if "foo"
+
+        foo = component.getGlobalSiteManager().getUtility(IComponents, name=u'foo')
+        bar = component.getGlobalSiteManager().getUtility(IComponents, name=u'bar')
+
+        assert_that(foo.__parent__, is_(BASEADULT))
+        assert_that(foo.__name__, is_(u'foo'))
+
+        assert_that(bar.__parent__, is_(foo))
+        assert_that(bar.__name__, is_(u'bar'))
+
+    def test_zcml_bad_named(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_BASE_COMPONENTS_BAD_NAME)
+
+    def test_zcml_bad_global(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_BASE_COMPONENTS_BAD_GLOBAL)
+
+    def test_zcml_clobber_registered(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_BASE_COMPONENTS_CLOBBER)

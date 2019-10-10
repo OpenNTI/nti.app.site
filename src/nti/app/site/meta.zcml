@@ -1,15 +1,25 @@
+<!-- -*- mode: nxml -*- -->
 <configure	xmlns="http://namespaces.zope.org/zope"
-			xmlns:meta="http://namespaces.zope.org/meta">
+		xmlns:meta="http://namespaces.zope.org/meta">
 
-	<meta:directives namespace="http://nextthought.com/ntp/appsite">
-		<meta:groupingDirective name="createSites"
-								schema=".zcml.ICreateSites"
-								handler=".zcml.Sites" />
+  <meta:directives namespace="http://nextthought.com/ntp/appsite">
+    <meta:groupingDirective name="createSites"
+			    schema=".zcml.ICreateSites"
+			    handler=".zcml.Sites" />
 
-		<meta:groupingDirective name="createSite"
-								usedIn=".zcml.ICreateSites"
-								schema=".zcml.ICreateSite"
-								handler=".zcml.Site" />
-	</meta:directives>
+    <meta:groupingDirective name="createSite"
+			    usedIn=".zcml.ICreateSites"
+			    schema=".zcml.ICreateSite"
+			    handler=".zcml.Site" />
+
+  </meta:directives>
+
+     <meta:directive
+	namespace="http://nextthought.com/ntp/appsite"
+	name="createBaseComponents"
+	schema=".zcml.ICreateBaseComponents"
+	handler=".zcml.create_and_register_base_components" />
+
+
 
 </configure>

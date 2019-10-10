@@ -14,7 +14,11 @@ from z3c.baseregistry.baseregistry import BaseComponents
 
 from z3c.baseregistry.zcml import RegisterIn
 
+from zope import component
+
 from zope import interface
+
+from zope.interface.interfaces import ComponentLookupError
 
 from zope.component.zcml import utility
 
@@ -30,6 +34,7 @@ from zope.interface.interfaces import IComponents
 
 from nti.app.site.schema import Tuple
 from nti.app.site.schema import SiteComponent
+from nti.app.site.schema import BaseComponents as BCField
 
 from nti.schema.field import Object
 from nti.schema.field import TextLine
@@ -105,3 +110,45 @@ class Site(RegisterIn):
                               parent_name=parent_name,
                               base_names=base_names)
         super(Site, self).__init__(self.context, registry)
+
+class ICreateBaseComponents(interface.Interface):
+
+    parent = BCField(title=u'Parent components',
+                            required=True)
+
+    name = TextLine(title=u'The name to use for these base components. This is also the name the components are globally registered with.',
+                    required=True)
+
+
+def _registry_lookup(name_or_components):
+    if IComponents.providedBy(name_or_components):
+        return name_or_components
+    return component.getGlobalSiteManager().getUtility(IComponents, name=name_or_components)
+
+
+def _create_and_register_globally(parent, name, parent_factory=_registry_lookup):
+    gsm = component.getGlobalSiteManager()
+    try:
+        already_registered = gsm.getUtility(IComponents, name=name)
+        if already_registered is not None:
+            raise ConfigurationError(u'IComponents with name %s are already registered'%name, already_registered)
+    except ComponentLookupError:
+        pass
+
+    try:
+        parent = parent_factory(parent)
+    except ComponentLookupError:
+        raise ConfigurationError(u'parent base components named %s not found' %name)
+    
+    components = BaseComponents(parent, name=name, bases=(parent, ))
+    gsm.registerUtility(components, IComponents, name=name)
+
+
+def create_and_register_base_components(_context, parent, name):
+
+    _context.action(
+        discriminator = ('base_components', parent, name),
+        callable = _create_and_register_globally,
+        args = (parent, name),
+        kw = None
+        )
