@@ -221,10 +221,7 @@ class RegisterInNamedComponents(RegisterIn):
     """
     A ZCML grouping directive for handing IRegisterInNamedComponentsDirective
     """
-
-    def __init__(self, context, registry):
-        super(RegisterInNamedComponents, self).__init__(context, registry)
-
+    
     def before(self):
         """
         We need resolve the registry before making it active.
