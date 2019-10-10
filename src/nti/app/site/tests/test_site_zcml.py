@@ -11,8 +11,7 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
 from hamcrest import assert_that
-
-from nti.appserver.policies.sites import BASEADULT
+from hamcrest import has_length
 
 from nti.testing.base import ConfiguringTestBase
 
@@ -26,6 +25,8 @@ from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interfaces import IComponents
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
+
+from nti.appserver.policies.sites import BASEADULT
 
 ZCML_REGISTRATION = """
 <configure  xmlns="http://namespaces.zope.org/zope"
@@ -163,14 +164,19 @@ REGISTER_BASE_COMPONENTS = """
 
     <configure>
 
-    <!-- We can reference a global object as our parent -->
-    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+    <!-- We can reference a global object as our base -->
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
                                   name="foo" />
 
 
     <!-- Or we can reference IComponents registered globally by name -->
-    <appsite:createBaseComponents parent="foo" 
-                                  name="bar" /> 
+    <appsite:createBaseComponents bases="foo" 
+                                  name="bar" />
+
+    <!-- We can also specify multiple bases, 
+         in which case our parent is the first -->
+    <appsite:createBaseComponents bases="foo bar" 
+                                  name="baz" /> 
     </configure>
 </configure>"""
 
@@ -188,7 +194,7 @@ REGISTER_BASE_COMPONENTS_BAD_NAME = """
     <configure>
 
     <!-- Foo doesn't exist -->
-    <appsite:createBaseComponents parent="foo" 
+    <appsite:createBaseComponents bases="foo" 
                                   name="bar" />
  
     </configure>
@@ -208,7 +214,7 @@ REGISTER_BASE_COMPONENTS_BAD_GLOBAL = """
     <configure>
 
     <!-- Foo doesn't exist -->
-    <appsite:createBaseComponents parent="nti.appserver.policies.sites" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites" 
                                   name="bar" />
  
     </configure>
@@ -233,9 +239,29 @@ REGISTER_BASE_COMPONENTS_CLOBBER = """
             name="genericadultbase" />
 
     <!-- We can reference a global object as our parent -->
-    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
                                   name="genericadultbase" />
 
+    </configure>
+</configure>"""
+
+REGISTER_BASE_NO_DOTTEDNAME = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <configure>
+
+    <!-- Name must be dotted -->
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites" 
+                                  name="bar...bar" />
+ 
     </configure>
 </configure>"""
 
@@ -249,12 +275,17 @@ class TestBaseComponentCreation(ConfiguringTestBase):
 
         foo = component.getGlobalSiteManager().getUtility(IComponents, name=u'foo')
         bar = component.getGlobalSiteManager().getUtility(IComponents, name=u'bar')
+        baz = component.getGlobalSiteManager().getUtility(IComponents, name=u'baz')
 
         assert_that(foo.__parent__, is_(BASEADULT))
         assert_that(foo.__name__, is_(u'foo'))
 
         assert_that(bar.__parent__, is_(foo))
         assert_that(bar.__name__, is_(u'bar'))
+
+        assert_that(baz.__parent__, is_(foo))
+        assert_that(baz.__name__, is_(u'baz'))
+        assert_that(baz.__bases__, has_length(2))
 
     def test_zcml_bad_named(self):
         with self.assertRaises(ConfigurationError):
@@ -268,6 +299,10 @@ class TestBaseComponentCreation(ConfiguringTestBase):
         with self.assertRaises(ConfigurationError):
             self.configure_string(REGISTER_BASE_COMPONENTS_CLOBBER)
 
+    def test_zcml_no_dotted_name(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_BASE_NO_DOTTEDNAME)
+
 REGISTER_IN_NAMED = """
 <configure  xmlns="http://namespaces.zope.org/zope"
             xmlns:i18n="http://namespaces.zope.org/i18n"
@@ -279,10 +314,10 @@ REGISTER_IN_NAMED = """
     <include package="zope.component" />
     <include package="." file="meta.zcml" />
 
-    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
                                   name="foo" />
 
-    <appsite:createBaseComponents parent="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
                                   name="bar" />
 
     <appsite:registerInNamedComponents registry="foo">
@@ -292,6 +327,43 @@ REGISTER_IN_NAMED = """
 </configure>
 """
 
+REGISTER_IN_BAD_NAMED = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <appsite:registerInNamedComponents registry="foo">
+        <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+    </appsite:registerInNamedComponents>
+
+</configure>
+"""
+
+REGISTER_IN_NO_NEST = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <appsite:registerInNamedComponents registry="foo">
+        <appsite:registerInNamedComponents registry="bar">
+            <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+        </appsite:registerInNamedComponents>
+    </appsite:registerInNamedComponents>
+
+</configure>
+"""
 class TestRegisterInNamedComponents(ConfiguringTestBase):
 
     def test_register_in_named(self):
@@ -304,3 +376,11 @@ class TestRegisterInNamedComponents(ConfiguringTestBase):
 
         with self.assertRaises(ComponentLookupError):
             bar_cmps.getUtility(ICommunitySitePolicyUserEventListener)
+
+    def test_register_in_bad_name(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_IN_BAD_NAMED)
+
+    def test_register_in_bad_name(self):
+        with self.assertRaises(ConfigurationError):
+            self.configure_string(REGISTER_IN_NO_NEST)

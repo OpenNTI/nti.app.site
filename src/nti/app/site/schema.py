@@ -14,6 +14,7 @@ from zope.interface.interfaces import IComponents
 
 from zope.configuration.exceptions import ConfigurationError
 
+from zope.configuration.fields import DottedName
 from zope.configuration.fields import GlobalObject
 
 from zope.schema._bootstrapinterfaces import IFromUnicode
@@ -75,12 +76,12 @@ class Tuple(SchemaTuple):
         return result
 
 
-class NamedBaseComponents(TextLine):
+class NamedBaseComponents(DottedName):
     """
     A field representing the name of an IComponents object registered as
     a global utility.
     """
-    pass
+
 
 @interface.implementer(IFromUnicode)
 class BaseComponents(Variant):

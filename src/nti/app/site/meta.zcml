@@ -14,13 +14,13 @@
 
     <meta:groupingDirective
         name="registerInNamedComponents"
-        schema=".zcml.IRegisterInNamedComponents"
+        schema=".zcml.IRegisterInNamedComponentsDirective"
         handler=".zcml.RegisterInNamedComponents"
         />
 
     <meta:directive
 	name="createBaseComponents"
-	schema=".zcml.ICreateBaseComponents"
+	schema=".zcml.ICreateBaseComponentsDirective"
 	handler=".zcml.create_and_register_base_components" />
 
   </meta:directives>
