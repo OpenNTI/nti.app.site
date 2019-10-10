@@ -115,6 +115,11 @@ class Site(RegisterIn):
 
 
 class ICreateBaseComponentsDirective(interface.Interface):
+    """
+    A directive that creates a z3c.baseregistry.baseregistry.BaseComponents
+    with the provided name and bases. The created BaseComponents is then registered
+    as a global named IComponents utility.
+    """
 
     name = TextLine(title=u'The name to use for these base components. This is also the name the components are globally registered with.',
                     required=True)
@@ -149,6 +154,10 @@ def _create_and_register_globally(name, bases, registry_factory=_registry_lookup
 
 
 def create_and_register_base_components(_context, name, bases):
+    """
+    ZCML directive handler for ICreateBaseComponentsDirective
+    """
+
     bases = tuple(bases)
 
     _context.action(
@@ -160,6 +169,10 @@ def create_and_register_base_components(_context, name, bases):
 
 
 class IRegisterInNamedComponentsDirective(interface.Interface):
+    """
+    A ZCML based grouping directive that sets the component registry
+    to the global IComponents provided by ``registry``.
+    """
 
     registry = BCField(title=u'The registry',
                        description=u'The python path or global utility name of the registry to use',
@@ -176,6 +189,9 @@ def setActiveRegistry(context, registry):
 
 
 class RegisterInNamedComponents(RegisterIn):
+    """
+    A ZCML grouping directive for handing IRegisterInNamedComponentsDirective
+    """
 
     def __init__(self, context, registry):
         super(RegisterInNamedComponents, self).__init__(context, registry)
