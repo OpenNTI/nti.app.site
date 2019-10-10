@@ -144,7 +144,6 @@ def _create_and_register_globally(parent, name, parent_factory=_registry_lookup)
     components = BaseComponents(parent, name=name, bases=(parent, ))
     gsm.registerUtility(components, IComponents, name=name)
 
-
 def create_and_register_base_components(_context, parent, name):
 
     _context.action(
@@ -170,8 +169,6 @@ def setActiveRegistry(context, registry):
     z3c_setActiveRegistry(context, registry)
     
 class RegisterInNamedComponents(RegisterIn):
-
-    _registry_or_name = None
 
     def __init__(self, context, registry):
         super(RegisterInNamedComponents, self).__init__(context, registry)
