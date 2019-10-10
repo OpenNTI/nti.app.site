@@ -76,7 +76,11 @@ class Tuple(SchemaTuple):
 
 
 class NamedBaseComponents(TextLine):
-   pass
+    """
+    A field representing the name of an IComponents object registered as
+    a global utility.
+    """
+    pass
 
 @interface.implementer(IFromUnicode)
 class BaseComponents(Variant):
