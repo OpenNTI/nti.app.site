@@ -7,6 +7,7 @@ from __future__ import absolute_import
 
 # pylint: disable=protected-access,too-many-public-methods,arguments-differ
 
+from hamcrest import contains_string
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
@@ -27,6 +28,9 @@ from zope.interface.interfaces import IComponents
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
 from nti.appserver.policies.sites import BASEADULT
+
+from nti.app.site.zcml import ConflictingBaseComponentsError
+from nti.app.site.zcml import MissingBaseComponentsError
 
 ZCML_REGISTRATION = """
 <configure  xmlns="http://namespaces.zope.org/zope"
@@ -259,8 +263,8 @@ REGISTER_BASE_NO_DOTTEDNAME = """
     <configure>
 
     <!-- Name must be dotted -->
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites" 
-                                  name="bar...bar" />
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+                                  name="bar bar" />
  
     </configure>
 </configure>"""
@@ -288,20 +292,27 @@ class TestBaseComponentCreation(ConfiguringTestBase):
         assert_that(baz.__bases__, has_length(2))
 
     def test_zcml_bad_named(self):
-        with self.assertRaises(ConfigurationError):
+        with self.assertRaises(MissingBaseComponentsError) as e:
             self.configure_string(REGISTER_BASE_COMPONENTS_BAD_NAME)
+        assert_that(str(e.exception),
+                    contains_string('Globally registered IComponents with name "foo" cannot be found.'))
 
     def test_zcml_bad_global(self):
-        with self.assertRaises(ConfigurationError):
+        with self.assertRaises(ConfigurationError) as e:
             self.configure_string(REGISTER_BASE_COMPONENTS_BAD_GLOBAL)
+        assert_that(str(e.exception),
+                    contains_string('Globally registered IComponents with name "nti.appserver.policies.sites" cannot be found.'))
 
     def test_zcml_clobber_registered(self):
-        with self.assertRaises(ConfigurationError):
+        with self.assertRaises(ConflictingBaseComponentsError) as e:
             self.configure_string(REGISTER_BASE_COMPONENTS_CLOBBER)
+        assert_that(str(e.exception),
+                    contains_string('A globally registered IComponents implementation <BaseComponents genericadultbase> with name "genericadultbase" already exists.'))
 
     def test_zcml_no_dotted_name(self):
-        with self.assertRaises(ConfigurationError):
+        with self.assertRaises(ConfigurationError) as e:
             self.configure_string(REGISTER_BASE_NO_DOTTEDNAME)
+        assert_that(str(e.exception), contains_string('InvalidDottedName: bar bar'))
 
 REGISTER_IN_NAMED = """
 <configure  xmlns="http://namespaces.zope.org/zope"
@@ -378,9 +389,13 @@ class TestRegisterInNamedComponents(ConfiguringTestBase):
             bar_cmps.getUtility(ICommunitySitePolicyUserEventListener)
 
     def test_register_in_bad_name(self):
-        with self.assertRaises(ConfigurationError):
+        with self.assertRaises(MissingBaseComponentsError) as e:
             self.configure_string(REGISTER_IN_BAD_NAMED)
+        assert_that(str(e.exception),
+                    contains_string('Globally registered IComponents with name "foo" cannot be found.'))
 
-    def test_register_in_bad_name(self):
-        with self.assertRaises(ConfigurationError):
+    def test_register_no_nest(self):
+        with self.assertRaises(ConfigurationError) as e:
             self.configure_string(REGISTER_IN_NO_NEST)
+        assert_that(str(e.exception),
+                    contains_string('Nested ``registerIn`` directives are not permitted.'))

@@ -27,6 +27,7 @@ from zope.configuration.config import GroupingContextDecorator
 
 from zope.configuration.exceptions import ConfigurationError
 
+from zope.configuration.fields import DottedName
 from zope.configuration.fields import GlobalObject
 from zope.configuration.fields import Tokens
 
@@ -121,11 +122,35 @@ class ICreateBaseComponentsDirective(interface.Interface):
     as a global named IComponents utility.
     """
 
-    name = TextLine(title=u'The name to use for these base components. This is also the name the components are globally registered with.',
+    name = DottedName(title=u'The name to use for these base components. This is also the name the components are globally registered with.',
                     required=True)
 
     bases = Tokens(title=u'The bases to use for this BaseComponents',
                    value_type=BCField())
+
+
+class ConflictingBaseComponentsError(ConfigurationError):
+    """
+    Raised by ICreateBaseComponentsDirective if an IComponents is already registered
+    globally for the given name.
+    """
+
+    def __init__(self, name, conflicting):
+        super(ConflictingBaseComponentsError, self).__init__()
+        self.name = name
+        self.conflicting = conflicting
+        self.add_details('A globally registered IComponents implementation %s with name "%s" already exists.' % (conflicting, name,))
+
+
+class MissingBaseComponentsError(ConfigurationError):
+    """
+    Raised when global IComponents for the specified name cannot be found.
+    """
+
+    def __init__(self, name):
+        super(MissingBaseComponentsError, self).__init__()
+        self.name = name
+        self.add_details('Globally registered IComponents with name "%s" cannot be found.' % (name, ))
 
 
 def _registry_lookup(name_or_components):
@@ -133,21 +158,21 @@ def _registry_lookup(name_or_components):
         return name_or_components
     return component.getGlobalSiteManager().getUtility(IComponents, name=name_or_components)
 
-
+    
 def _create_and_register_globally(name, bases, registry_factory=_registry_lookup):
     gsm = component.getGlobalSiteManager()
     try:
         already_registered = gsm.getUtility(IComponents, name=name)
         if already_registered is not None:
-            raise ConfigurationError(u'IComponents with name %s are already registered. %s' % (name, already_registered,))
+            raise ConflictingBaseComponentsError(name, already_registered)
     except ComponentLookupError:
         pass
 
     try:
         bases = [registry_factory(b) for b in bases]
         parent = bases[0]
-    except ComponentLookupError:
-        raise ConfigurationError(u'parent base components named %s not found' % (name,))
+    except ComponentLookupError as e:
+        raise MissingBaseComponentsError(e.args[1]) #second arg is name
     
     components = BaseComponents(parent, name=name, bases=bases)
     gsm.registerUtility(components, IComponents, name=name)
@@ -184,7 +209,11 @@ def setActiveRegistry(context, registry):
     Wrap z3c.baseregistry.zcml.setActiveRegistry to lookup the
     registry by name if needed.
     """
-    registry = _registry_lookup(registry)
+
+    try:
+        registry = _registry_lookup(registry)
+    except ComponentLookupError as e:
+        raise MissingBaseComponentsError(e.args[1]) #second arg is name
     z3c_setActiveRegistry(context, registry)
 
 
