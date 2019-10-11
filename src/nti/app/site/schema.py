@@ -76,11 +76,22 @@ class Tuple(SchemaTuple):
         return result
 
 
-class NamedBaseComponents(DottedName):
+class _NamedBaseComponents(DottedName):
     """
     A field representing the name of an IComponents object registered as
     a global utility.
     """
+
+class _GlobalBaseComponents(GlobalObject):
+
+    def __init__(self):
+        super(_GlobalBaseComponents, self).__init__(value_type=Object(IComponents))
+
+    def fromUnicode(self, value):
+        try:
+            return super(_GlobalBaseComponents, self).fromUnicode(value)
+        except ImportError:
+            raise TypeError('Failed to import global BaseComponent %s' % (value, ))
 
 
 @interface.implementer(IFromUnicode)
@@ -91,8 +102,8 @@ class BaseComponents(Variant):
     """
     
     def __init__(self, **kwargs):
-        fields = [GlobalObject(value_type=Object(IComponents)),
-                  NamedBaseComponents()]
+        fields = [_GlobalBaseComponents(),
+                  _NamedBaseComponents()]
         super(BaseComponents, self).__init__(fields, **kwargs)
 
     def fromUnicode(self, value):
