@@ -10,13 +10,20 @@ from __future__ import absolute_import
 
 from zope import interface
 
+from zope.interface.interfaces import IComponents
+
 from zope.configuration.exceptions import ConfigurationError
 
+from zope.configuration.fields import DottedName
 from zope.configuration.fields import GlobalObject
 
 from zope.schema._bootstrapinterfaces import IFromUnicode
 
+from nti.schema.field import Object
+
 from nti.schema.field import Tuple as SchemaTuple
+from nti.schema.field import Variant
+from nti.schema.field import TextLine
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -67,3 +74,39 @@ class Tuple(SchemaTuple):
             self.value_type.fromUnicode(tup) for tup in value.split(',') if tup
         )
         return result
+
+
+class _NamedBaseComponents(DottedName):
+    """
+    A field representing the name of an IComponents object registered as
+    a global utility.
+    """
+
+class _GlobalBaseComponents(GlobalObject):
+
+    def __init__(self):
+        super(_GlobalBaseComponents, self).__init__(value_type=Object(IComponents))
+
+    def fromUnicode(self, value):
+        try:
+            return super(_GlobalBaseComponents, self).fromUnicode(value)
+        except ImportError:
+            raise TypeError('Failed to import global BaseComponent %s' % (value, ))
+
+
+@interface.implementer(IFromUnicode)
+class BaseComponents(Variant):
+    """
+    A field that represents an IBaseComponent. Provided as a convenience
+    for getting IBaseComponent objects from a global or utility
+    """
+    
+    def __init__(self, **kwargs):
+        fields = [_GlobalBaseComponents(),
+                  _NamedBaseComponents()]
+        super(BaseComponents, self).__init__(fields, **kwargs)
+
+    def fromUnicode(self, value):
+        return self.fromObject(value)
+
+    
