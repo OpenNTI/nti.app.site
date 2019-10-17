@@ -54,7 +54,11 @@
 	<include package="nti.externalization" />
 
 	<ext:registerAutoPackageIO
-		root_interfaces=".interfaces.ISite .interfaces.ISiteSeatLimit"
+		root_interfaces=".interfaces.ISite
+		                 .interfaces.ISiteBrand
+		                 .interfaces.ISiteSeatLimit
+		                 .interfaces.ISiteBrandImage
+		                 .interfaces.ISiteBrandAssets"
 		modules=".model" />
 
 	<adapter factory=".externalization._SiteExternalizer"

@@ -25,6 +25,7 @@ from nti.base.interfaces import ILastModified
 from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import Int
+from nti.schema.field import Object
 from nti.schema.field import DecodingValidTextLine as TextLine
 
 #: Default provider
@@ -37,10 +38,68 @@ class ISite(IContained, ILastModified, ICreated):
     """
     Defines a site
     """
+
     Name = TextLine(title=u"Site uri", required=False)
 
     Provider = TextLine(title=u"Site provider",
                         required=False)
+
+
+class ISiteBrandImage(ILastModified, ICreated):
+    """
+    Stores a source image, 2x, and 3x images.
+    """
+
+    source = TextLine(title=u"source image",
+                      required=False)
+
+    two_times = TextLine(title=u"two_times image",
+                         required=False)
+
+    three_times = TextLine(title=u"three_times image",
+                           required=False)
+
+
+class ISiteBrandAssets(ILastModified, ICreated):
+    """
+    Defines the site brand assets
+    """
+
+    mobile = Object(ISiteBrandImage,
+                    title=u'The site brand mobile image',
+                    required=False)
+
+    background = Object(ISiteBrandImage,
+                        title=u'The site brand background image',
+                        required=False)
+
+    web = Object(ISiteBrandImage,
+                 title=u'The site brand web image',
+                 required=False)
+
+    web_library = Object(ISiteBrandImage,
+                         title=u'The site brand web library image',
+                         required=False)
+
+    favicon = Object(ISiteBrandImage,
+                     title=u'The site brand favicon image',
+                     required=False)
+
+    login = Object(ISiteBrandImage,
+                   title=u'The site brand login image',
+                   required=False)
+
+
+class ISiteBrand(IContained, ILastModified, ICreated):
+    """
+    A persistent that utility that defines site branding.
+    """
+
+    brand_name = TextLine(title=u"Site brand name", required=False)
+
+    assets = Object(ISiteBrandAssets,
+                    title=u'The site brand assets',
+                    required=False)
 
 
 class ISiteAdminAddedEvent(IObjectEvent):
