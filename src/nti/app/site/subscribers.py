@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 from zope import component
 
-from zope.lifecycleevent.interfaces import IObjectCreatedEvent
+from zope.site.interfaces import INewLocalSite
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
@@ -17,13 +17,13 @@ from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredi
 
 from nti.dataserver.users.communities import Community
 
-from nti.site.interfaces import IHostPolicyFolder
+from nti.site.interfaces import IHostPolicySiteManager
 
 logger = __import__('logging').getLogger(__name__)
 
 
-@component.adapter(IHostPolicyFolder, IObjectCreatedEvent)
-def _on_site_created(unused_new_site, unused_event=None):
+@component.adapter(IHostPolicySiteManager, INewLocalSite)
+def _on_site_created(new_site_manager, unused_event=None):
     """
     On site creation, create a site community that auto-subscribes
     new users.
@@ -31,8 +31,8 @@ def _on_site_created(unused_new_site, unused_event=None):
     XXX: Long term, we will set up subscribers based on SitePolicyEventListener
     objects created/modified.
     """
-    site = component.queryUtility(ICommunitySitePolicyUserEventListener)
-    community_name = getattr(site, 'COM_USERNAME', None)
+    policy = new_site_manager.queryUtility(ICommunitySitePolicyUserEventListener)
+    community_name = getattr(policy, 'COM_USERNAME', None)
     if community_name:
         try:
             new_community = Community.create_community(username=community_name)

@@ -86,9 +86,6 @@ class TestGeneralViews(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_adapters(self):
-        with mock_dataserver.mock_db_trans():
-            Community.create_community(username='ifsta.nextthought.com')
-
         href = '/dataserver2/sites/ifsta.nextthought.com/@@create'
         self.testapp.post_json(href,
                                {'name': 'myfirehouse.ifsta.com'},
