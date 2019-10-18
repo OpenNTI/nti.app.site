@@ -11,6 +11,8 @@ from __future__ import absolute_import
 from zope import component
 from zope import interface
 
+from nti.app.site.interfaces import ISiteBrand
+
 from nti.dataserver.authorization import ROLE_ADMIN
 
 from nti.dataserver.authorization_acl import ace_allowing
@@ -31,6 +33,24 @@ class SiteACLProvider(object):
 
     def __init__(self, context):
         self.context = context
+
+    @property
+    def __acl__(self):
+        acl = [ace_allowing(ROLE_ADMIN, ALL_PERMISSIONS, type(self))]
+        result = acl_from_aces(acl)
+        return result
+
+
+@interface.implementer(IACLProvider)
+@component.adapter(ISiteBrand)
+class SiteBrandACLProvider(object):
+
+    def __init__(self, context):
+        self.context = context
+
+    @property
+    def __parent__(self):
+        return self.context.__parent__
 
     @property
     def __acl__(self):

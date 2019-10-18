@@ -36,6 +36,7 @@
 
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
+	<adapter factory=".acl.SiteBrandACLProvider" />
 
 	<adapter name="NextthoughtDotComSiteAdmin"
 			 for="nti.dataserver.interfaces.IUser"
