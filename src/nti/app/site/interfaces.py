@@ -8,7 +8,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from zope import component
 from zope import interface
+
+from zope.component.hooks import getSite
 
 from zope.interface import Attribute
 
@@ -18,6 +21,12 @@ from zope.interface.interfaces import IObjectEvent
 from zope.location.interfaces import IContained
 
 from zope.schema import Bool
+from zope.schema import Choice
+
+from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.interfaces import ISource
+
+from zope.schema.vocabulary import SimpleVocabulary
 
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
@@ -73,6 +82,27 @@ class SiteAdminRemovedEvent(ObjectEvent):
         self.request = request
 
 
+class ISiteSeatLimitAlgorithm(interface.Interface):
+    """
+    An adapter to an algorithm for determining used seats in a site
+    """
+
+    def used_seats(*args, **kwargs):
+        """
+        Returns an Int of the number of used seats in a site
+        """
+
+
+@interface.implementer(ISource, IContextSourceBinder)
+class SeatAlgorithmContextSourceBinder(object):
+
+    def __call__(self, seat_limit_obj):
+        site = getSite()
+        adapters = component.getAdapters((site, seat_limit_obj), ISiteSeatLimitAlgorithm, context=site.getSiteManager())
+        names = [adapter[0] for adapter in adapters]
+        return SimpleVocabulary.fromValues(names)
+
+
 class ISiteSeatLimit(interface.Interface):
     """
     A limit upon the number of allowed users in a site.
@@ -89,3 +119,6 @@ class ISiteSeatLimit(interface.Interface):
     used_seats = Int(title=u'Used Seats',
                      description=u'The current number of seats taken in the site.',
                      required=True)
+
+    seat_algorithm = Choice(source=SeatAlgorithmContextSourceBinder(),
+                            default=u'')

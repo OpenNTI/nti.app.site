@@ -6,9 +6,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 from hamcrest import assert_that
+from hamcrest import contains_inanyorder
+from hamcrest import has_entry
 from hamcrest import has_entries
 from hamcrest import is_
 from hamcrest import none
+
+from nti.site.interfaces import IHostPolicyFolder
 
 from zope import component
 from zope import lifecycleevent
@@ -18,6 +22,7 @@ from zope.component.hooks import site
 from zope.traversing.interfaces import IEtcNamespace
 
 from nti.app.site.interfaces import ISiteSeatLimit
+from nti.app.site.interfaces import ISiteSeatLimitAlgorithm
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -34,6 +39,15 @@ from nti.dataserver.users.common import user_creation_sitename
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
+
+
+class TestSeatAlgorithm(object):
+
+    def __init__(self, site, seat_limit):
+        pass
+
+    def used_seats(self):
+        return 1
 
 
 class TestSeatLimit(ApplicationLayerTest):
@@ -200,3 +214,76 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', is_(0)))
         updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
         assert_that(updated_child_utils, is_(child_utils + 1))
+
+    @WithSharedApplicationMockDS(testapp=True, users=True)
+    def test_seat_limit_algorithm(self):
+
+        # Test only one registered and decorated
+        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entry('schema',
+                                    has_entry('seat_algorithm',
+                                              has_entry('choices', contains_inanyorder('')))))
+
+        # Register an additional algorithm in child
+        with mock_dataserver.mock_db_trans():
+            sites = component.queryUtility(IEtcNamespace, name='hostsites')
+            ifsta_alpha = sites['ifsta-alpha.nextthought.com']
+            ifsta_alpha.getSiteManager().registerAdapter(TestSeatAlgorithm,
+                                                         provided=ISiteSeatLimitAlgorithm,
+                                                         required=(IHostPolicyFolder, ISiteSeatLimit),
+                                                         name='always_returns_1')
+
+        # Check parent doesn't show
+        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entry('schema',
+                                    has_entry('seat_algorithm',
+                                              has_entry('choices', contains_inanyorder('')))))
+
+        # Check child shows and default is followed
+        res = self.testapp.get('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entry('schema',
+                                    has_entry('seat_algorithm',
+                                              has_entry('choices', contains_inanyorder('', 'always_returns_1')))))
+        assert_that(json, has_entry('seat_algorithm', is_('')))
+
+        # Set different algorithm in child
+        res = self.testapp.post_json('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+                                     {'seat_algorithm': 'always_returns_1'})
+        json = res.json
+        assert_that(json, has_entries('seat_algorithm', is_('always_returns_1'),
+                                      'used_seats', is_(1)))
+
+        # Check parent
+        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(none()),
+                                      'used_seats', is_(0)))
+
+        # Check child of child inherits
+        res = self.testapp.get('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entries('hard', is_(False),
+                                      'max_seats', is_(none()),
+                                      'used_seats', is_(1),
+                                      'seat_algorithm', is_('always_returns_1')))
+
+        # Check unregistry doesnt break things
+        with mock_dataserver.mock_db_trans():
+            sites = component.queryUtility(IEtcNamespace, name='hostsites')
+            ifsta_alpha = sites['ifsta-alpha.nextthought.com']
+            ifsta_alpha.getSiteManager().unregisterAdapter(TestSeatAlgorithm,
+                                                           provided=ISiteSeatLimitAlgorithm,
+                                                           required=(IHostPolicyFolder, ISiteSeatLimit),
+                                                           name='always_returns_1')
+
+        res = self.testapp.get('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        json = res.json
+        assert_that(json, has_entry('schema',
+                                    has_entry('seat_algorithm',
+                                              has_entry('choices', contains_inanyorder('')))))
+        assert_that(json, has_entries('seat_algorithm', is_(''),
+                                      'used_seats', is_(0)))
