@@ -31,8 +31,6 @@ from nti.base.interfaces import ILastModified
 
 from nti.dataserver.tests import mock_dataserver
 
-from nti.dataserver.users.communities import Community
-
 from nti.site.hostpolicy import get_host_site
 
 

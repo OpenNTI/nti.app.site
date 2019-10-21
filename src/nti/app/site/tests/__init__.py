@@ -9,16 +9,18 @@ import unittest
 
 import zope.testing.cleanup
 
+from nti.app.testing.application_webtest import ApplicationLayerTest
+from nti.app.testing.application_webtest import ApplicationTestLayer
+
 from nti.testing.base import AbstractTestBase
 
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
 
-class SharedConfiguringTestLayer(ZopeComponentLayer,
-                                 ConfiguringLayerMixin):
+class SharedConfiguringTestLayer(ApplicationTestLayer):
 
-    set_up_packages = ('nti.app.site',)
+    set_up_packages = ('nti.app.site', 'nti.app.site.tests')
 
     @classmethod
     def setUp(cls):
@@ -38,5 +40,6 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
         pass
 
 
-class ContentTypesReportsLayerTest(unittest.TestCase):
+class SiteLayerTest(ApplicationLayerTest):
+
     layer = SharedConfiguringTestLayer

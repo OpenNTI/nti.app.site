@@ -11,12 +11,9 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
 from hamcrest import assert_that
-from hamcrest import has_property
 from hamcrest import has_properties
 
 from nti.testing.matchers import verifiably_provides
-
-import unittest
 
 from nti.app.site.model import SiteBrand
 from nti.app.site.model import SiteBrandImage
@@ -26,7 +23,7 @@ from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandImage
 from nti.app.site.interfaces import ISiteBrandAssets
 
-from nti.app.site.tests import SharedConfiguringTestLayer
+from nti.app.site.tests import SiteLayerTest
 
 from nti.externalization.externalization import to_external_object
 
@@ -41,9 +38,7 @@ CREATED_TIME = StandardExternalFields.CREATED_TIME
 LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 
 
-class TestExternalization(unittest.TestCase):
-
-    layer = SharedConfiguringTestLayer
+class TestExternalization(SiteLayerTest):
 
     def test_brand(self):
         web_image = SiteBrandImage(source=u'/content/path/web.png',
