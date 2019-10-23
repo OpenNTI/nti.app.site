@@ -9,16 +9,7 @@
     <include package="zope.component" />
 	<include package="zope.security" />
 
-	<!-- Path Adapters -->
-	<adapter name="SiteAdmin"
-			 for="nti.dataserver.interfaces.IUser pyramid.interfaces.IRequest"
-			 factory=".views.SiteAdminWorkspacePathAdapter"
-			 provides="zope.traversing.interfaces.IPathAdapter" />
-
-	<adapter name="sites"
-			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
-			 factory=".views.SitesPathAdapter"
-			 provides="zope.traversing.interfaces.IPathAdapter" />
+	<include package=".views" />
 
 	<!-- Adapters -->
 	<adapter factory=".adapters._folder_to_site" />
