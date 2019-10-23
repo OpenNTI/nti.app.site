@@ -62,6 +62,11 @@
 		                 .interfaces.ISiteBrandAssets"
 		modules=".model" />
 
+	<subscriber factory="nti.appserver.pyramid_renderers_edit_link_decorator.EditLinkDecorator"
+                provides="nti.externalization.interfaces.IExternalMappingDecorator"
+                for="nti.app.site.interfaces.ISiteBrand
+                     pyramid.interfaces.IRequest" />
+
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
@@ -98,5 +103,9 @@
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace
                      pyramid.interfaces.IRequest"/>
+
+    <!-- workspace -->
+    <subscriber factory=".decorators._UserSiteBrandLinkProvider"
+                provides="nti.appserver.workspaces.interfaces.IUserWorkspaceLinkProvider"/>
 
 </configure>

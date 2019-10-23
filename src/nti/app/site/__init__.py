@@ -16,4 +16,5 @@ SITE_PROVIDER = 'PROVIDER'
 SITE_MIMETYPE = 'application/vnd.nextthought.site'
 
 VIEW_SITE_ADMINS = "SiteAdmins"
+VIEW_SITE_BRAND = "SiteBrand"
 SITE_SEAT_LIMIT = "SeatLimit"

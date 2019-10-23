@@ -17,10 +17,14 @@ from nti.app.renderers.decorators import AbstractAuthenticatedRequestAwareDecora
 
 from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
+from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
+
+from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
 
 from nti.dataserver.authorization import is_admin_or_site_admin
 
+from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserverFolder
 
 from nti.externalization.interfaces import StandardExternalFields
@@ -51,3 +55,24 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         rel=rel,
                         elements=("%s" % rel,))
             links.append(link)
+        # Can edit site brand
+        link = Link(ds2,
+                    rel=VIEW_SITE_BRAND,
+                    method="PUT",
+                    elements=("%s" % VIEW_SITE_BRAND,))
+        links.append(link)
+
+
+@component.adapter(IUser)
+@interface.implementer(IUserWorkspaceLinkProvider)
+class _UserSiteBrandLinkProvider(object):
+
+    def __init__(self, user):
+        self.user = user
+
+    def links(self, unused_workspace):
+        ds2 = find_interface(self.user, IDataserverFolder)
+        link = Link(ds2,
+                    rel=VIEW_SITE_BRAND,
+                    elements=("%s" % VIEW_SITE_BRAND,))
+        return (link,)
