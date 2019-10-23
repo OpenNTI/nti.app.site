@@ -115,17 +115,26 @@ class TestSiteBrand(SiteLayerTest):
                                            'brand_name', 'test_brand_site'))
         self.forbid_link_with_rel(brand_res, 'edit')
 
-        # Update brand name
+        # Update brand name and theme
         new_brand_name = 'new brand name'
-        self.testapp.put_json(brand_rel, {'brand_name': new_brand_name},
+#         theme = {'a': 'aval',
+#                  'b': {'b1': 'b1val'},
+#                  'c': None}
+        theme = {'a': 'aval',
+                 'b': 'b1val',
+                 'c': None}
+        data = {'brand_name': new_brand_name,
+                'theme': theme}
+        self.testapp.put_json(brand_rel, data,
                               extra_environ=regular_env,
                               status=403)
 
-        res = self.testapp.put_json(brand_rel, {'brand_name': new_brand_name},
+        res = self.testapp.put_json(brand_rel, data,
                                     extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', new_brand_name))
+                                           'brand_name', new_brand_name,
+                                           'theme', has_entries(**theme)))
 
         # Unauth get
         unauth_testapp = TestApp(self.app)
@@ -133,7 +142,8 @@ class TestSiteBrand(SiteLayerTest):
                                  extra_environ={'HTTP_ORIGIN': self.default_origin})
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', new_brand_name))
+                                           'brand_name', new_brand_name,
+                                           'theme', has_entries(**theme)))
 
         # Cannot delete
         #self.testapp.delete(brand_href, extra_environ=site_admin_env, status=404)

@@ -20,8 +20,6 @@ from nti.app.base.abstract_views import AbstractView
 
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
-from nti.app.site import MessageFactory as _
-
 from nti.app.site.interfaces import ISiteBrand
 
 from nti.app.site.model import SiteBrand
