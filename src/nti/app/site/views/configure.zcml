@@ -1,0 +1,29 @@
+<!-- -*- mode: nxml -*- -->
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:ext="http://nextthought.com/ntp/ext">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+	<include package="zope.security" />
+
+	<!-- Path Adapters -->
+	<adapter name="SiteAdmin"
+			 for="nti.dataserver.interfaces.IUser pyramid.interfaces.IRequest"
+			 factory=".SiteAdminWorkspacePathAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter" />
+
+	<adapter name="sites"
+			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
+			 factory=".SitesPathAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter" />
+
+    <adapter name="SiteBrand"
+             for="nti.dataserver.interfaces.IDataserverFolder
+                  pyramid.interfaces.IRequest"
+             factory=".brand_views.SiteBrandPathAdapter"
+             provides="zope.traversing.interfaces.IPathAdapter" />
+
+</configure>
