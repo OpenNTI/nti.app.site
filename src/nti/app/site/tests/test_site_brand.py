@@ -138,11 +138,23 @@ class TestSiteBrand(SiteLayerTest):
         # Cannot delete
         #self.testapp.delete(brand_href, extra_environ=site_admin_env, status=404)
 
-        # No SiteBrand will not 404 on GET
+        # No SiteBrand will not 404 on GET; we will get a new default when fetching
+        # Note, we do not return utility for parent site (ifsta.nextthought.com)
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
             site_brand = component.queryUtility(ISiteBrand)
             assert_that(site_brand, not_none())
             assert_that(site_brand.brand_name, is_(new_brand_name))
             component.getSiteManager().unregisterUtility(site_brand,
                                                          provided=ISiteBrand)
+            del component.getSiteManager()['SiteBrand']
 
+        res = self.testapp.get(brand_rel, extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'brand_name', 'test_brand_site'))
+
+        site_href = u'/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteBrand'
+        res = self.testapp.get(site_href, extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'brand_name', 'test_brand_site'))

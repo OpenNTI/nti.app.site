@@ -16,6 +16,7 @@ from zope import interface
 from zope.traversing.interfaces import ITraversable
 
 from nti.site.interfaces import IHostPolicyFolder
+from nti.site.interfaces import IHostPolicySiteManager
 
 from nti.traversal.traversal import ContainerAdapterTraversable
 
@@ -28,3 +29,9 @@ class HostPolicyTraversable(ContainerAdapterTraversable):
 
     def traverse(self, key, remaining_path):
         raise KeyError(key)
+
+
+@interface.implementer(ITraversable)
+@component.adapter(IHostPolicySiteManager, IRequest)
+class HostSiteManagerTraversable(ContainerAdapterTraversable):
+    pass

@@ -36,7 +36,6 @@ from nti.site.interfaces import IHostPolicySiteManager
 
 from nti.site.localutility import install_utility
 
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -44,7 +43,9 @@ logger = __import__('logging').getLogger(__name__)
 @component.adapter(IDataserverFolder, IRequest)
 @component.adapter(IHostPolicySiteManager, IRequest)
 def SiteBrandPathAdapter(unused_context, unused_request):
-    result = component.queryUtility(ISiteBrand)
+    # Only get SiteBrand for our current site
+    sm = component.getSiteManager()
+    result = sm.get('SiteBrand')
     if result is None:
         brand_name = getSite().__name__
         result = SiteBrand(brand_name=brand_name)
