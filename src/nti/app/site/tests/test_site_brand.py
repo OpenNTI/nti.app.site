@@ -137,3 +137,12 @@ class TestSiteBrand(SiteLayerTest):
 
         # Cannot delete
         #self.testapp.delete(brand_href, extra_environ=site_admin_env, status=404)
+
+        # No SiteBrand will not 404 on GET
+        with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
+            site_brand = component.queryUtility(ISiteBrand)
+            assert_that(site_brand, not_none())
+            assert_that(site_brand.brand_name, is_(new_brand_name))
+            component.getSiteManager().unregisterUtility(site_brand,
+                                                         provided=ISiteBrand)
+

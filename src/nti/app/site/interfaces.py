@@ -22,6 +22,8 @@ from zope.schema import Bool
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
+from nti.coremetadata.interfaces import IShouldHaveTraversablePath
+
 from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import Int
@@ -90,7 +92,7 @@ class ISiteBrandAssets(ILastModified, ICreated):
                    required=False)
 
 
-class ISiteBrand(IContained, ILastModified, ICreated):
+class ISiteBrand(IContained, ILastModified, ICreated, IShouldHaveTraversablePath):
     """
     A persistent that utility that defines site branding.
     """

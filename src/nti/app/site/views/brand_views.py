@@ -42,12 +42,13 @@ logger = __import__('logging').getLogger(__name__)
 
 @interface.implementer(IPathAdapter)
 @component.adapter(IDataserverFolder, IRequest)
+@component.adapter(IHostPolicySiteManager, IRequest)
 def SiteBrandPathAdapter(unused_context, unused_request):
     result = component.queryUtility(ISiteBrand)
     if result is None:
         brand_name = getSite().__name__
-        site_brand = SiteBrand(brand_name=brand_name)
-        install_utility(site_brand,
+        result = SiteBrand(brand_name=brand_name)
+        install_utility(result,
                         'SiteBrand',
                         ISiteBrand,
                         component.getSiteManager())

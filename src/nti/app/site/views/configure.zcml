@@ -26,4 +26,10 @@
              factory=".brand_views.SiteBrandPathAdapter"
              provides="zope.traversing.interfaces.IPathAdapter" />
 
+    <adapter name="SiteBrand"
+             for="nti.site.interfaces.IHostPolicySiteManager
+                  pyramid.interfaces.IRequest"
+             factory=".brand_views.SiteBrandPathAdapter"
+             provides="zope.traversing.interfaces.IPathAdapter" />
+
 </configure>
