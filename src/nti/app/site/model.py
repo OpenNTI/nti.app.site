@@ -10,6 +10,8 @@ from __future__ import absolute_import
 
 from persistent import Persistent
 
+from persistent.mapping import PersistentMapping
+
 from zope import component
 from zope import interface
 
@@ -98,6 +100,15 @@ class SiteSeatLimit(Persistent, Contained):
         return len(user_ids)  # Includes site admins
 
 
+class SiteBrandTheme(PersistentMapping,
+                     PersistentCreatedAndModifiedTimeObject):
+
+    __parent__ = None
+
+    # Leave these at 0 until they get set externally
+    _SET_CREATED_MODTIME_ON_INIT = False
+
+
 @WithRepr
 @interface.implementer(ISiteBrand)
 class SiteBrand(PersistentCreatedAndModifiedTimeObject,
@@ -108,9 +119,19 @@ class SiteBrand(PersistentCreatedAndModifiedTimeObject,
     __parent__ = None
     __name__ = alias('Name')
 
+    _theme = None
+
     creator = None
     name = alias('Name')
     mimeType = mime_type = 'application/vnd.nextthought.sitebrand'
+
+    @property
+    def theme(self):
+        return dict(self._theme) if self._theme else {}
+
+    @theme.setter
+    def theme(self, nv):
+        pass
 
 
 @WithRepr

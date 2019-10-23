@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
+from hamcrest import has_entries
 from hamcrest import assert_that
 from hamcrest import has_properties
 
@@ -48,8 +49,13 @@ class TestExternalization(SiteLayerTest):
         site_brand_assets = SiteBrandAssets(web=web_image,
                                             mobile=mobile_image,
                                             login=login_image)
+        theme = {'a': 'aval',
+                 'b': {'b1': 'b1val'},
+                 'c': None}
         site_brand = SiteBrand(brand_name=u'brand name',
                                assets=site_brand_assets)
+        site_brand._theme = theme
+
         assert_that(web_image,
                     verifiably_provides(ISiteBrandImage))
         assert_that(mobile_image,
@@ -67,6 +73,7 @@ class TestExternalization(SiteLayerTest):
                     is_(SiteBrand.mime_type))
         assert_that(ext_obj[CREATED_TIME], not_none())
         assert_that(ext_obj[LAST_MODIFIED], not_none())
+        assert_that(ext_obj['theme'], has_entries(**theme))
 
         assets = ext_obj.get('assets')
         assert_that(assets, not_none())
@@ -114,6 +121,7 @@ class TestExternalization(SiteLayerTest):
         new_io = factory()
         update_from_external_object(new_io, ext_obj, require_updater=True)
         assert_that(new_io, has_properties("brand_name", "brand name",
+                                           "theme", has_entries(**theme),
                                            "assets", has_properties("web",
                                                                     has_properties("source", is_(web_image.source),
                                                                                    "two_times", is_(web_image.two_times)),

@@ -27,6 +27,7 @@ from nti.coremetadata.interfaces import IShouldHaveTraversablePath
 from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import Int
+from nti.schema.field import Dict
 from nti.schema.field import Object
 from nti.schema.field import DecodingValidTextLine as TextLine
 
@@ -102,6 +103,10 @@ class ISiteBrand(IContained, ILastModified, ICreated, IShouldHaveTraversablePath
     assets = Object(ISiteBrandAssets,
                     title=u'The site brand assets',
                     required=False)
+
+    theme = Dict(title=u"Arbitrary key/val dict of theme",
+                 readonly=False,
+                 required=False)
 
 
 class ISiteAdminAddedEvent(IObjectEvent):
