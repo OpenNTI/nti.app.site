@@ -117,6 +117,10 @@ class TestSiteBrand(SiteLayerTest):
 
         # Update brand name
         new_brand_name = 'new brand name'
+        self.testapp.put_json(brand_rel, {'brand_name': new_brand_name},
+                              extra_environ=regular_env,
+                              status=403)
+
         res = self.testapp.put_json(brand_rel, {'brand_name': new_brand_name},
                                     extra_environ=site_admin_env)
         brand_res = res.json_body
