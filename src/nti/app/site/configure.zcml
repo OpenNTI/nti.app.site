@@ -36,6 +36,7 @@
 
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
+	<adapter factory=".acl.SiteBrandACLProvider" />
 
 	<adapter name="NextthoughtDotComSiteAdmin"
 			 for="nti.dataserver.interfaces.IUser"
@@ -54,8 +55,17 @@
 	<include package="nti.externalization" />
 
 	<ext:registerAutoPackageIO
-		root_interfaces=".interfaces.ISite .interfaces.ISiteSeatLimit"
+		root_interfaces=".interfaces.ISite
+		                 .interfaces.ISiteBrand
+		                 .interfaces.ISiteSeatLimit
+		                 .interfaces.ISiteBrandImage
+		                 .interfaces.ISiteBrandAssets"
 		modules=".model" />
+
+	<subscriber factory="nti.appserver.pyramid_renderers_edit_link_decorator.EditLinkDecorator"
+                provides="nti.externalization.interfaces.IExternalMappingDecorator"
+                for="nti.app.site.interfaces.ISiteBrand
+                     pyramid.interfaces.IRequest" />
 
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
@@ -93,5 +103,9 @@
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace
                      pyramid.interfaces.IRequest"/>
+
+    <!-- workspace -->
+    <subscriber factory=".decorators._UserSiteBrandLinkProvider"
+                provides="nti.appserver.workspaces.interfaces.IUserWorkspaceLinkProvider"/>
 
 </configure>

@@ -158,7 +158,7 @@ def _registry_lookup(name_or_components):
         return name_or_components
     return component.getGlobalSiteManager().getUtility(IComponents, name=name_or_components)
 
-    
+
 def _create_and_register_globally(name, bases, registry_factory=_registry_lookup):
     gsm = component.getGlobalSiteManager()
     try:
@@ -173,7 +173,7 @@ def _create_and_register_globally(name, bases, registry_factory=_registry_lookup
         parent = bases[0]
     except ComponentLookupError as e:
         raise MissingBaseComponentsError(e.args[1]) #second arg is name
-    
+
     components = BaseComponents(parent, name=name, bases=bases)
     gsm.registerUtility(components, IComponents, name=name)
 
@@ -221,7 +221,7 @@ class RegisterInNamedComponents(RegisterIn):
     """
     A ZCML grouping directive for handing IRegisterInNamedComponentsDirective
     """
-    
+
     def before(self):
         """
         We need resolve the registry before making it active.

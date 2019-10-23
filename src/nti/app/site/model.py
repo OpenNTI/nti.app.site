@@ -19,12 +19,15 @@ from zope.component.hooks import getSite
 
 from zope.container.contained import Contained
 
+from zope.mimetype.interfaces import IContentTypeAware
+
 from zope.schema.fieldproperty import createFieldProperties
 
 from nti.app.site.interfaces import ISite
+from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteSeatLimit
-
-from zope.mimetype.interfaces import IContentTypeAware
+from nti.app.site.interfaces import ISiteBrandImage
+from nti.app.site.interfaces import ISiteBrandAssets
 
 from nti.app.site import SITE_MIMETYPE
 
@@ -33,6 +36,8 @@ from nti.base.mixins import CreatedAndModifiedTimeMixin
 from nti.coremetadata.interfaces import IDataserver
 
 from nti.dataserver.users.utils import intids_of_users_by_site
+
+from nti.dublincore.time_mixins import PersistentCreatedAndModifiedTimeObject
 
 from nti.externalization.representation import WithRepr
 
@@ -91,3 +96,48 @@ class SiteSeatLimit(Persistent, Contained):
     def used_seats(self):
         user_ids = intids_of_users_by_site(self.current_site)
         return len(user_ids)  # Includes site admins
+
+
+@WithRepr
+@interface.implementer(ISiteBrand)
+class SiteBrand(PersistentCreatedAndModifiedTimeObject,
+                SchemaConfigured):
+
+    createDirectFieldProperties(ISiteBrand)
+
+    __parent__ = None
+    __name__ = alias('Name')
+
+    creator = None
+    name = alias('Name')
+    mimeType = mime_type = 'application/vnd.nextthought.sitebrand'
+
+
+@WithRepr
+@interface.implementer(ISiteBrandAssets)
+class SiteBrandAssets(PersistentCreatedAndModifiedTimeObject,
+                      SchemaConfigured):
+
+    createDirectFieldProperties(ISiteBrandAssets)
+
+    __parent__ = None
+    __name__ = alias('Name')
+
+    creator = None
+    name = alias('Name')
+    mimeType = mime_type = 'application/vnd.nextthought.sitebrandassets'
+
+
+@WithRepr
+@interface.implementer(ISiteBrandImage)
+class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
+                     SchemaConfigured):
+
+    createDirectFieldProperties(ISiteBrandAssets)
+
+    __parent__ = None
+    __name__ = alias('Name')
+
+    creator = None
+    name = alias('Name')
+    mimeType = mime_type = 'application/vnd.nextthought.sitebrandimage'

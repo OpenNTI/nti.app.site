@@ -1,0 +1,21 @@
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="nti.app.site" file="meta.zcml" />
+
+    <configure>
+        <appsite:createSites package="nti.app.sites.ifsta">
+            <appsite:createSite site_name="test_brand_site"
+                                   base_names="nti.app.sites.ifsta.sites.IFSTA,"
+                                   parent_name="nti.app.sites.ifsta.sites.IFSTA">
+
+                <utility factory=".policy.IFSTAFirehouseSitePolicyEventListener" />
+            </appsite:createSite>
+        </appsite:createSites>
+    </configure>
+</configure>
