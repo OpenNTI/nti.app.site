@@ -8,6 +8,7 @@ from __future__ import division
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
+from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
 
@@ -61,6 +62,11 @@ class TestSiteBrand(SiteLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_site_brand(self):
+        """
+        Validate the site subscribers (create community and site brand).
+
+        Validate updating the SiteBrand object and permissioning.
+        """
         with mock_dataserver.mock_db_trans():
             # Validate our brand exists due to subscriber
             synchronize_host_policies()
@@ -112,16 +118,14 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = self.testapp.get(get_brand_rel, extra_environ=regular_env)
         brand_res = brand_res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site'))
+                                           'brand_name', 'test_brand_site',
+                                           'theme', has_length(0)))
         self.forbid_link_with_rel(brand_res, 'edit')
 
         # Update brand name and theme
         new_brand_name = 'new brand name'
-#         theme = {'a': 'aval',
-#                  'b': {'b1': 'b1val'},
-#                  'c': None}
         theme = {'a': 'aval',
-                 'b': 'b1val',
+                 'b': {'b1': 'b1val'},
                  'c': None}
         data = {'brand_name': new_brand_name,
                 'theme': theme}
@@ -136,6 +140,23 @@ class TestSiteBrand(SiteLayerTest):
                                            'brand_name', new_brand_name,
                                            'theme', has_entries(**theme)))
 
+        # Theme updates
+        data['theme'] = new_theme = {'d': 'd vals'}
+        res = self.testapp.put_json(brand_rel, data,
+                                    extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'brand_name', new_brand_name,
+                                           'theme', has_entries(**new_theme)))
+
+        data['theme'] = None
+        res = self.testapp.put_json(brand_rel, data,
+                                    extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'brand_name', new_brand_name,
+                                           'theme', has_length(0)))
+
         # Unauth get
         unauth_testapp = TestApp(self.app)
         res = unauth_testapp.get(brand_rel,
@@ -143,7 +164,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
-                                           'theme', has_entries(**theme)))
+                                           'theme', has_length(0)))
 
         # Cannot delete
         #self.testapp.delete(brand_href, extra_environ=site_admin_env, status=404)
@@ -161,10 +182,12 @@ class TestSiteBrand(SiteLayerTest):
         res = self.testapp.get(brand_rel, extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site'))
+                                           'brand_name', 'test_brand_site',
+                                           'theme', has_length(0)))
 
         site_href = u'/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteBrand'
         res = self.testapp.get(site_href, extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site'))
+                                           'brand_name', 'test_brand_site',
+                                           'theme', has_length(0)))
