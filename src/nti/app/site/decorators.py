@@ -20,6 +20,8 @@ from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
 
+from nti.app.site.interfaces import ISiteBrandAssets
+
 from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
 
 from nti.dataserver.authorization import is_admin_or_site_admin
@@ -29,6 +31,8 @@ from nti.dataserver.interfaces import IDataserverFolder
 
 from nti.externalization.interfaces import StandardExternalFields
 from nti.externalization.interfaces import IExternalObjectDecorator
+
+from nti.externalization.singleton import Singleton
 
 from nti.links.links import Link
 
@@ -61,6 +65,25 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
                     method="PUT",
                     elements=("%s" % VIEW_SITE_BRAND,))
         links.append(link)
+
+
+@component.adapter(ISiteBrandAssets)
+@interface.implementer(IExternalObjectDecorator)
+class SiteBrandAssetsDecorator(Singleton):
+    """
+    The `logo` is the base image. Decorate this URL to all other
+    image URLs that are None.
+    """
+
+    TARGET_ATTRS = ('icon', 'full_logo', 'email', 'favicon')
+
+    def decorateExternalObject(self, unused_context, external):
+        logo_ext = external.get('logo')
+        if logo_ext:
+            for attr in self.TARGET_ATTRS:
+                attr_ext = external.get(attr)
+                if not attr_ext or not attr_ext.get('source'):
+                    external[attr] = logo_ext
 
 
 @component.adapter(IUser)

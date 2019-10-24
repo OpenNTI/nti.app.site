@@ -85,7 +85,6 @@ class TestExternalization(SiteLayerTest):
                     is_(SiteBrandAssets.mime_type))
         assert_that(assets[CREATED_TIME], not_none())
         assert_that(assets[LAST_MODIFIED], not_none())
-        assert_that(assets['favicon'], none())
 
         logo = assets.get('logo')
         assert_that(logo, not_none())
@@ -115,6 +114,13 @@ class TestExternalization(SiteLayerTest):
         assert_that(icon[LAST_MODIFIED], not_none())
         assert_that(icon['source'], is_(icon_image.source))
         assert_that(icon['filename'], none())
+
+        # Logo props are copied to other empty image fields
+        for attr in ('email', 'favicon'):
+            attr_ext = assets.get(attr)
+            assert_that(attr_ext, not_none(), attr)
+            assert_that(attr_ext['source'], is_(logo_image.source), attr)
+            assert_that(attr_ext['filename'], is_(logo_image.filename), attr)
 
         factory = find_factory_for(ext_obj)
         assert_that(factory, not_none())
