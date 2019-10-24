@@ -119,16 +119,19 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = brand_res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', 'test_brand_site',
+                                           'brand_color', none(),
                                            'theme', has_length(0)))
         self.forbid_link_with_rel(brand_res, 'edit')
 
         # Update brand name and theme
         new_brand_name = 'new brand name'
+        color = u'#404040'
         theme = {'a': 'aval',
                  'b': {'b1': 'b1val'},
                  'c': None}
         data = {'brand_name': new_brand_name,
-                'theme': theme}
+                'theme': theme,
+                'brand_color': color}
         self.testapp.put_json(brand_rel, data,
                               extra_environ=regular_env,
                               status=403)
@@ -138,6 +141,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
+                                           'brand_color', color,
                                            'theme', has_entries(**theme)))
 
         # Theme updates
@@ -155,6 +159,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
+                                           'brand_color', color,
                                            'theme', has_length(0)))
 
         # Unauth get
@@ -164,6 +169,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
+                                           'brand_color', color,
                                            'theme', has_length(0)))
 
         # Cannot delete
@@ -183,6 +189,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', 'test_brand_site',
+                                           'brand_color', none(),
                                            'theme', has_length(0)))
 
         site_href = u'/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteBrand'
@@ -190,4 +197,5 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', 'test_brand_site',
+                                           'brand_color', none(),
                                            'theme', has_length(0)))
