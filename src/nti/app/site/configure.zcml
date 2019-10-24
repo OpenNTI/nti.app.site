@@ -58,6 +58,10 @@
                 for="nti.app.site.interfaces.ISiteBrand
                      pyramid.interfaces.IRequest" />
 
+    <!-- Decorators -->
+    <subscriber factory=".decorators.SiteBrandAssetsDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"/>
+
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />

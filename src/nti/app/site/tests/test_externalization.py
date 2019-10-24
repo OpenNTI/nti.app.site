@@ -42,25 +42,28 @@ LAST_MODIFIED = StandardExternalFields.LAST_MODIFIED
 class TestExternalization(SiteLayerTest):
 
     def test_brand(self):
-        web_image = SiteBrandImage(source=u'/content/path/web.png',
-                                   two_times=u'/content/path/web2x.png')
-        mobile_image = SiteBrandImage(source=u'/content/path/mobile')
-        login_image = SiteBrandImage(source=u'/content/path/login')
-        site_brand_assets = SiteBrandAssets(web=web_image,
-                                            mobile=mobile_image,
-                                            login=login_image)
+        image_url = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
+        logo_image = SiteBrandImage(source='file:///content/path/web.png',
+                                    filename=u'filename.png')
+        icon_image = SiteBrandImage(source='file:///content/path/icon')
+        full_logo_image = SiteBrandImage(source=image_url)
+        site_brand_assets = SiteBrandAssets(logo=logo_image,
+                                            full_logo=full_logo_image,
+                                            icon=icon_image)
         theme = {'a': 'aval',
                  'b': {'b1': 'b1val'},
                  'c': None}
+        color = u'#404040'
         site_brand = SiteBrand(brand_name=u'brand name',
+                               brand_color=color,
                                assets=site_brand_assets)
         site_brand._theme = theme
 
-        assert_that(web_image,
+        assert_that(logo_image,
                     verifiably_provides(ISiteBrandImage))
-        assert_that(mobile_image,
+        assert_that(icon_image,
                     verifiably_provides(ISiteBrandImage))
-        assert_that(login_image,
+        assert_that(full_logo_image,
                     verifiably_provides(ISiteBrandImage))
         assert_that(site_brand_assets,
                     verifiably_provides(ISiteBrandAssets))
@@ -82,51 +85,55 @@ class TestExternalization(SiteLayerTest):
                     is_(SiteBrandAssets.mime_type))
         assert_that(assets[CREATED_TIME], not_none())
         assert_that(assets[LAST_MODIFIED], not_none())
-        assert_that(assets['background'], none())
 
-        web = assets.get('web')
-        assert_that(web, not_none())
-        assert_that(web[CLASS], is_('SiteBrandImage'))
-        assert_that(web[MIMETYPE],
+        logo = assets.get('logo')
+        assert_that(logo, not_none())
+        assert_that(logo[CLASS], is_('SiteBrandImage'))
+        assert_that(logo[MIMETYPE],
                     is_(SiteBrandImage.mime_type))
-        assert_that(web[LAST_MODIFIED], not_none())
-        assert_that(web['source'], is_(web_image.source))
-        assert_that(web['two_times'], is_(web_image.two_times))
-        assert_that(web['three_times'], none())
+        assert_that(logo[LAST_MODIFIED], not_none())
+        assert_that(logo['source'], is_(logo_image.source))
+        assert_that(logo['filename'], is_(u'filename.png'))
 
-        mobile = assets.get('mobile')
-        assert_that(mobile, not_none())
-        assert_that(mobile[CLASS], is_('SiteBrandImage'))
-        assert_that(mobile[MIMETYPE],
+        full_logo = assets.get('full_logo')
+        assert_that(full_logo, not_none())
+        assert_that(full_logo[CLASS], is_('SiteBrandImage'))
+        assert_that(full_logo[MIMETYPE],
                     is_(SiteBrandImage.mime_type))
-        assert_that(mobile[CREATED_TIME], not_none())
-        assert_that(mobile[LAST_MODIFIED], not_none())
-        assert_that(mobile['source'], is_(mobile_image.source))
-        assert_that(mobile['two_times'], none())
-        assert_that(mobile['three_times'], none())
+        assert_that(full_logo[CREATED_TIME], not_none())
+        assert_that(full_logo[LAST_MODIFIED], not_none())
+        assert_that(full_logo['source'], is_(full_logo_image.source))
+        assert_that(full_logo['filename'], none())
 
-        login = assets.get('login')
-        assert_that(login, not_none())
-        assert_that(login[CLASS], is_('SiteBrandImage'))
-        assert_that(login[MIMETYPE],
+        icon = assets.get('icon')
+        assert_that(icon, not_none())
+        assert_that(icon[CLASS], is_('SiteBrandImage'))
+        assert_that(icon[MIMETYPE],
                     is_(SiteBrandImage.mime_type))
-        assert_that(login[CREATED_TIME], not_none())
-        assert_that(login[LAST_MODIFIED], not_none())
-        assert_that(login['source'], is_(login_image.source))
-        assert_that(login['two_times'], none())
-        assert_that(login['three_times'], none())
+        assert_that(icon[CREATED_TIME], not_none())
+        assert_that(icon[LAST_MODIFIED], not_none())
+        assert_that(icon['source'], is_(icon_image.source))
+        assert_that(icon['filename'], none())
+
+        # Logo props are copied to other empty image fields
+        for attr in ('email', 'favicon'):
+            attr_ext = assets.get(attr)
+            assert_that(attr_ext, not_none(), attr)
+            assert_that(attr_ext['source'], is_(logo_image.source), attr)
+            assert_that(attr_ext['filename'], is_(logo_image.filename), attr)
 
         factory = find_factory_for(ext_obj)
         assert_that(factory, not_none())
         new_io = factory()
         update_from_external_object(new_io, ext_obj, require_updater=True)
         assert_that(new_io, has_properties("brand_name", "brand name",
+                                           'brand_color', color,
                                            "theme", has_entries(**theme),
-                                           "assets", has_properties("web",
-                                                                    has_properties("source", is_(web_image.source),
-                                                                                   "two_times", is_(web_image.two_times)),
-                                                                    "mobile",
-                                                                    has_properties("source", is_(mobile_image.source)),
-                                                                    "login",
-                                                                    has_properties("source", is_(login_image.source),
-                                                                                   "two_times", none()))))
+                                           "assets", has_properties("logo",
+                                                                    has_properties("source", is_(logo_image.source),
+                                                                                   "filename", is_(logo_image.filename)),
+                                                                    "full_logo",
+                                                                    has_properties("source", is_(full_logo_image.source)),
+                                                                    "icon",
+                                                                    has_properties("source", is_(icon_image.source),
+                                                                                   "filename", none()))))

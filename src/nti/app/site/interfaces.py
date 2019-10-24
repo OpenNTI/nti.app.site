@@ -29,6 +29,7 @@ from nti.dataserver.interfaces import ISiteCommunity
 from nti.schema.field import Int
 from nti.schema.field import Dict
 from nti.schema.field import Object
+from nti.schema.field import ValidURI
 from nti.schema.field import DecodingValidTextLine as TextLine
 
 #: Default provider
@@ -50,17 +51,14 @@ class ISite(IContained, ILastModified, ICreated):
 
 class ISiteBrandImage(ILastModified, ICreated):
     """
-    Stores a source image, 2x, and 3x images.
+    Stores a source image.
     """
 
-    source = TextLine(title=u"source image",
+    source = ValidURI(title=u"source image",
                       required=False)
 
-    two_times = TextLine(title=u"two_times image",
-                         required=False)
-
-    three_times = TextLine(title=u"three_times image",
-                           required=False)
+    filename = TextLine(title=u"the uploaded filename",
+                        required=False)
 
 
 class ISiteBrandAssets(ILastModified, ICreated):
@@ -68,29 +66,25 @@ class ISiteBrandAssets(ILastModified, ICreated):
     Defines the site brand assets
     """
 
-    mobile = Object(ISiteBrandImage,
-                    title=u'The site brand mobile image',
-                    required=False)
+    logo = Object(ISiteBrandImage,
+                  title=u'The root site brand image',
+                  required=False)
 
-    background = Object(ISiteBrandImage,
-                        title=u'The site brand background image',
-                        required=False)
+    icon = Object(ISiteBrandImage,
+                  title=u'The site brand icon image',
+                  required=False)
 
-    web = Object(ISiteBrandImage,
-                 title=u'The site brand web image',
-                 required=False)
+    full_logo = Object(ISiteBrandImage,
+                       title=u'The site brand full_logo image',
+                       required=False)
 
-    web_library = Object(ISiteBrandImage,
-                         title=u'The site brand web library image',
-                         required=False)
+    email = Object(ISiteBrandImage,
+                   title=u'The site brand web library image',
+                   required=False)
 
     favicon = Object(ISiteBrandImage,
                      title=u'The site brand favicon image',
                      required=False)
-
-    login = Object(ISiteBrandImage,
-                   title=u'The site brand login image',
-                   required=False)
 
 
 class ISiteBrand(IContained, ILastModified, ICreated, IShouldHaveTraversablePath):
@@ -98,7 +92,11 @@ class ISiteBrand(IContained, ILastModified, ICreated, IShouldHaveTraversablePath
     A persistent that utility that defines site branding.
     """
 
-    brand_name = TextLine(title=u"Site brand name", required=False)
+    brand_name = TextLine(title=u"Site brand name",
+                          required=False)
+
+    brand_color = TextLine(title=u"The site color",
+                           required=False)
 
     assets = Object(ISiteBrandAssets,
                     title=u'The site brand assets',
