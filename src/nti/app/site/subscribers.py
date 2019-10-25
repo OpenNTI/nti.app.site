@@ -7,9 +7,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
+
 from zope import component
 
 from zope.component.hooks import site
+
+from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 
 from zope.site.interfaces import INewLocalSite
 
@@ -28,6 +32,9 @@ from nti.site.interfaces import IHostPolicySiteManager
 from nti.site.localutility import install_utility
 
 logger = __import__('logging').getLogger(__name__)
+
+#: Deleted directory marker
+DELETED_MARKER = u"__nti_deleted_marker__"
 
 
 @component.adapter(IHostPolicySiteManager, INewLocalSite)
@@ -60,3 +67,15 @@ def _on_site_created(new_site_manager, unused_event=None):
                         'SiteBrand',
                         ISiteBrand,
                         new_site_manager)
+
+
+@component.adapter(ISiteBrand, IObjectRemovedEvent)
+def _on_site_brand_deleted(site_brand, unused_event=None):
+    """
+    On site brand removal, clean up on-disk assets by marking
+    the location as deleted (for NFS).
+    """
+    bucket = site_brand.assets and site_brand.assets.root
+    if bucket is not None:
+        path = os.path.join(bucket.absolute_path, DELETED_MARKER)
+        open(path, 'w').close()

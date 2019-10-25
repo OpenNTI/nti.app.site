@@ -102,10 +102,16 @@
 
     <!-- Subscribers -->
     <subscriber handler=".subscribers._on_site_created" />
+    <subscriber handler=".subscribers._on_site_brand_deleted" />
 
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace
+                     pyramid.interfaces.IRequest"/>
+
+    <subscriber factory=".decorators.SiteBrandAuthDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.ISiteBrand
                      pyramid.interfaces.IRequest"/>
 
     <!-- workspace -->

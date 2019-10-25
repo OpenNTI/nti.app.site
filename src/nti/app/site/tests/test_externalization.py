@@ -26,6 +26,9 @@ from nti.app.site.interfaces import ISiteBrandAssets
 
 from nti.app.site.tests import SiteLayerTest
 
+from nti.contentlibrary.zodb import PersistentHierarchyKey
+from nti.contentlibrary.zodb import PersistentHierarchyBucket
+
 from nti.externalization.externalization import to_external_object
 
 from nti.externalization.interfaces import StandardExternalFields
@@ -43,13 +46,18 @@ class TestExternalization(SiteLayerTest):
 
     def test_brand(self):
         image_url = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
+        bucket_path = u'/tmp/site-assets/sitename'
+        bucket = PersistentHierarchyBucket(name=bucket_path)
+        key = PersistentHierarchyKey(name=u'logo', bucket=bucket)
         logo_image = SiteBrandImage(source='file:///content/path/web.png',
-                                    filename=u'filename.png')
+                                    filename=u'filename.png',
+                                    key=key)
         icon_image = SiteBrandImage(source='file:///content/path/icon')
         full_logo_image = SiteBrandImage(source=image_url)
         site_brand_assets = SiteBrandAssets(logo=logo_image,
                                             full_logo=full_logo_image,
-                                            icon=icon_image)
+                                            icon=icon_image,
+                                            root=bucket)
         theme = {'a': 'aval',
                  'b': {'b1': 'b1val'},
                  'c': None}
