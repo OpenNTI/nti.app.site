@@ -17,6 +17,8 @@ from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 
 from zope.site.interfaces import INewLocalSite
 
+from nti.app.site import DELETED_MARKER
+
 from nti.app.site.interfaces import ISiteBrand
 
 from nti.app.site.model import SiteBrand
@@ -32,9 +34,6 @@ from nti.site.interfaces import IHostPolicySiteManager
 from nti.site.localutility import install_utility
 
 logger = __import__('logging').getLogger(__name__)
-
-#: Deleted directory marker
-DELETED_MARKER = u"__nti_deleted_marker__"
 
 
 @component.adapter(IHostPolicySiteManager, INewLocalSite)
@@ -77,5 +76,5 @@ def _on_site_brand_deleted(site_brand, unused_event=None):
     """
     bucket = site_brand.assets and site_brand.assets.root
     if bucket is not None:
-        path = os.path.join(bucket.absolute_path, DELETED_MARKER)
+        path = os.path.join(bucket.key, DELETED_MARKER)
         open(path, 'w').close()

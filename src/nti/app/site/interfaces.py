@@ -22,8 +22,7 @@ from zope.schema import Bool
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
-from nti.contentlibrary.interfaces import IDelimitedHierarchyKey,\
-    IDelimitedHierarchyBucket
+from nti.contentlibrary.interfaces import IDelimitedHierarchyBucket
 from nti.contentlibrary.interfaces import IWritableDelimitedHierarchyKey
 
 from nti.coremetadata.interfaces import IShouldHaveTraversablePath
@@ -41,6 +40,7 @@ NTI = u'NTI'
 
 # BWC
 ISiteCommunity = ISiteCommunity
+
 
 class ISite(IContained, ILastModified, ICreated):
     """

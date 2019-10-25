@@ -5,11 +5,17 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+import os
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import IRequest
 from pyramid.view import view_config
 from pyramid.view import view_defaults
+
+from requests.structures import CaseInsensitiveDict
+
+from six.moves import urllib_parse
 
 from zope import component
 from zope import interface
@@ -26,17 +32,24 @@ from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.externalization.error import raise_json_error
 
-from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+from nti.app.site import DELETED_MARKER
 
 from nti.app.site.interfaces import ISiteBrand
 
 from nti.app.site.model import SiteBrand
+from nti.app.site.model import SiteBrandImage
+from nti.app.site.model import SiteBrandAssets
 
 from nti.appserver.ugd_edit_views import UGDPutView
+
+from nti.contentlibrary.zodb import PersistentHierarchyKey
+from nti.contentlibrary.zodb import PersistentHierarchyBucket
 
 from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import IDataserverFolder
+
+from nti.property.dataurl import DataURL
 
 from nti.site.interfaces import IHostPolicySiteManager
 
@@ -67,7 +80,7 @@ def SiteBrandPathAdapter(unused_context, unused_request):
 @view_config(context=ISiteBrand)
 @view_defaults(route_name='objects.generic.traversal',
                renderer='rest')
-class SeatBrandView(AbstractView):
+class SiteBrandView(AbstractView):
     """
     An unauthenticated view to fetch the site brand info.
     """
@@ -76,16 +89,40 @@ class SeatBrandView(AbstractView):
         return self.context
 
 
-class SiteBrandImageMixin(object):
+@view_config(context=ISiteBrand)
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               permission=nauth.ACT_CONTENT_EDIT,
+               request_method='PUT')
+class SiteBrandUpdateView(UGDPutView):
     """
-    A mixin to manage images uploaded to the :class:`ISiteBrand`.
+    These should be auto-created for new sites; we only need
+    to update these once created.
     """
 
-    ASSET_MULTIPART_KEYS = ('catalog-source',
-                            'catalog-background',
-                            'catalog-promo-large',
-                            'catalog-entry-cover',
-                            'catalog-entry-thumbnail')
+    ASSET_MULTIPART_KEYS = ('logo',
+                            'icon',
+                            'full_logo',
+                            'email',
+                            'favicon')
+
+    def readInput(self, value=None, filter_asset=True):
+        if self.request.body:
+            values = super(SiteBrandUpdateView, self).readInput(value)
+        else:
+            values = self.request.params
+        if filter_asset:
+            values = {x:y for x, y in values.items() if x not in self.ASSET_MULTIPART_KEYS}
+        result = CaseInsensitiveDict(values)
+        return result
+
+    @Lazy
+    def _asset_url_dict(self):
+        """
+        A dictionary of asset urls.
+        """
+        vals = self.readInput(filter_asset=False)
+        return CaseInsensitiveDict({x:y for x, y in vals.items() if x in self.ASSET_MULTIPART_KEYS})
 
     @Lazy
     def _source_dict(self):
@@ -94,62 +131,61 @@ class SiteBrandImageMixin(object):
         """
         return get_all_sources(self.request)
 
-    def _make_asset_tmpdir(self, source_dict):
+    def _create_assets(self):
         """
-        Make a tmp directory holding the presentation asset files to be moved
-        to the appropriate destination.
+        Create and initialize :class:`ISiteBrandAssets`.
         """
-        if not source_dict:
-            return
-        if set(self.ASSET_MULTIPART_KEYS) - set(source_dict):
-            # Do not have all of our multipart keys
-            raise_json_error(self.request,
-                             hexc.HTTPUnprocessableEntity,
-                             {
-                                 'message': _(u"Missing presentation asset files."),
-                                 'code': 'InvalidPresenationAssetFiles',
-                             },
-                             None)
-        catalog_source = source_dict.get('catalog-source')
-        catalog_promo = source_dict.get('catalog-promo-large')
-        catalog_cover = source_dict.get('catalog-entry-cover')
-        catalog_background = source_dict.get('catalog-background')
-        catalog_thumbnail = source_dict.get('catalog-entry-thumbnail')
-        return make_presentation_asset_dir(catalog_source,
-                                           catalog_background,
-                                           catalog_promo,
-                                           catalog_cover,
-                                           catalog_thumbnail)
+        # FIXME: config
+        bucket_path = u'/tmp/site-assets'
+        bucket = PersistentHierarchyBucket(name=bucket_path)
+        result = SiteBrandAssets(root=bucket)
+        result.__parent__ = self.context
 
-    def get_source(self, request=None):
-        """
-        Return the validated presentation asset source.
-        """
-        request = self.request if not request else request
-        # pylint: disable=no-member
-        source_files = self._source_dict.values()
-        for source_file in source_files or ():
-            source_file.seek(0)
-        # Otherwise, we have asset files we need to process
-        return self._make_asset_tmpdir(self._source_dict)
+        # Check if these assets were previously marked as deleted; if so, undo.
+        delete_path = os.path.join(bucket.key, DELETED_MARKER)
+        if os.path.exists(delete_path):
+            os.remove(delete_path)
+        return result
 
+    def _store_brand_image(self, assets, attr_name, brand_image):
+        brand_image.__parent__ = assets
+        setattr(assets, attr_name, brand_image)
 
-@view_config(context=ISiteBrand)
-@view_defaults(route_name='objects.generic.traversal',
-               renderer='rest',
-               permission=nauth.ACT_CONTENT_EDIT,
-               request_method='PUT')
-class SeatBrandUpdateView(UGDPutView,
-                          ModeledContentUploadRequestUtilsMixin):
-    """
-    These should be auto-created for new sites; we only need
-    to update these once created.
-    """
+    def update_assets(self):
+        """
+        Update and store our assets, if necessary.
+        """
+        if self._asset_url_dict or self._source_dict:
+            # Ok, we have something
+            assets = self.context.assets
+            if assets is None:
+                assets = self._create_assets()
+            # Store our assets as urls
+            for attr_name, asset_url in self._asset_url_dict.items():
+                brand_image = SiteBrandImage(source=str(asset_url))
+                self._store_brand_image(assets, attr_name, brand_image)
+            # Save and store given images
+            for attr_name, asset_file in self._source_dict.items():
+                if attr_name not in self.ASSET_MULTIPART_KEYS:
+                    continue
+                key = PersistentHierarchyKey(name=unicode(attr_name),
+                                             bucket=assets.root)
+                path = os.path.join(assets.root.key, attr_name)
+                asset_file.seek(0)
+                data_url = DataURL(asset_file.read())
+                with open(path, 'wb') as target:
+                    target.write(data_url.data)
+                file_uri = urllib_parse.urljoin('file:/', path)
+                brand_image = SiteBrandImage(source=str(file_uri),
+                                             filename=asset_file.name,
+                                             key=key)
+                self._store_brand_image(assets, attr_name, brand_image)
 
     def __call__(self):
-        result = super(SeatBrandUpdateView, self).__call__()
-        # TODO assets etc
-        return result
+        super(SiteBrandUpdateView, self).__call__()
+        # Now update assets
+        self.update_assets()
+        return self.context
 
 
 @view_config(context=ISiteBrand)
@@ -157,7 +193,7 @@ class SeatBrandUpdateView(UGDPutView,
                renderer='rest',
                permission=nauth.ACT_CONTENT_EDIT,
                request_method='DELETE')
-class SeatBrandDeleteView(AbstractAuthenticatedView):
+class SiteBrandDeleteView(AbstractAuthenticatedView):
     """
     Delete the site brand object.
     """

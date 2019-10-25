@@ -38,6 +38,7 @@ from nti.dataserver.tests import mock_dataserver
 from nti.dataserver.users.communities import Community
 
 from nti.site.hostpolicy import synchronize_host_policies
+from nti.externalization.representation import to_json_representation
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -67,6 +68,9 @@ class TestSiteBrand(SiteLayerTest):
 
         Validate updating the SiteBrand object and permissioning.
         """
+        PNG_DATAURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAACbmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS4xLjIiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPkFjb3JuIHZlcnNpb24gMi42LjU8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgICAgIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KO/MupgAAAA1JREFUCB1j+P//PwMACPwC/uYM/6sAAAAASUVORK5CYII='
+        EXT_URL = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
+
         with mock_dataserver.mock_db_trans():
             # Validate our brand exists due to subscriber
             synchronize_host_policies()
@@ -133,13 +137,20 @@ class TestSiteBrand(SiteLayerTest):
                  'c': None}
         data = {'brand_name': new_brand_name,
                 'theme': theme,
-                'brand_color': color}
+                'brand_color': color,
+                'full_logo': EXT_URL}
+        logo_filename = 'logo-filename.png'
+        upload_files=[('logo', logo_filename, PNG_DATAURL)]
         self.testapp.put_json(brand_rel, data,
                               extra_environ=regular_env,
                               status=403)
 
-        res = self.testapp.put_json(brand_rel, data,
-                                    extra_environ=site_admin_env)
+        # Upload assets (have to handle this correctly since multipart)
+        form_data = {'__json__': to_json_representation(data)}
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=upload_files,
+                               extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
