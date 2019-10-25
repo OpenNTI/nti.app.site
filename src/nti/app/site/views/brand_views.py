@@ -22,6 +22,7 @@ from zope.traversing.interfaces import IPathAdapter
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import get_all_sources
+from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.externalization.error import raise_json_error
 
@@ -40,6 +41,8 @@ from nti.dataserver.interfaces import IDataserverFolder
 from nti.site.interfaces import IHostPolicySiteManager
 
 from nti.site.localutility import install_utility
+
+from nti.site.utils import unregisterUtility
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -147,3 +150,21 @@ class SeatBrandUpdateView(UGDPutView,
         result = super(SeatBrandUpdateView, self).__call__()
         # TODO assets etc
         return result
+
+
+@view_config(context=ISiteBrand)
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               permission=nauth.ACT_CONTENT_EDIT,
+               request_method='DELETE')
+class SeatBrandDeleteView(AbstractAuthenticatedView):
+    """
+    Delete the site brand object.
+    """
+
+    def __call__(self):
+        site_manager = self.context.__parent__
+        unregisterUtility(site_manager, self.context, provided=ISiteBrand)
+        del site_manager[self.context.__name__]
+        return hexc.HTTPNoContent()
+

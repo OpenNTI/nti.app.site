@@ -22,6 +22,10 @@ from zope.schema import Bool
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
 
+from nti.contentlibrary.interfaces import IDelimitedHierarchyKey,\
+    IDelimitedHierarchyBucket
+from nti.contentlibrary.interfaces import IWritableDelimitedHierarchyKey
+
 from nti.coremetadata.interfaces import IShouldHaveTraversablePath
 
 from nti.dataserver.interfaces import ISiteCommunity
@@ -60,6 +64,13 @@ class ISiteBrandImage(ILastModified, ICreated):
     filename = TextLine(title=u"the uploaded filename",
                         required=False)
 
+    key = Object(IWritableDelimitedHierarchyKey,
+                 title=u"asset source location",
+                 description=u"Key that identifies where the asset source location is",
+                 required=False,
+                 default=None)
+    key.setTaggedValue('_ext_excluded_out', True)
+
 
 class ISiteBrandAssets(ILastModified, ICreated):
     """
@@ -85,6 +96,14 @@ class ISiteBrandAssets(ILastModified, ICreated):
     favicon = Object(ISiteBrandImage,
                      title=u'The site brand favicon image',
                      required=False)
+
+    # <>/site-assets/<site>
+    root = Object(IDelimitedHierarchyBucket,
+                  title=u"asset location",
+                  description=u"Bucket that identifies where the root location where assets are stored",
+                  required=False,
+                  default=None)
+    root.setTaggedValue('_ext_excluded_out', True)
 
 
 class ISiteBrand(IContained, ILastModified, ICreated, IShouldHaveTraversablePath):

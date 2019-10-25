@@ -53,6 +53,7 @@ setup(
         'setuptools',
         'anytree',
         'nti.base',
+        'nti.contentlibrary',
         'nti.externalization',
         'nti.ntiids',
         'nti.property',

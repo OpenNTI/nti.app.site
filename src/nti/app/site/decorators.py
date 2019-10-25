@@ -20,9 +20,14 @@ from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
 
+from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
 
+from nti.appserver.pyramid_authorization import has_permission
+
 from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
+
+from nti.dataserver.authorization import ACT_CONTENT_EDIT
 
 from nti.dataserver.authorization import is_admin_or_site_admin
 
@@ -99,3 +104,20 @@ class _UserSiteBrandLinkProvider(object):
                     rel=VIEW_SITE_BRAND,
                     elements=("%s" % VIEW_SITE_BRAND,))
         return (link,)
+
+
+@component.adapter(ISiteBrand, IRequest)
+@interface.implementer(IExternalObjectDecorator)
+class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _predicate(self, context, unused_result):
+        return  self._is_authenticated \
+            and has_permission(ACT_CONTENT_EDIT, context, self.request)
+
+    def _do_decorate_external(self, context, result_map):
+        links = result_map.setdefault("Links", [])
+        for rel in ('delete',):
+            link = Link(context,
+                        rel=rel,
+                        method='DELETE')
+            links.append(link)

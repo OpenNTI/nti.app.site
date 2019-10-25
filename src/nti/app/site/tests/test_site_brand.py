@@ -108,6 +108,7 @@ class TestSiteBrand(SiteLayerTest):
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', 'test_brand_site'))
         self.require_link_href_with_rel(brand_res, 'edit')
+        self.require_link_href_with_rel(brand_res, 'delete')
 
         # Get rels
         user_ws = self._get_workspace('sitebrand_siteadmin', site_admin_env)
@@ -122,6 +123,7 @@ class TestSiteBrand(SiteLayerTest):
                                            'brand_color', none(),
                                            'theme', has_length(0)))
         self.forbid_link_with_rel(brand_res, 'edit')
+        self.forbid_link_with_rel(brand_res, 'delete')
 
         # Update brand name and theme
         new_brand_name = 'new brand name'
@@ -167,23 +169,14 @@ class TestSiteBrand(SiteLayerTest):
         res = unauth_testapp.get(brand_rel,
                                  extra_environ={'HTTP_ORIGIN': self.default_origin})
         brand_res = res.json_body
+        self.forbid_link_with_rel(brand_res, 'delete')
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
                                            'brand_color', color,
                                            'theme', has_length(0)))
 
-        # Cannot delete
-        #self.testapp.delete(brand_href, extra_environ=site_admin_env, status=404)
-
-        # No SiteBrand will not 404 on GET; we will get a new default when fetching
-        # Note, we do not return utility for parent site (ifsta.nextthought.com)
-        with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
-            site_brand = component.queryUtility(ISiteBrand)
-            assert_that(site_brand, not_none())
-            assert_that(site_brand.brand_name, is_(new_brand_name))
-            component.getSiteManager().unregisterUtility(site_brand,
-                                                         provided=ISiteBrand)
-            del component.getSiteManager()['SiteBrand']
+        # Delete will reset everything
+        self.testapp.delete(brand_href, extra_environ=site_admin_env)
 
         res = self.testapp.get(brand_rel, extra_environ=site_admin_env)
         brand_res = res.json_body
