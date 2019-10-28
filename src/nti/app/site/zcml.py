@@ -8,6 +8,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
+import functools
+
 # pylint: disable=inherit-non-class
 
 from z3c.baseregistry.baseregistry import BaseComponents
@@ -27,17 +30,21 @@ from zope.configuration.config import GroupingContextDecorator
 
 from zope.configuration.exceptions import ConfigurationError
 
+from zope.configuration.fields import Tokens
 from zope.configuration.fields import DottedName
 from zope.configuration.fields import GlobalObject
-from zope.configuration.fields import Tokens
 
 from zope.configuration.interfaces import IConfigurationContext
 
 from zope.interface.interfaces import IComponents
 
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+
 from nti.app.site.schema import Tuple
 from nti.app.site.schema import SiteComponent
 from nti.app.site.schema import BaseComponents as BCField
+
+from nti.base._compat import text_
 
 from nti.schema.field import Object
 from nti.schema.field import TextLine
@@ -231,3 +238,27 @@ class RegisterInNamedComponents(RegisterIn):
             callable=setActiveRegistry,
             args=(self, self.registry)
             )
+
+
+@interface.implementer(ISiteAssetsFileSystemLocation)
+class SiteAssetsFileSystemLocation(object):
+
+    def __init__(self, root='', **kwargs):
+        root = root or kwargs.pop('root')
+        if root and not root.endswith('/'):
+            root = '%s/' % root
+        self.directory = root
+
+
+def registerSiteAssetsFileSystemLocation(_context, directory=None):
+    try:
+        os.makedirs(directory)
+    except:
+        pass
+
+    if not directory or not os.path.isdir(directory):
+        raise ConfigurationError("Must give the path of a readable directory")
+
+    factory = functools.partial(SiteAssetsFileSystemLocation,
+                                root=text_(directory))
+    utility(_context, factory=factory, provides=ISiteAssetsFileSystemLocation)

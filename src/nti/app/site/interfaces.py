@@ -10,6 +10,8 @@ from __future__ import absolute_import
 
 from zope import interface
 
+from zope.configuration.fields import Path
+
 from zope.interface import Attribute
 
 from zope.interface.interfaces import ObjectEvent
@@ -171,4 +173,14 @@ class ISiteSeatLimit(interface.Interface):
 
     used_seats = Int(title=u'Used Seats',
                      description=u'The current number of seats taken in the site.',
+                     required=True)
+
+
+
+class ISiteAssetsFileSystemLocation(interface.Interface):
+    """
+    Register a non-persistent site assets library location.
+    """
+
+    directory = Path(title=u"Path to a directory containing site assets by site.",
                      required=True)

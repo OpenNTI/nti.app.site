@@ -14,6 +14,7 @@ from hamcrest import assert_that
 from hamcrest import has_entries
 
 import os
+import shutil
 
 from zope import component
 
@@ -27,7 +28,7 @@ from zope.traversing.interfaces import IEtcNamespace
 from nti.app.site import DELETED_MARKER
 from nti.app.site import VIEW_SITE_BRAND
 
-from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteBrand, ISiteAssetsFileSystemLocation
 
 from nti.app.site.tests import SiteLayerTest
 
@@ -53,6 +54,12 @@ logger = __import__('logging').getLogger(__name__)
 class TestSiteBrand(SiteLayerTest):
 
     default_origin = 'https://test_brand_site'
+
+    def tearDown(self):
+        super(SiteLayerTest, self).tearDown()
+        location = component.queryUtility(ISiteAssetsFileSystemLocation)
+        if location is not None:
+            shutil.rmtree(location.directory)
 
     def _get_workspace(self, name, environ, exists=True):
         service_res = self.testapp.get('/dataserver2',

@@ -40,7 +40,7 @@ from nti.app.site import MessageFactory as _
 
 from nti.app.site import DELETED_MARKER
 
-from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteBrand, ISiteAssetsFileSystemLocation
 
 from nti.app.site.model import SiteBrand
 from nti.app.site.model import SiteBrandImage
@@ -154,12 +154,20 @@ class SiteBrandUpdateView(UGDPutView):
         """
         return get_all_sources(self.request)
 
+    def _get_asset_location(self):
+        location = component.queryUtility(ISiteAssetsFileSystemLocation)
+        if location is None:
+            logger.error('No ISiteAssetsFileSystemLocation registered')
+            raise hexc.HTTPUnprocessableEntity()
+        return os.path.join(location.directory, getSite().__name__)
+
     def _create_assets(self):
         """
         Create and initialize :class:`ISiteBrandAssets`.
         """
-        # FIXME: config
-        bucket_path = u'/tmp/site-assets'
+        bucket_path = self._get_asset_location()
+        if not os.path.exists(bucket_path):
+            os.makedirs(bucket_path)
         bucket = PersistentHierarchyBucket(name=bucket_path)
         result = SiteBrandAssets(root=bucket)
         result.__parent__ = self.context
