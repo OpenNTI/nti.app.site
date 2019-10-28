@@ -7,12 +7,13 @@ from __future__ import absolute_import
 
 # pylint: disable=protected-access,too-many-public-methods,arguments-differ
 
-from hamcrest import contains_string
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
-from hamcrest import assert_that
+from hamcrest import not_none
 from hamcrest import has_length
+from hamcrest import assert_that
+from hamcrest import contains_string
 
 from nti.testing.base import ConfiguringTestBase
 
@@ -31,6 +32,8 @@ from nti.appserver.policies.sites import BASEADULT
 
 from nti.app.site.zcml import ConflictingBaseComponentsError
 from nti.app.site.zcml import MissingBaseComponentsError
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+
 
 ZCML_REGISTRATION = """
 <configure  xmlns="http://namespaces.zope.org/zope"
@@ -112,6 +115,21 @@ MISSING_ZCML_REGISTRATION = """
 </configure>"""
 
 
+ASSET_LOCATION_ZCML_REGISTRATION = """
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml"
+            xmlns:appsite="http://nextthought.com/ntp/appsite">
+
+    <include package="zope.component" file="meta.zcml" />
+    <include package="zope.security" file="meta.zcml" />
+    <include package="zope.component" />
+    <include package="." file="meta.zcml" />
+
+    <appsite:siteAssetsFileSystemLocation directory="/tmp/site_assets" />
+</configure>"""
+
+
 class TestSiteZCMLRegistration(ConfiguringTestBase):
 
     def test_zcml_errors(self):
@@ -154,6 +172,12 @@ class TestSiteZCMLRegistration(ConfiguringTestBase):
         test_policy = test_sequential_registration.getUtility(ICommunitySitePolicyUserEventListener)
         assert_that(test_policy, is_not(none()))
 
+    def test_zcml_site_asset_location_directive(self):
+        self.configure_string(ASSET_LOCATION_ZCML_REGISTRATION)
+        location = component.queryUtility(ISiteAssetsFileSystemLocation)
+        assert_that(location, not_none())
+        assert_that(location.directory, is_("/tmp/site_assets/"))
+
 
 REGISTER_BASE_COMPONENTS = """
 <configure  xmlns="http://namespaces.zope.org/zope"
@@ -169,18 +193,18 @@ REGISTER_BASE_COMPONENTS = """
     <configure>
 
     <!-- We can reference a global object as our base -->
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT"
                                   name="foo" />
 
 
     <!-- Or we can reference IComponents registered globally by name -->
-    <appsite:createBaseComponents bases="foo" 
+    <appsite:createBaseComponents bases="foo"
                                   name="bar" />
 
-    <!-- We can also specify multiple bases, 
+    <!-- We can also specify multiple bases,
          in which case our parent is the first -->
-    <appsite:createBaseComponents bases="foo bar" 
-                                  name="baz" /> 
+    <appsite:createBaseComponents bases="foo bar"
+                                  name="baz" />
     </configure>
 </configure>"""
 
@@ -198,9 +222,9 @@ REGISTER_BASE_COMPONENTS_BAD_NAME = """
     <configure>
 
     <!-- Foo doesn't exist -->
-    <appsite:createBaseComponents bases="foo" 
+    <appsite:createBaseComponents bases="foo"
                                   name="bar" />
- 
+
     </configure>
 </configure>"""
 
@@ -218,9 +242,9 @@ REGISTER_BASE_COMPONENTS_BAD_GLOBAL = """
     <configure>
 
     <!-- Foo doesn't exist -->
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites"
                                   name="bar" />
- 
+
     </configure>
 </configure>"""
 
@@ -243,7 +267,7 @@ REGISTER_BASE_COMPONENTS_CLOBBER = """
             name="genericadultbase" />
 
     <!-- We can reference a global object as our parent -->
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT"
                                   name="genericadultbase" />
 
     </configure>
@@ -263,9 +287,9 @@ REGISTER_BASE_NO_DOTTEDNAME = """
     <configure>
 
     <!-- Name must be dotted -->
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT"
                                   name="bar bar" />
- 
+
     </configure>
 </configure>"""
 
@@ -325,10 +349,10 @@ REGISTER_IN_NAMED = """
     <include package="zope.component" />
     <include package="." file="meta.zcml" />
 
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT"
                                   name="foo" />
 
-    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT" 
+    <appsite:createBaseComponents bases="nti.appserver.policies.sites.BASEADULT"
                                   name="bar" />
 
     <appsite:registerInNamedComponents registry="foo">

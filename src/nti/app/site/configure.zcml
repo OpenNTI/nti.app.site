@@ -103,6 +103,7 @@
     <!-- Subscribers -->
     <subscriber handler=".subscribers._on_site_created" />
     <subscriber handler=".subscribers._on_site_brand_deleted" />
+    <subscriber handler=".subscribers._on_site_assets_deleted" />
 
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"

@@ -142,10 +142,9 @@ class SiteBrandAssets(PersistentCreatedAndModifiedTimeObject,
     createDirectFieldProperties(ISiteBrandAssets)
 
     __parent__ = None
-    __name__ = alias('Name')
+    __name__ = 'SiteBrandAssets'
 
     creator = None
-    name = alias('Name')
     mimeType = mime_type = 'application/vnd.nextthought.sitebrandassets'
 
 

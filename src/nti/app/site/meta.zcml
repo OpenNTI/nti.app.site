@@ -19,12 +19,15 @@
         />
 
     <meta:directive
-	name="createBaseComponents"
-	schema=".zcml.ICreateBaseComponentsDirective"
-	handler=".zcml.create_and_register_base_components" />
+	   name="createBaseComponents"
+	   schema=".zcml.ICreateBaseComponentsDirective"
+	   handler=".zcml.create_and_register_base_components" />
+
+    <meta:directive
+            name="siteAssetsFileSystemLocation"
+            schema="nti.app.site.interfaces.ISiteAssetsFileSystemLocation"
+            handler=".zcml.registerSiteAssetsFileSystemLocation" />
 
   </meta:directives>
-
-
 
 </configure>
