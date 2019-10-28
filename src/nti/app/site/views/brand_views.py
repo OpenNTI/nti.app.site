@@ -24,6 +24,10 @@ from zope.cachedescriptors.property import Lazy
 
 from zope.component.hooks import getSite
 
+from zope.event import notify
+
+from zope.lifecycleevent import ObjectRemovedEvent
+
 from zope.traversing.interfaces import IPathAdapter
 
 from nti.app.base.abstract_views import AbstractView
@@ -96,8 +100,8 @@ class SiteBrandView(AbstractView):
                request_method='PUT')
 class SiteBrandUpdateView(UGDPutView):
     """
-    These should be auto-created for new sites; we only need
-    to update these once created.
+    This context should be auto-created for new sites; we only need
+    to update it once created.
     """
 
     ASSET_MULTIPART_KEYS = ('logo',
@@ -140,6 +144,7 @@ class SiteBrandUpdateView(UGDPutView):
         bucket = PersistentHierarchyBucket(name=bucket_path)
         result = SiteBrandAssets(root=bucket)
         result.__parent__ = self.context
+        self.context.assets = result
 
         # Check if these assets were previously marked as deleted; if so, undo.
         delete_path = os.path.join(bucket.key, DELETED_MARKER)
@@ -148,6 +153,9 @@ class SiteBrandUpdateView(UGDPutView):
         return result
 
     def _store_brand_image(self, assets, attr_name, brand_image):
+        """
+        Store the image object on our assets object.
+        """
         brand_image.__parent__ = assets
         setattr(assets, attr_name, brand_image)
 
@@ -162,9 +170,13 @@ class SiteBrandUpdateView(UGDPutView):
                 assets = self._create_assets()
             # Store our assets as urls
             for attr_name, asset_url in self._asset_url_dict.items():
-                brand_image = SiteBrandImage(source=str(asset_url))
-                self._store_brand_image(assets, attr_name, brand_image)
-            # Save and store given images
+                if not asset_url:
+                    # Nulling out
+                    setattr(assets, attr_name, None)
+                else:
+                    brand_image = SiteBrandImage(source=str(asset_url))
+                    self._store_brand_image(assets, attr_name, brand_image)
+            # Save to disk and store given images
             for attr_name, asset_file in self._source_dict.items():
                 if attr_name not in self.ASSET_MULTIPART_KEYS:
                     continue
@@ -182,9 +194,13 @@ class SiteBrandUpdateView(UGDPutView):
                 self._store_brand_image(assets, attr_name, brand_image)
 
     def __call__(self):
+        old_assets = self.context.assets
         super(SiteBrandUpdateView, self).__call__()
         # Now update assets
         self.update_assets()
+        # Broadcast if nulled out
+        if old_assets is not None and self.context.assets is None:
+            notify(ObjectRemovedEvent(old_assets))
         return self.context
 
 

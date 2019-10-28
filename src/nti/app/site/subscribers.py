@@ -19,7 +19,7 @@ from zope.site.interfaces import INewLocalSite
 
 from nti.app.site import DELETED_MARKER
 
-from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteBrand, ISiteBrandAssets
 
 from nti.app.site.model import SiteBrand
 
@@ -74,7 +74,16 @@ def _on_site_brand_deleted(site_brand, unused_event=None):
     On site brand removal, clean up on-disk assets by marking
     the location as deleted (for NFS).
     """
-    bucket = site_brand.assets and site_brand.assets.root
+    _on_site_assets_deleted(site_brand.assets)
+
+
+@component.adapter(ISiteBrandAssets, IObjectRemovedEvent)
+def _on_site_assets_deleted(site_brand_assets, unused_event=None):
+    """
+    On site brand removal, clean up on-disk assets by marking
+    the location as deleted (for NFS).
+    """
+    bucket = site_brand_assets and site_brand_assets.root
     if bucket is not None:
         path = os.path.join(bucket.key, DELETED_MARKER)
         open(path, 'w').close()

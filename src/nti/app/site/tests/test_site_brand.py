@@ -8,9 +8,12 @@ from __future__ import division
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
+from hamcrest import ends_with
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
+
+import os
 
 from zope import component
 
@@ -21,6 +24,7 @@ from zope.securitypolicy.interfaces import IPrincipalRoleManager
 
 from zope.traversing.interfaces import IEtcNamespace
 
+from nti.app.site import DELETED_MARKER
 from nti.app.site import VIEW_SITE_BRAND
 
 from nti.app.site.interfaces import ISiteBrand
@@ -37,8 +41,9 @@ from nti.dataserver.tests import mock_dataserver
 
 from nti.dataserver.users.communities import Community
 
-from nti.site.hostpolicy import synchronize_host_policies
 from nti.externalization.representation import to_json_representation
+
+from nti.site.hostpolicy import synchronize_host_policies
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -137,32 +142,52 @@ class TestSiteBrand(SiteLayerTest):
                  'c': None}
         data = {'brand_name': new_brand_name,
                 'theme': theme,
-                'brand_color': color,
-                'full_logo': EXT_URL}
+                'brand_color': color}
         logo_filename = 'logo-filename.png'
-        upload_files=[('logo', logo_filename, PNG_DATAURL)]
         self.testapp.put_json(brand_rel, data,
                               extra_environ=regular_env,
                               status=403)
 
-        # Upload assets (have to handle this correctly since multipart)
-        form_data = {'__json__': to_json_representation(data)}
-        res = self.testapp.put(brand_rel,
-                               form_data,
-                               upload_files=upload_files,
-                               extra_environ=site_admin_env)
+        # Update
+        res = self.testapp.put_json(brand_rel,
+                                    data,
+                                    extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
                                            'brand_color', color,
                                            'theme', has_entries(**theme)))
 
+        # Upload assets (have to handle this correctly since multipart)
+        data['full_logo'] = EXT_URL
+        upload_files=[('logo', logo_filename, PNG_DATAURL)]
+        form_data = {'__json__': to_json_representation(data)}
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=upload_files,
+                               extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', not_none(),
+                                           'brand_name', new_brand_name,
+                                           'brand_color', color,
+                                           'theme', has_entries(**theme)))
+        assets = brand_res.get('assets')
+        assert_that(assets, has_entries('CreatedTime', not_none(),
+                                        'Last Modified', not_none(),
+                                        'full_logo', has_entries('source', EXT_URL,
+                                                                 'filename', none()),
+                                        'logo', has_entries('source', ends_with('/logo'),
+                                                            'filename', logo_filename),
+                                        'icon', has_entries('source', ends_with('/logo')),
+                                        'favicon', has_entries('source', ends_with('/logo')),
+                                        'email', has_entries('source', ends_with('/logo'))))
+
         # Theme updates
         data['theme'] = new_theme = {'d': 'd vals'}
         res = self.testapp.put_json(brand_rel, data,
                                     extra_environ=site_admin_env)
         brand_res = res.json_body
-        assert_that(brand_res, has_entries('assets', none(),
+        assert_that(brand_res, has_entries('assets', not_none(),
                                            'brand_name', new_brand_name,
                                            'theme', has_entries(**new_theme)))
 
@@ -170,7 +195,7 @@ class TestSiteBrand(SiteLayerTest):
         res = self.testapp.put_json(brand_rel, data,
                                     extra_environ=site_admin_env)
         brand_res = res.json_body
-        assert_that(brand_res, has_entries('assets', none(),
+        assert_that(brand_res, has_entries('assets', not_none(),
                                            'brand_name', new_brand_name,
                                            'brand_color', color,
                                            'theme', has_length(0)))
@@ -181,10 +206,87 @@ class TestSiteBrand(SiteLayerTest):
                                  extra_environ={'HTTP_ORIGIN': self.default_origin})
         brand_res = res.json_body
         self.forbid_link_with_rel(brand_res, 'delete')
+        assert_that(brand_res, has_entries('assets', not_none(),
+                                           'brand_name', new_brand_name,
+                                           'brand_color', color,
+                                           'theme', has_length(0)))
+
+        assets = brand_res.get('assets')
+        assert_that(assets, has_entries('CreatedTime', not_none(),
+                                        'Last Modified', not_none(),
+                                        'full_logo', has_entries('source', EXT_URL,
+                                                                 'filename', none()),
+                                        'logo', has_entries('source', ends_with('/logo'),
+                                                            'filename', logo_filename),
+                                        'icon', has_entries('source', ends_with('/logo')),
+                                        'favicon', has_entries('source', ends_with('/logo')),
+                                        'email', has_entries('source', ends_with('/logo'))))
+
+        # Null out image
+        res = self.testapp.put_json(brand_rel, {'full_logo': None},
+                                    extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assets = brand_res.get('assets')
+        assert_that(assets, has_entries('CreatedTime', not_none(),
+                                        'Last Modified', not_none(),
+                                        'full_logo', has_entries('source', ends_with('/logo'),
+                                                                 'filename', logo_filename),
+                                        'logo', has_entries('source', ends_with('/logo'),
+                                                            'filename', logo_filename),
+                                        'icon', has_entries('source', ends_with('/logo')),
+                                        'favicon', has_entries('source', ends_with('/logo')),
+                                        'email', has_entries('source', ends_with('/logo'))))
+
+
+        with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
+            site_brand = component.getUtility(ISiteBrand)
+            assert_that(site_brand, not_none())
+            assets = site_brand.assets
+            assert_that(assets, not_none())
+            asset_path = assets.root.key
+            assert_that(asset_path, not_none())
+
+        assert_that(os.path.exists(asset_path), is_(True))
+        delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
+        assert_that(os.path.exists(delete_marker_path), is_(False))
+
+        # Delete assets; validate deleted marker
+        res = self.testapp.put_json(brand_rel,
+                                    {'assets': None},
+                                    extra_environ=site_admin_env)
+        brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', new_brand_name,
                                            'brand_color', color,
                                            'theme', has_length(0)))
+
+        assert_that(os.path.exists(asset_path), is_(True))
+        delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
+        assert_that(os.path.exists(delete_marker_path), is_(True))
+
+
+        # Validate restore
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=upload_files,
+                               extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assets = brand_res.get('assets')
+        assert_that(assets, has_entries('CreatedTime', not_none(),
+                                        'Last Modified', not_none(),
+                                        'full_logo', has_entries('source', EXT_URL,
+                                                                 'filename', none()),
+                                        'logo', has_entries('source', ends_with('/logo'),
+                                                            'filename', logo_filename),
+                                        'icon', has_entries('source', ends_with('/logo')),
+                                        'favicon', has_entries('source', ends_with('/logo')),
+                                        'email', has_entries('source', ends_with('/logo'))))
+
+        # No longer a deleted marker
+        assert_that(os.path.exists(asset_path), is_(True))
+        delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
+        assert_that(os.path.exists(delete_marker_path), is_(False))
+
 
         # Delete will reset everything
         self.testapp.delete(brand_href, extra_environ=site_admin_env)
@@ -203,3 +305,7 @@ class TestSiteBrand(SiteLayerTest):
                                            'brand_name', 'test_brand_site',
                                            'brand_color', none(),
                                            'theme', has_length(0)))
+
+        assert_that(os.path.exists(asset_path), is_(True))
+        delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
+        assert_that(os.path.exists(delete_marker_path), is_(True))
