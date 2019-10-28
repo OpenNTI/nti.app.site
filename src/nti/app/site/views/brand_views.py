@@ -36,6 +36,8 @@ from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.externalization.error import raise_json_error
 
+from nti.app.site import MessageFactory as _
+
 from nti.app.site import DELETED_MARKER
 
 from nti.app.site.interfaces import ISiteBrand
@@ -110,6 +112,9 @@ class SiteBrandUpdateView(UGDPutView):
                             'email',
                             'favicon')
 
+    # 50 MB
+    MAX_FILE_SIZE = 52428800
+
     def readInput(self, value=None, filter_asset=True):
         if self.request.body:
             values = super(SiteBrandUpdateView, self).readInput(value)
@@ -119,6 +124,20 @@ class SiteBrandUpdateView(UGDPutView):
             values = {x:y for x, y in values.items() if x not in self.ASSET_MULTIPART_KEYS}
         result = CaseInsensitiveDict(values)
         return result
+
+    def _check_image_constraint(self, attr_name, data):
+        """
+        Validate the image file constraints
+        """
+        if len(data) > self.MAX_FILE_SIZE:
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"${field} image is too large.",
+                                              mapping={'field': attr_name}),
+                                 'code': 'ImageSizeExceededError',
+                             },
+                             None)
 
     @Lazy
     def _asset_url_dict(self):
@@ -185,6 +204,7 @@ class SiteBrandUpdateView(UGDPutView):
                 path = os.path.join(assets.root.key, attr_name)
                 asset_file.seek(0)
                 data_url = DataURL(asset_file.read())
+                self._check_image_constraint(attr_name, data_url.data)
                 with open(path, 'wb') as target:
                     target.write(data_url.data)
                 file_uri = urllib_parse.urljoin('file:/', path)

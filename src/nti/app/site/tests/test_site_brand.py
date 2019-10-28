@@ -31,6 +31,8 @@ from nti.app.site.interfaces import ISiteBrand
 
 from nti.app.site.tests import SiteLayerTest
 
+from nti.app.site.views.brand_views import SiteBrandUpdateView
+
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
 from nti.app.testing.webtest import TestApp
@@ -286,6 +288,17 @@ class TestSiteBrand(SiteLayerTest):
         assert_that(os.path.exists(asset_path), is_(True))
         delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
         assert_that(os.path.exists(delete_marker_path), is_(False))
+
+        # Test file size constraint
+        SiteBrandUpdateView.MAX_FILE_SIZE = 0
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=upload_files,
+                               extra_environ=site_admin_env,
+                               status=422)
+        res = res.json_body
+        assert_that(res, has_entries('code', 'ImageSizeExceededError',
+                                     'message', 'logo image is too large.'))
 
 
         # Delete will reset everything
