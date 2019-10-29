@@ -53,11 +53,6 @@
 		                 .interfaces.ISiteBrandAssets"
 		modules=".model" />
 
-	<subscriber factory="nti.appserver.pyramid_renderers_edit_link_decorator.EditLinkDecorator"
-                provides="nti.externalization.interfaces.IExternalMappingDecorator"
-                for="nti.app.site.interfaces.ISiteBrand
-                     pyramid.interfaces.IRequest" />
-
     <!-- Decorators -->
     <subscriber factory=".decorators.SiteBrandAssetsDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"/>

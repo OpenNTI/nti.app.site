@@ -22,6 +22,7 @@ from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.pyramid_authorization import has_permission
 
@@ -116,7 +117,11 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result_map):
         links = result_map.setdefault("Links", [])
-        for rel in ('delete',):
+        rels = ['delete']
+        # Can only edit with a fs location
+        if component.queryUtility(ISiteAssetsFileSystemLocation) is not None:
+            rels.append('edit')
+        for rel in rels:
             link = Link(context,
                         rel=rel,
                         method='DELETE')
