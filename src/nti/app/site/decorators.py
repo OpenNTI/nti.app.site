@@ -117,12 +117,13 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result_map):
         links = result_map.setdefault("Links", [])
-        rels = ['delete']
+        link = Link(context,
+                    rel='delete',
+                    method='DELETE')
+        links.append(link)
         # Can only edit with a fs location
         if component.queryUtility(ISiteAssetsFileSystemLocation) is not None:
-            rels.append('edit')
-        for rel in rels:
             link = Link(context,
-                        rel=rel,
-                        method='DELETE')
+                        rel='edit',
+                        method='PUT')
             links.append(link)
