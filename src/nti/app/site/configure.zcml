@@ -16,6 +16,8 @@
 	<adapter factory=".adapters._site_to_folder" />
 	<adapter factory=".adapters._folder_to_community" />
 
+    <subscriber handler=".application._on_process_starting" />
+
 	<!-- Workspaces -->
 	<!-- A subscriber for enumeration -->
 	<subscriber factory=".workspaces.workspaces.SiteAdminWorkspace"
