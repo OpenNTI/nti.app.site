@@ -11,6 +11,8 @@
 
 	<include package=".views" />
 
+    <utility factory=".subscribers.SiteBrandMailerTemplateArgsUtility" />
+
 	<!-- Adapters -->
 	<adapter factory=".adapters._folder_to_site" />
 	<adapter factory=".adapters._site_to_folder" />

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
-from __future__ import division
 
 from hamcrest import is_
 from hamcrest import none
@@ -12,9 +12,12 @@ from hamcrest import ends_with
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
+from hamcrest import contains_string
 
 import os
 import shutil
+
+from quopri import decodestring
 
 from zope import component
 
@@ -28,7 +31,8 @@ from zope.traversing.interfaces import IEtcNamespace
 from nti.app.site import DELETED_MARKER
 from nti.app.site import VIEW_SITE_BRAND
 
-from nti.app.site.interfaces import ISiteBrand, ISiteAssetsFileSystemLocation
+from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.tests import SiteLayerTest
 
@@ -36,19 +40,24 @@ from nti.app.site.views.brand_views import SiteBrandUpdateView
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
+from nti.app.testing.testing import ITestMailDelivery
+
 from nti.app.testing.webtest import TestApp
 
 from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
 from nti.dataserver.tests import mock_dataserver
 
-from nti.dataserver.users.communities import Community
-
 from nti.externalization.representation import to_json_representation
 
 from nti.site.hostpolicy import synchronize_host_policies
 
 logger = __import__('logging').getLogger(__name__)
+
+# From master_email.pt
+DEFAULT_COLOR = u'#89be3c'
+
+DEFAULT_LOGO_URL = u'https://d2ixlfeu83tci.cloudfront.net/images/email_logo.png'
 
 
 class TestSiteBrand(SiteLayerTest):
@@ -75,6 +84,25 @@ class TestSiteBrand(SiteLayerTest):
         assert_that(result, to_check())
         return result
 
+    def _test_create_user(self, username, email_url, brand_color):
+        mailer = component.getUtility(ITestMailDelivery)
+        del mailer.queue[:]
+        data = to_json_representation({ u'Username': username,
+                                        u'password': u'pass123word',
+                                        u'realname': u'Joe Bananna',
+                                        u'birthdate': u'1982-01-31',
+                                        u'affiliation': u'school',
+                                        u'email': u'foo@bar.com'})
+
+        path = '/dataserver2/account.create'
+        app = TestApp(self.app)
+        app.post(path, data,
+                 extra_environ={'HTTP_ORIGIN': 'http://test_brand_site'})
+        assert_that(mailer.queue, has_length(1))
+        msg = mailer.queue[0]
+        body = decodestring(msg.html)
+        assert_that(body, contains_string(email_url))
+
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_site_brand(self):
         """
@@ -97,10 +125,6 @@ class TestSiteBrand(SiteLayerTest):
                 assert_that(site_brand.brand_name, is_('test_brand_site'))
                 assert_that(site_brand.assets, none())
 
-            # Validate subscriber community creation
-            community = Community.get_community('test_brand_site')
-            assert_that(community, not_none())
-
         # Make a site admin user
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
             self._create_user(u'sitebrand_siteadmin', u'temp001',
@@ -112,6 +136,9 @@ class TestSiteBrand(SiteLayerTest):
             new_site = getSite()
             prm = IPrincipalRoleManager(new_site)
             prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME, u'sitebrand_siteadmin')
+
+        # Default urls
+        self._test_create_user(u'test_site_brand_defaults', DEFAULT_LOGO_URL, DEFAULT_COLOR)
 
         # Update rel
         site_admin_env = self._make_extra_environ('sitebrand_siteadmin')
@@ -190,6 +217,9 @@ class TestSiteBrand(SiteLayerTest):
                                         'icon', has_entries('source', ends_with('/logo')),
                                         'favicon', has_entries('source', ends_with('/logo')),
                                         'email', has_entries('source', ends_with('/logo'))))
+
+        logo_url = assets.get('logo').get('source')
+        self._test_create_user('test_site_brand_email', logo_url, color)
 
         # Theme updates
         data['theme'] = new_theme = {'d': 'd vals'}
