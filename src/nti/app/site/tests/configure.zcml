@@ -9,12 +9,11 @@
     <include package="nti.app.site" file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.ifsta">
+        <appsite:createSites package="nti.app.sites.alpha">
             <appsite:createSite site_name="test_brand_site"
-                                   base_names="nti.app.sites.ifsta.sites.IFSTA,"
-                                   parent_name="nti.app.sites.ifsta.sites.IFSTA">
-
-                <utility factory=".policy.IFSTAFirehouseSitePolicyEventListener" />
+                                   base_names="nti.app.sites.alpha.sites.ALPHA,"
+                                   parent_name="nti.app.sites.alpha.sites.ALPHA">
+                <utility factory=".policy.AlphaSitePolicyEventListener" />
             </appsite:createSite>
         </appsite:createSites>
     </configure>

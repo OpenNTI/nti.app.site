@@ -10,6 +10,7 @@ from __future__ import absolute_import
 import os
 
 from zope import component
+from zope import interface
 
 from zope.component.hooks import site
 
@@ -28,6 +29,8 @@ from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListe
 from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredicate
 
 from nti.dataserver.users.communities import Community
+
+from nti.mailer.interfaces import IMailerTemplateArgsUtility
 
 from nti.site.interfaces import IHostPolicySiteManager
 
@@ -87,3 +90,36 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
     if bucket is not None:
         path = os.path.join(bucket.key, DELETED_MARKER)
         open(path, 'w').close()
+
+
+@interface.implementer(IMailerTemplateArgsUtility)
+class SiteBrandMailerTemplateArgsUtility(object):
+
+    def _get_email_image_url(self, site_brand):
+        result = None
+        assets = site_brand.assets
+        if assets is not None:
+            if      assets.email \
+                and assets.email.source:
+                result = assets.email.source
+            if      not result \
+                and assets.logo \
+                and assets.logo.source:
+                # Fall back to logo if present
+                result = assets.logo.source
+        return result
+
+    def get_template_args(self):
+        """
+        Return additional template args.
+        """
+        result = {}
+        site_brand = component.queryUtility(ISiteBrand)
+        if site_brand.brand_name:
+            result['nti_site_brand_name'] = site_brand.brand_name
+        if site_brand.brand_color:
+            result['nti_site_brand_color'] = site_brand.brand_color
+        email_image_url = self._get_email_image_url(site_brand)
+        if email_image_url:
+            result['nti_site_brand_email_image_url'] = email_image_url
+        return result
