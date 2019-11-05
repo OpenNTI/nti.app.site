@@ -154,27 +154,28 @@ class SiteBrandUpdateView(UGDPutView):
         """
         return get_all_sources(self.request)
 
-    def _get_asset_location(self):
+    def _get_location_directory(self):
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
         if location is None:
             logger.error('No ISiteAssetsFileSystemLocation registered')
             raise hexc.HTTPUnprocessableEntity()
-        return os.path.join(location.directory, getSite().__name__)
+        return location.directory
 
-    def _create_assets(self):
+    def _create_assets(self, location_dir):
         """
         Create and initialize :class:`ISiteBrandAssets`.
         """
-        bucket_path = self._get_asset_location()
+        site_name = getSite().__name__
+        bucket_path = os.path.join(location_dir, site_name)
         if not os.path.exists(bucket_path):
             os.makedirs(bucket_path)
-        bucket = PersistentHierarchyBucket(name=bucket_path)
+        bucket = PersistentHierarchyBucket(name=site_name)
         result = SiteBrandAssets(root=bucket)
         result.__parent__ = self.context
         self.context.assets = result
 
         # Check if these assets were previously marked as deleted; if so, undo.
-        delete_path = os.path.join(bucket.key, DELETED_MARKER)
+        delete_path = os.path.join(bucket_path, DELETED_MARKER)
         if os.path.exists(delete_path):
             os.remove(delete_path)
         return result
@@ -192,9 +193,10 @@ class SiteBrandUpdateView(UGDPutView):
         """
         if self._asset_url_dict or self._source_dict:
             # Ok, we have something
+            location_dir = self._get_location_directory()
             assets = self.context.assets
             if assets is None:
-                assets = self._create_assets()
+                assets = self._create_assets(location_dir)
             # Store our assets as urls
             for attr_name, asset_url in self._asset_url_dict.items():
                 if not asset_url:
@@ -209,14 +211,13 @@ class SiteBrandUpdateView(UGDPutView):
                     continue
                 key = PersistentHierarchyKey(name=unicode(attr_name),
                                              bucket=assets.root)
-                path = os.path.join(assets.root.key, attr_name)
+                path = os.path.join(location_dir, assets.root.name, attr_name)
                 asset_file.seek(0)
                 data_url = DataURL(asset_file.read())
                 self._check_image_constraint(attr_name, data_url.data)
                 with open(path, 'wb') as target:
                     target.write(data_url.data)
-                file_uri = urllib_parse.urljoin('file:/', path)
-                brand_image = SiteBrandImage(source=str(file_uri),
+                brand_image = SiteBrandImage(source=path,
                                              filename=asset_file.name,
                                              key=key)
                 self._store_brand_image(assets, attr_name, brand_image)

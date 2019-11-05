@@ -15,6 +15,7 @@ from persistent.mapping import PersistentMapping
 from zope import component
 from zope import interface
 
+from zope.cachedescriptors.property import readproperty
 from zope.cachedescriptors.property import CachedProperty
 
 from zope.component.hooks import getSite
@@ -25,11 +26,14 @@ from zope.mimetype.interfaces import IContentTypeAware
 
 from zope.schema.fieldproperty import createFieldProperties
 
+from zope.traversing.api import joinPath
+
 from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteBrandImage
 from nti.app.site.interfaces import ISiteBrandAssets
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site import SITE_MIMETYPE
 
@@ -161,3 +165,20 @@ class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
     creator = None
     name = alias('Name')
     mimeType = mime_type = 'application/vnd.nextthought.sitebrandimage'
+
+    @property
+    def href(self):
+        result = self.source
+        if self.key is not None:
+            # If we have a key, we are a relative path to a disk location.
+            # Otherwise, we are empty or have a full URL to an external image.
+            location = component.queryUtility(ISiteAssetsFileSystemLocation)
+            if location is not None:
+                asset_part = self.__parent__.root.name
+                result = joinPath('/', location.prefix, asset_part, self.key.name)
+        return result
+
+    @href.setter
+    def href(self, nv):
+        pass
+
