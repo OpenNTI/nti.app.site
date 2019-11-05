@@ -15,7 +15,6 @@ from persistent.mapping import PersistentMapping
 from zope import component
 from zope import interface
 
-from zope.cachedescriptors.property import readproperty
 from zope.cachedescriptors.property import CachedProperty
 
 from zope.component.hooks import getSite

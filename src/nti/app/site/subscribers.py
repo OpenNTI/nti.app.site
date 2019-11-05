@@ -92,7 +92,7 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
     On site brand removal, clean up on-disk assets by marking
     the location as deleted (for NFS).
     """
-    asset_name = site_brand_assets and site_brand_assets.root.name
+    asset_name = site_brand_assets.root and site_brand_assets.root.name
     if asset_name is not None:
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
         if location is not None:

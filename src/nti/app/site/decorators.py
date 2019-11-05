@@ -127,3 +127,18 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         rel='edit',
                         method='PUT')
             links.append(link)
+
+
+
+@component.adapter(ISiteBrand)
+@interface.implementer(IExternalObjectDecorator)
+class SiteBrandEmailDisabledDecorator(Singleton):
+    """
+    For sites that do not want their custom email image overrideable via the
+    UI, we provide this decorator that will decorate an informational attr on
+    the SiteBrand.
+    """
+
+    def decorateExternalObject(self, unused_context, external):
+        # For speed, we decorate this for everyone
+        external['UneditableEmailImage'] = True
