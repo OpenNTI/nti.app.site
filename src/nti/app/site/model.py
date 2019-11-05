@@ -174,6 +174,7 @@ class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
             location = component.queryUtility(ISiteAssetsFileSystemLocation)
             if location is not None and self.__parent__:
                 asset_part = self.__parent__.root.name
+                __traceback_info__ = location.prefix, asset_part, self.key.name
                 result = joinPath('/', location.prefix, asset_part, self.key.name)
         return result
 
