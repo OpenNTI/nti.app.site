@@ -175,7 +175,12 @@ class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
             if location is not None and self.__parent__:
                 asset_part = self.__parent__.root.name
                 __traceback_info__ = location.prefix, asset_part, self.key.name
-                result = joinPath('/', location.prefix, asset_part, self.key.name)
+                prefix = location.prefix
+                if prefix.startswith('/'):
+                    prefix = prefix[1:]
+                if prefix.endswith('/'):
+                    prefix = prefix[:-1]
+                result = joinPath('/', prefix, asset_part, self.key.name)
         return result
 
     @href.setter

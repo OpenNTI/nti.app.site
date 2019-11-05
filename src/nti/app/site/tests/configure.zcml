@@ -19,5 +19,5 @@
     </configure>
 
     <appsite:siteAssetsFileSystemLocation directory="/tmp/test_site_assets_location"
-                                          prefix="site_assets_location" />
+                                          prefix="/site_assets_location/" />
 </configure>

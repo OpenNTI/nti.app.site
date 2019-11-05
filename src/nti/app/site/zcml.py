@@ -260,6 +260,11 @@ def registerSiteAssetsFileSystemLocation(_context, directory=None, prefix=None):
     if not directory or not os.path.isdir(directory):
         raise ConfigurationError("Must give the path of a readable directory")
 
+    if prefix and not prefix.startswith('/'):
+        prefix = '/' + prefix
+    if prefix and not prefix.endswith('/'):
+        prefix = prefix + '/'
+
     factory = functools.partial(SiteAssetsFileSystemLocation,
                                 root=text_(directory),
                                 prefix=text_(prefix))
