@@ -9,6 +9,10 @@ from __future__ import absolute_import
 
 import os
 
+from pyramid.threadlocal import get_current_request
+
+from six.moves import urllib_parse
+
 from zope import component
 from zope import interface
 
@@ -20,7 +24,9 @@ from zope.site.interfaces import INewLocalSite
 
 from nti.app.site import DELETED_MARKER
 
-from nti.app.site.interfaces import ISiteBrand, ISiteBrandAssets
+from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteBrandAssets
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.model import SiteBrand
 
@@ -86,10 +92,12 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
     On site brand removal, clean up on-disk assets by marking
     the location as deleted (for NFS).
     """
-    bucket = site_brand_assets and site_brand_assets.root
-    if bucket is not None:
-        path = os.path.join(bucket.key, DELETED_MARKER)
-        open(path, 'w').close()
+    asset_name = site_brand_assets and site_brand_assets.root.name
+    if asset_name is not None:
+        location = component.queryUtility(ISiteAssetsFileSystemLocation)
+        if location is not None:
+            path = os.path.join(location.directory, asset_name, DELETED_MARKER)
+            open(path, 'w').close()
 
 
 @interface.implementer(IMailerTemplateArgsUtility)
@@ -100,13 +108,18 @@ class SiteBrandMailerTemplateArgsUtility(object):
         assets = site_brand.assets
         if assets is not None:
             if      assets.email \
-                and assets.email.source:
-                result = assets.email.source
+                and assets.email.href:
+                result = assets.email.href
+
             if      not result \
                 and assets.logo \
-                and assets.logo.source:
+                and assets.logo.href:
                 # Fall back to logo if present
-                result = assets.logo.source
+                result = assets.logo.href
+
+            if result is not None:
+                request = get_current_request()
+                return urllib_parse.urljoin(request.application_url, result)
         return result
 
     def get_template_args(self):
@@ -115,11 +128,12 @@ class SiteBrandMailerTemplateArgsUtility(object):
         """
         result = {}
         site_brand = component.queryUtility(ISiteBrand)
-        if site_brand.brand_name:
-            result['nti_site_brand_name'] = site_brand.brand_name
-        if site_brand.brand_color:
-            result['nti_site_brand_color'] = site_brand.brand_color
-        email_image_url = self._get_email_image_url(site_brand)
-        if email_image_url:
-            result['nti_site_brand_email_image_url'] = email_image_url
+        if site_brand is not None:
+            if site_brand.brand_name:
+                result['nti_site_brand_name'] = site_brand.brand_name
+            if site_brand.brand_color:
+                result['nti_site_brand_color'] = site_brand.brand_color
+            email_image_url = self._get_email_image_url(site_brand)
+            if email_image_url:
+                result['nti_site_brand_email_image_url'] = email_image_url
         return result

@@ -243,14 +243,15 @@ class RegisterInNamedComponents(RegisterIn):
 @interface.implementer(ISiteAssetsFileSystemLocation)
 class SiteAssetsFileSystemLocation(object):
 
-    def __init__(self, root='', **kwargs):
+    def __init__(self, root='', prefix='', **kwargs):
         root = root or kwargs.pop('root')
         if root and not root.endswith('/'):
             root = '%s/' % root
         self.directory = root
+        self.prefix = prefix
 
 
-def registerSiteAssetsFileSystemLocation(_context, directory=None):
+def registerSiteAssetsFileSystemLocation(_context, directory=None, prefix=None):
     try:
         os.makedirs(directory)
     except:
@@ -260,5 +261,6 @@ def registerSiteAssetsFileSystemLocation(_context, directory=None):
         raise ConfigurationError("Must give the path of a readable directory")
 
     factory = functools.partial(SiteAssetsFileSystemLocation,
-                                root=text_(directory))
+                                root=text_(directory),
+                                prefix=text_(prefix))
     utility(_context, factory=factory, provides=ISiteAssetsFileSystemLocation)

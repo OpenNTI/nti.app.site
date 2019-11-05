@@ -8,7 +8,6 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
-from hamcrest import ends_with
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
@@ -212,14 +211,15 @@ class TestSiteBrand(SiteLayerTest):
                                         'Last Modified', not_none(),
                                         'full_logo', has_entries('source', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('source', ends_with('/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('source', ends_with('/logo')),
-                                        'favicon', has_entries('source', ends_with('/logo')),
-                                        'email', has_entries('source', ends_with('/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
 
-        logo_url = assets.get('logo').get('source')
-        self._test_create_user('test_site_brand_email', logo_url, color)
+        logo_url = assets.get('logo').get('href')
+        full_logo_url = 'http://localhost%s' % logo_url
+        self._test_create_user('test_site_brand_email', full_logo_url, color)
 
         # Theme updates
         data['theme'] = new_theme = {'d': 'd vals'}
@@ -255,11 +255,11 @@ class TestSiteBrand(SiteLayerTest):
                                         'Last Modified', not_none(),
                                         'full_logo', has_entries('source', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('source', ends_with('/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('source', ends_with('/logo')),
-                                        'favicon', has_entries('source', ends_with('/logo')),
-                                        'email', has_entries('source', ends_with('/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
 
         # Null out image
         res = self.testapp.put_json(brand_rel, {'full_logo': None},
@@ -268,13 +268,13 @@ class TestSiteBrand(SiteLayerTest):
         assets = brand_res.get('assets')
         assert_that(assets, has_entries('CreatedTime', not_none(),
                                         'Last Modified', not_none(),
-                                        'full_logo', has_entries('source', ends_with('/logo'),
+                                        'full_logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
                                                                  'filename', logo_filename),
-                                        'logo', has_entries('source', ends_with('/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('source', ends_with('/logo')),
-                                        'favicon', has_entries('source', ends_with('/logo')),
-                                        'email', has_entries('source', ends_with('/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
 
 
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
@@ -282,10 +282,11 @@ class TestSiteBrand(SiteLayerTest):
             assert_that(site_brand, not_none())
             assets = site_brand.assets
             assert_that(assets, not_none())
-            asset_path = assets.root.key
-            assert_that(asset_path, not_none())
+            assert_that(assets.root.key, not_none())
 
-        assert_that(os.path.exists(asset_path), is_(True))
+        asset_path = '/tmp/test_site_assets_location/test_brand_site'
+        assert_that(os.path.exists(asset_path),
+                    is_(True))
         delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
         assert_that(os.path.exists(delete_marker_path), is_(False))
 
@@ -313,13 +314,13 @@ class TestSiteBrand(SiteLayerTest):
         assets = brand_res.get('assets')
         assert_that(assets, has_entries('CreatedTime', not_none(),
                                         'Last Modified', not_none(),
-                                        'full_logo', has_entries('source', EXT_URL,
+                                        'full_logo', has_entries('href', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('source', ends_with('/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('source', ends_with('/logo')),
-                                        'favicon', has_entries('source', ends_with('/logo')),
-                                        'email', has_entries('source', ends_with('/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
+                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
 
         # No longer a deleted marker
         assert_that(os.path.exists(asset_path), is_(True))

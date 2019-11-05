@@ -18,5 +18,6 @@
         </appsite:createSites>
     </configure>
 
-    <appsite:siteAssetsFileSystemLocation directory="/tmp/test_brand_site_assets" />
+    <appsite:siteAssetsFileSystemLocation directory="/tmp/test_site_assets_location"
+                                          prefix="site_assets_location" />
 </configure>

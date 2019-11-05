@@ -88,7 +88,7 @@ class SiteBrandAssetsDecorator(Singleton):
         if logo_ext:
             for attr in self.TARGET_ATTRS:
                 attr_ext = external.get(attr)
-                if not attr_ext or not attr_ext.get('source'):
+                if not attr_ext or not attr_ext.get('href'):
                     external[attr] = logo_ext
 
 

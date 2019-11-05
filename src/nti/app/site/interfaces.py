@@ -35,6 +35,7 @@ from nti.schema.field import Int
 from nti.schema.field import Dict
 from nti.schema.field import Object
 from nti.schema.field import ValidURI
+from nti.schema.field import ValidTextLine
 from nti.schema.field import DecodingValidTextLine as TextLine
 
 #: Default provider
@@ -60,11 +61,14 @@ class ISiteBrandImage(ILastModified, ICreated):
     Stores a source image.
     """
 
-    source = ValidURI(title=u"source image",
+    source = TextLine(title=u"a relative url to the source image",
                       required=False)
 
     filename = TextLine(title=u"the uploaded filename",
                         required=False)
+
+    href = TextLine(title=u"the contextual path to access this image",
+                    required=False)
 
     key = Object(IWritableDelimitedHierarchyKey,
                  title=u"asset source location",
@@ -184,3 +188,16 @@ class ISiteAssetsFileSystemLocation(interface.Interface):
 
     directory = Path(title=u"Path to a directory containing site assets by site.",
                      required=True)
+
+    prefix = ValidTextLine(
+        title=u"The URL prefix for the content items",
+        description=u"""If you do not give this, then the content items are assumed to be directly
+            accessible from the root of the URL space.
+
+            If Pyramid will be serving the content files (NOT for production usage), then the prefix
+            is arbitrary. If Apache/nginx will be serving the content files, then the prefix
+            must match what they will be serving the content files at; often this will be the name
+            of the directory.
+            """,
+        required=False,
+        default=u"")
