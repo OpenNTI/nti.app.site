@@ -101,6 +101,7 @@ class TestSiteBrand(SiteLayerTest):
         msg = mailer.queue[0]
         body = decodestring(msg.html)
         assert_that(body, contains_string(email_url))
+        assert_that(body, contains_string("background-color=\"%s\"" % brand_color))
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_site_brand(self):
