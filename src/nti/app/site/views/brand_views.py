@@ -211,10 +211,13 @@ class SiteBrandUpdateView(UGDPutView):
                                              bucket=assets.root)
                 path = os.path.join(location_dir, assets.root.name, attr_name)
                 asset_file.seek(0)
-                data_url = DataURL(asset_file.read())
-                self._check_image_constraint(attr_name, data_url.data)
+                data = asset_file.read()
+                if data.startswith('data:'):
+                    data_url = DataURL(data)
+                    data = data_url.data
+                self._check_image_constraint(attr_name, data)
                 with open(path, 'wb') as target:
-                    target.write(data_url.data)
+                    target.write(data)
                 brand_image = SiteBrandImage(source=path,
                                              filename=asset_file.name,
                                              key=key)
