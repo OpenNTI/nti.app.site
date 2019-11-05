@@ -15,8 +15,6 @@ from pyramid.view import view_defaults
 
 from requests.structures import CaseInsensitiveDict
 
-from six.moves import urllib_parse
-
 from zope import component
 from zope import interface
 

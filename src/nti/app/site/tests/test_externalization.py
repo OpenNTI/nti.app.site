@@ -46,7 +46,7 @@ class TestExternalization(SiteLayerTest):
 
     def test_brand(self):
         image_url = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
-        bucket_path = u'/tmp/site-assets/sitename'
+        bucket_path = u'bucket_site_name'
         bucket = PersistentHierarchyBucket(name=bucket_path)
         key = PersistentHierarchyKey(name=u'logo', bucket=bucket)
         logo_image = SiteBrandImage(source='file:///content/path/web.png',
@@ -58,6 +58,7 @@ class TestExternalization(SiteLayerTest):
                                             full_logo=full_logo_image,
                                             icon=icon_image,
                                             root=bucket)
+        logo_image.__parent__ = site_brand_assets
         theme = {'a': 'aval',
                  'b': {'b1': 'b1val'},
                  'c': None}
@@ -102,6 +103,7 @@ class TestExternalization(SiteLayerTest):
         assert_that(logo[LAST_MODIFIED], not_none())
         assert_that(logo['source'], is_(logo_image.source))
         assert_that(logo['filename'], is_(u'filename.png'))
+        assert_that(logo['href'], is_(u'/site_assets_location/bucket_site_name/logo'))
 
         full_logo = assets.get('full_logo')
         assert_that(full_logo, not_none())
@@ -129,6 +131,7 @@ class TestExternalization(SiteLayerTest):
             assert_that(attr_ext, not_none(), attr)
             assert_that(attr_ext['source'], is_(logo_image.source), attr)
             assert_that(attr_ext['filename'], is_(logo_image.filename), attr)
+            assert_that(attr_ext['href'], is_(u'/site_assets_location/bucket_site_name/logo'))
 
         factory = find_factory_for(ext_obj)
         assert_that(factory, not_none())

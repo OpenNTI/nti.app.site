@@ -173,7 +173,7 @@ class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
             # If we have a key, we are a relative path to a disk location.
             # Otherwise, we are empty or have a full URL to an external image.
             location = component.queryUtility(ISiteAssetsFileSystemLocation)
-            if location is not None:
+            if location is not None and self.__parent__:
                 asset_part = self.__parent__.root.name
                 result = joinPath('/', location.prefix, asset_part, self.key.name)
         return result
