@@ -207,9 +207,11 @@ class SiteBrandUpdateView(UGDPutView):
             for attr_name, asset_file in self._source_dict.items():
                 if attr_name not in self.ASSET_MULTIPART_KEYS:
                     continue
-                key = PersistentHierarchyKey(name=unicode(asset_file.name),
+                ext = os.path.splitext(asset_file.name)[1]
+                filename = u'%s%s' % (attr_name, ext)
+                key = PersistentHierarchyKey(name=filename,
                                              bucket=assets.root)
-                path = os.path.join(location_dir, assets.root.name, asset_file.name)
+                path = os.path.join(location_dir, assets.root.name, filename)
                 asset_file.seek(0)
                 data = asset_file.read()
                 if data.startswith('data:'):
