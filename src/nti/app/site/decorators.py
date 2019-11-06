@@ -73,25 +73,6 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
         links.append(link)
 
 
-@component.adapter(ISiteBrandAssets)
-@interface.implementer(IExternalObjectDecorator)
-class SiteBrandAssetsDecorator(Singleton):
-    """
-    The `logo` is the base image. Decorate this URL to all other
-    image URLs that are None.
-    """
-
-    TARGET_ATTRS = ('icon', 'full_logo', 'email', 'favicon')
-
-    def decorateExternalObject(self, unused_context, external):
-        logo_ext = external.get('logo')
-        if logo_ext:
-            for attr in self.TARGET_ATTRS:
-                attr_ext = external.get(attr)
-                if not attr_ext or not attr_ext.get('href'):
-                    external[attr] = logo_ext
-
-
 @component.adapter(IUser)
 @interface.implementer(IUserWorkspaceLinkProvider)
 class _UserSiteBrandLinkProvider(object):
