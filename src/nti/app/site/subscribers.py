@@ -96,8 +96,11 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
     if asset_name is not None:
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
         if location is not None:
-            path = os.path.join(location.directory, asset_name, DELETED_MARKER)
-            open(path, 'w').close()
+            bucket_path = os.path.join(location.directory, asset_name)
+            if os.path.exists(bucket_path):
+                # If no path, we can skip this part
+                path = os.path.join(bucket_path, DELETED_MARKER)
+                open(path, 'w').close()
 
 
 @interface.implementer(IMailerTemplateArgsUtility)
