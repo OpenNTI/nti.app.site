@@ -30,7 +30,7 @@ from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
 
 from nti.dataserver.authorization import ACT_CONTENT_EDIT
 
-from nti.dataserver.authorization import is_admin_or_site_admin
+from nti.dataserver.authorization import is_admin
 
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserverFolder
@@ -54,7 +54,7 @@ logger = __import__('logging').getLogger(__name__)
 class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _predicate(self, unused_context, unused_result):
-        return is_admin_or_site_admin(self.remoteUser)
+        return is_admin(self.remoteUser)
 
     def _do_decorate_external(self, context, result_map):  # pylint: disable=arguments-differ
         links = result_map.setdefault("Links", [])
