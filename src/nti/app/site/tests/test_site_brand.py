@@ -212,11 +212,11 @@ class TestSiteBrand(SiteLayerTest):
                                         'Last Modified', not_none(),
                                         'full_logo', has_entries('source', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/logo-filename.png'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'email', has_entries('href', is_('/site_assets_location/logo-filename.png'))))
 
         logo_url = assets.get('logo').get('href')
         full_logo_url = 'http://localhost%s' % logo_url
@@ -256,11 +256,11 @@ class TestSiteBrand(SiteLayerTest):
                                         'Last Modified', not_none(),
                                         'full_logo', has_entries('source', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/logo-filename.png'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'email', has_entries('href', is_('/site_assets_location/logo-filename.png'))))
 
         # Null out image
         res = self.testapp.put_json(brand_rel, {'full_logo': None},
@@ -269,13 +269,13 @@ class TestSiteBrand(SiteLayerTest):
         assets = brand_res.get('assets')
         assert_that(assets, has_entries('CreatedTime', not_none(),
                                         'Last Modified', not_none(),
-                                        'full_logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
+                                        'full_logo', has_entries('href', is_('/site_assets_location/logo-filename.png'),
                                                                  'filename', logo_filename),
-                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/logo-filename.png'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'email', has_entries('href', is_('/site_assets_location/logo-filename.png'))))
 
 
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
@@ -317,11 +317,11 @@ class TestSiteBrand(SiteLayerTest):
                                         'Last Modified', not_none(),
                                         'full_logo', has_entries('href', EXT_URL,
                                                                  'filename', none()),
-                                        'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo'),
+                                        'logo', has_entries('href', is_('/site_assets_location/logo-filename.png'),
                                                             'filename', logo_filename),
-                                        'icon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'favicon', has_entries('href', is_('/site_assets_location/test_brand_site/logo')),
-                                        'email', has_entries('href', is_('/site_assets_location/test_brand_site/logo'))))
+                                        'icon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'favicon', has_entries('href', is_('/site_assets_location/logo-filename.png')),
+                                        'email', has_entries('href', is_('/site_assets_location/logo-filename.png'))))
 
         # No longer a deleted marker
         assert_that(os.path.exists(asset_path), is_(True))

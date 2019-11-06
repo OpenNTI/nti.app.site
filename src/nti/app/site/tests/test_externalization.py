@@ -103,7 +103,7 @@ class TestExternalization(SiteLayerTest):
         assert_that(logo[LAST_MODIFIED], not_none())
         assert_that(logo['source'], is_(logo_image.source))
         assert_that(logo['filename'], is_(u'filename.png'))
-        assert_that(logo['href'], is_(u'/site_assets_location/bucket_site_name/logo'))
+        assert_that(logo['href'], is_(u'/site_assets_location/logo'))
 
         full_logo = assets.get('full_logo')
         assert_that(full_logo, not_none())
@@ -131,7 +131,7 @@ class TestExternalization(SiteLayerTest):
             assert_that(attr_ext, not_none(), attr)
             assert_that(attr_ext['source'], is_(logo_image.source), attr)
             assert_that(attr_ext['filename'], is_(logo_image.filename), attr)
-            assert_that(attr_ext['href'], is_(u'/site_assets_location/bucket_site_name/logo'))
+            assert_that(attr_ext['href'], is_(u'/site_assets_location/logo'))
 
         factory = find_factory_for(ext_obj)
         assert_that(factory, not_none())

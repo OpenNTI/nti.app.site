@@ -180,7 +180,7 @@ class SiteBrandImage(PersistentCreatedAndModifiedTimeObject,
                     prefix = prefix[1:]
                 if prefix.endswith('/'):
                     prefix = prefix[:-1]
-                result = joinPath('/', prefix, asset_part, self.key.name)
+                result = joinPath('/', prefix, self.key.name)
         return result
 
     @href.setter
