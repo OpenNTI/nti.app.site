@@ -134,8 +134,8 @@ class SiteBrandMailerTemplateArgsUtility(object):
         if site_brand is not None:
             if site_brand.brand_name:
                 result['nti_site_brand_name'] = site_brand.brand_name
-            result['nti_site_brand_color'] = site_brand.brand_color or '#89be3c'
             email_image_url = self._get_email_image_url(site_brand)
             if email_image_url:
                 result['nti_site_brand_email_image_url'] = email_image_url
+        result['nti_site_brand_color'] = getattr(site_brand, 'brand_color', None) or '#89be3c'
         return result
