@@ -83,7 +83,8 @@ def _on_site_brand_deleted(site_brand, unused_event=None):
     On site brand removal, clean up on-disk assets by marking
     the location as deleted (for NFS).
     """
-    _on_site_assets_deleted(site_brand.assets)
+    if site_brand.assets is not None:
+        _on_site_assets_deleted(site_brand.assets)
 
 
 @component.adapter(ISiteBrandAssets, IObjectRemovedEvent)
