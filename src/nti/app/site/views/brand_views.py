@@ -72,8 +72,8 @@ def SiteBrandPathAdapter(unused_context, unused_request):
     sm = component.getSiteManager()
     result = sm.get('SiteBrand')
     if result is None:
-        brand_name = getSite().__name__
-        result = SiteBrand(brand_name=brand_name)
+        # In either case, spoof an empty one if none.
+        result = SiteBrand()
         install_utility(result,
                         'SiteBrand',
                         ISiteBrand,
