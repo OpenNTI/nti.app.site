@@ -67,11 +67,17 @@ logger = __import__('logging').getLogger(__name__)
 @interface.implementer(IPathAdapter)
 @component.adapter(IDataserverFolder, IRequest)
 @component.adapter(IHostPolicySiteManager, IRequest)
-def SiteBrandPathAdapter(unused_context, unused_request):
-    # Only get SiteBrand for our current site
-    sm = component.getSiteManager()
-    result = sm.get('SiteBrand')
+def SiteBrandPathAdapter(unused_context, request):
+    if request.method == 'GET':
+        # For READ, get whatever is in use
+        result = component.queryUtility(ISiteBrand)
+    else:
+        # Otherwise, for WRITE/DELETE/etc,
+        # only get SiteBrand for our current site.
+        sm = component.getSiteManager()
+        result = sm.get('SiteBrand')
     if result is None:
+        # In either case, spoof an empty one if none.
         brand_name = getSite().__name__
         result = SiteBrand(brand_name=brand_name)
         install_utility(result,

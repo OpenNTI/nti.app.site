@@ -114,16 +114,13 @@ class TestSiteBrand(SiteLayerTest):
         EXT_URL = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
 
         with mock_dataserver.mock_db_trans():
-            # Validate our brand exists due to subscriber
             synchronize_host_policies()
             sites = component.queryUtility(IEtcNamespace, name='hostsites')
             test_site = sites.get('test_brand_site')
             with site(test_site):
-                # SiteBrand created
+                # SiteBrand not created
                 site_brand = component.queryUtility(ISiteBrand)
-                assert_that(site_brand, not_none())
-                assert_that(site_brand.brand_name, is_('test_brand_site'))
-                assert_that(site_brand.assets, none())
+                assert_that(site_brand, none())
 
         # Make a site admin user
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):

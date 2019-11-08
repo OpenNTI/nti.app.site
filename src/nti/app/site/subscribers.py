@@ -28,8 +28,6 @@ from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
 from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
-from nti.app.site.model import SiteBrand
-
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
 from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredicate
@@ -40,8 +38,6 @@ from nti.mailer.interfaces import IMailerTemplateArgsUtility
 
 from nti.site.interfaces import IHostPolicySiteManager
 
-from nti.site.localutility import install_utility
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -49,7 +45,6 @@ logger = __import__('logging').getLogger(__name__)
 def _on_site_created(new_site_manager, unused_event=None):
     """
     On site creation, create a site community that auto-subscribes new users.
-    Also configures a SiteBrand for the new site.
 
     XXX: Long term, we will set up subscribers based on SitePolicyEventListener
     objects created/modified.
@@ -68,13 +63,6 @@ def _on_site_created(new_site_manager, unused_event=None):
             else:
                 new_community.auto_subscribe = SiteAutoSubscribeMembershipPredicate()
                 new_community.auto_subscribe.__parent__ = new_community
-
-        brand_name = new_site_manager.__parent__.__name__
-        site_brand = SiteBrand(brand_name=brand_name)
-        install_utility(site_brand,
-                        'SiteBrand',
-                        ISiteBrand,
-                        new_site_manager)
 
 
 @component.adapter(ISiteBrand, IObjectRemovedEvent)
