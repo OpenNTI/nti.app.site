@@ -65,13 +65,12 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         rel=rel,
                         elements=("%s" % rel,))
             links.append(link)
-        if is_admin(self.remoteUser):
-            # Can edit site brand
-            link = Link(ds2,
-                        rel=VIEW_SITE_BRAND,
-                        method="PUT",
-                        elements=("%s" % VIEW_SITE_BRAND,))
-            links.append(link)
+        # Can edit site brand
+        link = Link(ds2,
+                    rel=VIEW_SITE_BRAND,
+                    method="PUT",
+                    elements=("%s" % VIEW_SITE_BRAND,))
+        links.append(link)
 
 
 @component.adapter(IUser)
