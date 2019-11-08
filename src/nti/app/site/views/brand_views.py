@@ -78,8 +78,7 @@ def SiteBrandPathAdapter(unused_context, request):
         result = sm.get('SiteBrand')
     if result is None:
         # In either case, spoof an empty one if none.
-        brand_name = getSite().__name__
-        result = SiteBrand(brand_name=brand_name)
+        result = SiteBrand()
         install_utility(result,
                         'SiteBrand',
                         ISiteBrand,

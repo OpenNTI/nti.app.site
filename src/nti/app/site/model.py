@@ -15,6 +15,7 @@ from persistent.mapping import PersistentMapping
 from zope import component
 from zope import interface
 
+from zope.cachedescriptors.property import Lazy
 from zope.cachedescriptors.property import CachedProperty
 
 from zope.component.hooks import getSite
@@ -53,6 +54,7 @@ from nti.schema.eqhash import EqHash
 from nti.schema.fieldproperty import createDirectFieldProperties
 
 from nti.schema.schema import SchemaConfigured
+from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -135,6 +137,11 @@ class SiteBrand(PersistentCreatedAndModifiedTimeObject,
     @theme.setter
     def theme(self, nv):
         pass
+
+    @Lazy
+    def brand_name(self):
+        policy = component.queryUtility(ISitePolicyUserEventListener)
+        return getattr(policy, 'BRAND', '')
 
 
 @WithRepr

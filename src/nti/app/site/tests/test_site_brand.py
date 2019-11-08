@@ -148,7 +148,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_href = brand_res.get('href')
         assert_that(brand_href, not_none())
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site'))
+                                           'brand_name', is_('NextThought')))
         self.require_link_href_with_rel(brand_res, 'edit')
         self.require_link_href_with_rel(brand_res, 'delete')
 
@@ -161,7 +161,7 @@ class TestSiteBrand(SiteLayerTest):
         brand_res = self.testapp.get(get_brand_rel, extra_environ=regular_env)
         brand_res = brand_res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site',
+                                           'brand_name', is_('NextThought'),
                                            'brand_color', none(),
                                            'theme', has_length(0)))
         self.forbid_link_with_rel(brand_res, 'edit')
@@ -342,7 +342,7 @@ class TestSiteBrand(SiteLayerTest):
         res = self.testapp.get(brand_rel, extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site',
+                                           'brand_name', is_('NextThought'),
                                            'brand_color', none(),
                                            'theme', has_length(0)))
 
@@ -350,7 +350,7 @@ class TestSiteBrand(SiteLayerTest):
         res = self.testapp.get(site_href, extra_environ=site_admin_env)
         brand_res = res.json_body
         assert_that(brand_res, has_entries('assets', none(),
-                                           'brand_name', 'test_brand_site',
+                                           'brand_name', 'NextThought',
                                            'brand_color', none(),
                                            'theme', has_length(0)))
 
