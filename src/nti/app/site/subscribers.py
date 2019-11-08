@@ -107,7 +107,7 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
 @interface.implementer(IMailerTemplateArgsUtility)
 class SiteBrandMailerTemplateArgsUtility(object):
 
-    def _get_email_image_url(self, site_brand):
+    def _get_email_image_url(self, site_brand, request):
         result = None
         assets = site_brand.assets
         if assets is not None:
@@ -122,11 +122,12 @@ class SiteBrandMailerTemplateArgsUtility(object):
                 result = assets.logo.href
 
             if result is not None:
-                request = get_current_request()
+                if request is None:
+                    request = get_current_request()
                 return urllib_parse.urljoin(request.application_url, result)
         return result
 
-    def get_template_args(self):
+    def get_template_args(self, request=None):
         """
         Return additional template args.
         """
@@ -135,7 +136,7 @@ class SiteBrandMailerTemplateArgsUtility(object):
         if site_brand is not None:
             if site_brand.brand_name:
                 result['nti_site_brand_name'] = site_brand.brand_name
-            email_image_url = self._get_email_image_url(site_brand)
+            email_image_url = self._get_email_image_url(site_brand, request)
             if email_image_url:
                 result['nti_site_brand_email_image_url'] = email_image_url
         result['nti_site_brand_color'] = getattr(site_brand, 'brand_color', None) or '#89be3c'
