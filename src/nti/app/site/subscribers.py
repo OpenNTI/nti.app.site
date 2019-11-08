@@ -124,7 +124,8 @@ class SiteBrandMailerTemplateArgsUtility(object):
             if result is not None:
                 if request is None:
                     request = get_current_request()
-                return urllib_parse.urljoin(request.application_url, result)
+                if request is not None:
+                    result = urllib_parse.urljoin(request.application_url, result)
         return result
 
     def get_template_args(self, request=None):
