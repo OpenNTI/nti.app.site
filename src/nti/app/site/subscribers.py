@@ -34,6 +34,8 @@ from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredi
 
 from nti.dataserver.users.communities import Community
 
+from nti.dataserver.users.interfaces import IFriendlyNamed
+
 from nti.mailer.interfaces import IMailerTemplateArgsUtility
 
 from nti.site.interfaces import IHostPolicySiteManager
@@ -61,6 +63,15 @@ def _on_site_created(new_site_manager, unused_event=None):
                 logger.info("Cannot create existing community (%s)",
                             community_name)
             else:
+                new_community.public = False
+                new_community.joinable = False
+
+                com_named = IFriendlyNamed(new_community)
+                if getattr(policy, 'COM_ALIAS', ''):
+                    com_named.alias = getattr(policy, 'COM_ALIAS', '')
+                if getattr(policy, 'COM_REALNAME', ''):
+                    com_named.realname = getattr(policy, 'COM_REALNAME', '')
+
                 new_community.auto_subscribe = SiteAutoSubscribeMembershipPredicate()
                 new_community.auto_subscribe.__parent__ = new_community
 
