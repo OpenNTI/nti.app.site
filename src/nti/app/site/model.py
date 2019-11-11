@@ -37,6 +37,8 @@ from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site import SITE_MIMETYPE
 
+from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
+
 from nti.base.mixins import CreatedAndModifiedTimeMixin
 
 from nti.coremetadata.interfaces import IDataserver
@@ -54,7 +56,6 @@ from nti.schema.eqhash import EqHash
 from nti.schema.fieldproperty import createDirectFieldProperties
 
 from nti.schema.schema import SchemaConfigured
-from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
 logger = __import__('logging').getLogger(__name__)
 

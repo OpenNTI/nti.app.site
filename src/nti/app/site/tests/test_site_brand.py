@@ -47,6 +47,10 @@ from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
 from nti.dataserver.tests import mock_dataserver
 
+from nti.dataserver.users.communities import Community
+
+from nti.dataserver.users.interfaces import IFriendlyNamed
+
 from nti.externalization.representation import to_json_representation
 
 from nti.site.hostpolicy import synchronize_host_policies
@@ -121,6 +125,11 @@ class TestSiteBrand(SiteLayerTest):
                 # SiteBrand not created
                 site_brand = component.queryUtility(ISiteBrand)
                 assert_that(site_brand, none())
+                com = Community.get_community('testsitebrand_community')
+                assert_that(com.username, is_('testsitebrand_community'))
+                com_named = IFriendlyNamed(com)
+                assert_that(com_named.alias, is_('Test Site Brand Comm Display'))
+                assert_that(com_named.realname, none())
 
         # Make a site admin user
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):

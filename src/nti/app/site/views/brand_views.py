@@ -38,7 +38,8 @@ from nti.app.site import MessageFactory as _
 
 from nti.app.site import DELETED_MARKER
 
-from nti.app.site.interfaces import ISiteBrand, ISiteAssetsFileSystemLocation
+from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.model import SiteBrand
 from nti.app.site.model import SiteBrandImage
