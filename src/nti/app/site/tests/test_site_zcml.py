@@ -32,7 +32,7 @@ from nti.appserver.policies.sites import BASEADULT
 
 from nti.app.site.zcml import ConflictingBaseComponentsError
 from nti.app.site.zcml import MissingBaseComponentsError
-from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 
 ZCML_REGISTRATION = """

@@ -31,7 +31,6 @@
 
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
-	<adapter factory=".acl.SiteBrandACLProvider" />
 
 	<adapter name="NextthoughtDotComSiteAdmin"
 			 for="nti.dataserver.interfaces.IUser"
@@ -51,10 +50,7 @@
 
 	<ext:registerAutoPackageIO
 		root_interfaces=".interfaces.ISite
-		                 .interfaces.ISiteBrand
-		                 .interfaces.ISiteSeatLimit
-		                 .interfaces.ISiteBrandImage
-		                 .interfaces.ISiteBrandAssets"
+		                 .interfaces.ISiteSeatLimit"
 		modules=".model" />
 
     <!-- Decorators -->
@@ -82,10 +78,6 @@
 			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
 			 for="zope.interface.interfaces.IHandlerRegistration" />
 
-    <adapter factory=".internalization._SiteBrandUpdater"
-             provides="nti.externalization.interfaces.IInternalObjectUpdater"
-             for=".interfaces.ISiteBrand" />
-
 	<!-- Traversal -->
 	<adapter factory=".traversal.HostPolicyTraversable"
 			 for="nti.site.interfaces.IHostPolicyFolder pyramid.interfaces.IRequest"
@@ -108,7 +100,7 @@
 
     <subscriber factory=".decorators.SiteBrandAuthDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
-                for="nti.app.site.interfaces.ISiteBrand
+                for="nti.appserver.brand.interfaces.ISiteBrand
                      pyramid.interfaces.IRequest"/>
 
     <!-- workspace -->

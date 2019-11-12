@@ -21,7 +21,7 @@ from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.site.interfaces import ISiteBrand
-from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.pyramid_authorization import has_permission
 

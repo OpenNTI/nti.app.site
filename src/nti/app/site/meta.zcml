@@ -25,7 +25,7 @@
 
     <meta:directive
             name="siteAssetsFileSystemLocation"
-            schema="nti.app.site.interfaces.ISiteAssetsFileSystemLocation"
+            schema="nti.appserver.brand.interfaces.ISiteAssetsFileSystemLocation"
             handler=".zcml.registerSiteAssetsFileSystemLocation" />
 
   </meta:directives>

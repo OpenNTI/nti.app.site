@@ -38,7 +38,7 @@ from zope.configuration.interfaces import IConfigurationContext
 
 from zope.interface.interfaces import IComponents
 
-from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.schema import Tuple
 from nti.app.site.schema import SiteComponent

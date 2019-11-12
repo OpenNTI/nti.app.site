@@ -16,13 +16,13 @@ from hamcrest import has_properties
 
 from nti.testing.matchers import verifiably_provides
 
-from nti.app.site.model import SiteBrand
-from nti.app.site.model import SiteBrandImage
-from nti.app.site.model import SiteBrandAssets
+from nti.appserver.brand.model import SiteBrand
+from nti.appserver.brand.model import SiteBrandImage
+from nti.appserver.brand.model import SiteBrandAssets
 
-from nti.app.site.interfaces import ISiteBrand
-from nti.app.site.interfaces import ISiteBrandImage
-from nti.app.site.interfaces import ISiteBrandAssets
+from nti.appserver.brand.interfaces import ISiteBrand
+from nti.appserver.brand.interfaces import ISiteBrandImage
+from nti.appserver.brand.interfaces import ISiteBrandAssets
 
 from nti.app.site.tests import SiteLayerTest
 
