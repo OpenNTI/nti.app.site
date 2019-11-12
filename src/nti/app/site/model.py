@@ -96,9 +96,8 @@ class SiteSeatLimit(Persistent, Contained):
 
 
 zope.deferredimport.deprecatedFrom(
-    "Moved to nti.appserver.brand.interfaces",
-    "nti.appserver.brand.interfaces",
-    "ICreatableObjectFilter",
+    "Moved to nti.appserver.brand.model",
+    "nti.appserver.brand.model",
     "SiteBrand",
     "SiteBrandImage",
     "SiteBrandAssets")
