@@ -30,8 +30,8 @@ from zope.traversing.interfaces import IEtcNamespace
 from nti.app.site import DELETED_MARKER
 from nti.app.site import VIEW_SITE_BRAND
 
-from nti.app.site.interfaces import ISiteBrand
-from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+from nti.appserver.brand.interfaces import ISiteBrand
+from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.tests import SiteLayerTest
 

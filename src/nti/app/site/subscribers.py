@@ -26,7 +26,7 @@ from nti.app.site import DELETED_MARKER
 
 from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
-from nti.app.site.interfaces import ISiteAssetsFileSystemLocation
+from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
