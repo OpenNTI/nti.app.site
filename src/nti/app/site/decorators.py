@@ -21,6 +21,9 @@ from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.site.interfaces import ISiteBrand
+
+from nti.appserver.brand.model import SiteBrand
+
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.pyramid_authorization import has_permission
@@ -103,7 +106,10 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
         sm = component.getSiteManager()
         edit_context = sm.get('SiteBrand')
         if edit_context is None:
-            edit_context = context
+            # Ok, the current site does not have a SiteBrand, build one for
+            # our links
+            edit_context = SiteBrand()
+            edit_context.__parent__ = sm
         links = result_map.setdefault("Links", [])
         link = Link(edit_context,
                     rel='delete',
