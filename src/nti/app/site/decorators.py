@@ -109,6 +109,7 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
             # Ok, the current site does not have a SiteBrand, build one for
             # our links
             edit_context = SiteBrand()
+            edit_context.__name__ = 'SiteBrand'
             edit_context.__parent__ = sm
         links = result_map.setdefault("Links", [])
         link = Link(edit_context,
