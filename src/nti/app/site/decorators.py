@@ -29,6 +29,7 @@ from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
 
 from nti.dataserver.authorization import ACT_CONTENT_EDIT
 
+from nti.dataserver.authorization import is_admin
 from nti.dataserver.authorization import is_admin_or_site_admin
 
 from nti.dataserver.interfaces import IUser
@@ -53,7 +54,7 @@ logger = __import__('logging').getLogger(__name__)
 class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _predicate(self, unused_context, unused_result):
-        return is_admin_or_site_admin(self.remoteUser)
+        return is_admin(self.remoteUser)
 
     def _do_decorate_external(self, context, result_map):  # pylint: disable=arguments-differ
         links = result_map.setdefault("Links", [])
@@ -96,14 +97,21 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
             and has_permission(ACT_CONTENT_EDIT, context, self.request)
 
     def _do_decorate_external(self, context, result_map):
+        # For editing the site brand, we want to edit our current
+        # site's SiteBrand, if it exists. Otherwise, fall back and
+        # expose the edit href of this site brand.
+        sm = component.getSiteManager()
+        edit_context = sm.get('SiteBrand')
+        if edit_context is None:
+            edit_context = context
         links = result_map.setdefault("Links", [])
-        link = Link(context,
+        link = Link(edit_context,
                     rel='delete',
                     method='DELETE')
         links.append(link)
         # Can only edit with a fs location
         if component.queryUtility(ISiteAssetsFileSystemLocation) is not None:
-            link = Link(context,
+            link = Link(edit_context,
                         rel='edit',
                         method='PUT')
             links.append(link)
