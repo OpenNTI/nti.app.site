@@ -15,6 +15,8 @@ from pyramid.view import view_defaults
 
 from requests.structures import CaseInsensitiveDict
 
+from ZODB.interfaces import IConnection
+
 from zope import component
 from zope import interface
 
@@ -59,6 +61,7 @@ from nti.property.dataurl import DataURL
 from nti.site.interfaces import IHostPolicySiteManager
 
 from nti.site.localutility import install_utility
+from nti.site.localutility import queryNextUtility
 
 from nti.site.utils import unregisterUtility
 
@@ -154,9 +157,33 @@ class SiteBrandUpdateView(UGDPutView):
     @Lazy
     def _source_dict(self):
         """
-        A dictionary of multipart inputs: name -> file.
+        A dictionary of multipart inputs: name -> file. If we have a source_site_brand,
+        we'll use those paths as sources for a (new) SiteBrand object.
         """
-        return get_all_sources(self.request)
+        result = get_all_sources(self.request)
+        source = self._source_site_brand
+        source_assets = getattr(source, 'assets', None)
+        if source_assets is not None:
+            for asset_key in self.ASSET_MULTIPART_KEYS:
+                # Look for keys not in form upload
+                if asset_key not in result:
+                    source_image = getattr(source_assets, asset_key, None)
+                    # Only use source if we have a path and it exists
+                    # (we could also copy urls here, or in asset_url_dict).
+                    if      source_image is not None \
+                        and source_image.source \
+                        and os.path.exists(source_image.source):
+                            result[asset_key] = source_image.source
+        return result
+
+    @Lazy
+    def _source_site_brand(self):
+        """
+        If we are a dynamic object, attempt to use a parent ISiteBrand as a
+        basis for persisting the new child ISiteBrand.
+        """
+        if IConnection(self.context) is None:
+            return queryNextUtility(self.context, ISiteBrand)
 
     def _get_location_directory(self):
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
@@ -191,6 +218,25 @@ class SiteBrandUpdateView(UGDPutView):
         brand_image.__parent__ = assets
         setattr(assets, attr_name, brand_image)
 
+    def _copy_source_data(self, attr_name, source_file, target_path):
+        """
+        Copy the source file data to our target path.
+        """
+        try:
+            with open(source_file, 'r') as f:
+                data = f.read()
+        except TypeError:
+            # StringIO
+            source_file.seek(0)
+            data = source_file.read()
+
+        if data.startswith('data:'):
+            data_url = DataURL(data)
+            data = data_url.data
+        self._check_image_constraint(attr_name, data)
+        with open(target_path, 'wb') as target:
+            target.write(data)
+
     def update_assets(self):
         """
         Update and store our assets, if necessary.
@@ -209,6 +255,7 @@ class SiteBrandUpdateView(UGDPutView):
                 else:
                     brand_image = SiteBrandImage(source=str(asset_url))
                     self._store_brand_image(assets, attr_name, brand_image)
+
             # Save to disk and store given images
             for attr_name, asset_file in self._source_dict.items():
                 if attr_name not in self.ASSET_MULTIPART_KEYS:
@@ -218,20 +265,25 @@ class SiteBrandUpdateView(UGDPutView):
                 key = PersistentHierarchyKey(name=filename,
                                              bucket=assets.root)
                 path = os.path.join(location_dir, assets.root.name, filename)
-                asset_file.seek(0)
-                data = asset_file.read()
-                if data.startswith('data:'):
-                    data_url = DataURL(data)
-                    data = data_url.data
-                self._check_image_constraint(attr_name, data)
-                with open(path, 'wb') as target:
-                    target.write(data)
+                self._copy_source_data(attr_name, asset_file, path)
                 brand_image = SiteBrandImage(source=path,
                                              filename=asset_file.name,
                                              key=key)
                 self._store_brand_image(assets, attr_name, brand_image)
 
+    def _copy_source_brand_attrs(self, source):
+        """
+        Copy the simple attributes from our source site brand.
+        """
+        self.context.brand_name = source.brand_name
+        self.context.brand_color = source.brand_color
+        if source.theme is not None:
+            self.context.theme = dict(source.theme)
+
     def __call__(self):
+        # Copy source attrs, import to do this before update
+        if self._source_site_brand is not None:
+            self._copy_source_brand_attrs(self._source_site_brand)
         old_assets = self.context.assets
         super(SiteBrandUpdateView, self).__call__()
         # Now update assets

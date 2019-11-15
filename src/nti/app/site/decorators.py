@@ -32,7 +32,6 @@ from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
 
 from nti.dataserver.authorization import ACT_CONTENT_EDIT
 
-from nti.dataserver.authorization import is_admin
 from nti.dataserver.authorization import is_admin_or_site_admin
 
 from nti.dataserver.interfaces import IUser
@@ -68,13 +67,12 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         rel=rel,
                         elements=("%s" % rel,))
             links.append(link)
-        if is_admin(self.remoteUser):
-            # Can edit site brand
-            link = Link(ds2,
-                        rel=VIEW_SITE_BRAND,
-                        method="PUT",
-                        elements=("%s" % VIEW_SITE_BRAND,))
-            links.append(link)
+        # Can edit site brand
+        link = Link(ds2,
+                    rel=VIEW_SITE_BRAND,
+                    method="PUT",
+                    elements=("%s" % VIEW_SITE_BRAND,))
+        links.append(link)
 
 
 @component.adapter(IUser)
