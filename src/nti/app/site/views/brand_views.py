@@ -258,14 +258,15 @@ class SiteBrandUpdateView(UGDPutView):
             for attr_name, asset_file in self._source_dict.items():
                 if attr_name not in self.ASSET_MULTIPART_KEYS:
                     continue
-                ext = os.path.splitext(asset_file.name)[1]
+                original_filename = getattr(asset_file, 'name', asset_file)
+                ext = os.path.splitext(original_filename)[1]
                 filename = u'%s%s' % (attr_name, ext)
                 key = PersistentHierarchyKey(name=filename,
                                              bucket=assets.root)
                 path = os.path.join(location_dir, assets.root.name, filename)
                 self._copy_source_data(attr_name, asset_file, path)
                 brand_image = SiteBrandImage(source=path,
-                                             filename=asset_file.name,
+                                             filename=original_filename,
                                              key=key)
                 self._store_brand_image(assets, attr_name, brand_image)
 
