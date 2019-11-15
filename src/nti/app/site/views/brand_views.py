@@ -15,8 +15,6 @@ from pyramid.view import view_defaults
 
 from requests.structures import CaseInsensitiveDict
 
-from ZODB.interfaces import IConnection
-
 from zope import component
 from zope import interface
 
@@ -182,7 +180,7 @@ class SiteBrandUpdateView(UGDPutView):
         If we are a dynamic object, attempt to use a parent ISiteBrand as a
         basis for persisting the new child ISiteBrand.
         """
-        if IConnection(self.context) is None:
+        if getattr(self.context, '_p_mtime', None) is None:
             return queryNextUtility(self.context, ISiteBrand)
 
     def _get_location_directory(self):
