@@ -258,7 +258,13 @@ class SiteBrandUpdateView(UGDPutView):
             for attr_name, asset_file in self._source_dict.items():
                 if attr_name not in self.ASSET_MULTIPART_KEYS:
                     continue
-                original_filename = getattr(asset_file, 'name', asset_file)
+
+                try:
+                    # Multipart upload
+                    original_filename = asset_file.name
+                except AttributeError:
+                    # Source path
+                    original_filename = os.path.split(asset_file)[-1]
                 ext = os.path.splitext(original_filename)[1]
                 filename = u'%s%s' % (attr_name, ext)
                 key = PersistentHierarchyKey(name=filename,
