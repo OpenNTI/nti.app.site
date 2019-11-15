@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import os
+import copy
 
 from pyramid import httpexceptions as hexc
 
@@ -59,6 +60,7 @@ from nti.property.dataurl import DataURL
 from nti.site.interfaces import IHostPolicySiteManager
 
 from nti.site.localutility import install_utility
+from nti.site.localutility import queryNextUtility
 
 from nti.site.utils import unregisterUtility
 
@@ -80,6 +82,10 @@ def SiteBrandPathAdapter(unused_context, request):
     if result is None:
         # In either case, spoof an empty one if none.
         result = SiteBrand()
+        parent_brand = queryNextUtility(result, ISiteBrand)
+        if parent_brand is not None:
+            # If we have a parent site brand, use that as a base
+            result = copy.deepcopy(parent_brand)
         install_utility(result,
                         'SiteBrand',
                         ISiteBrand,
