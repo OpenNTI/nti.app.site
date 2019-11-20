@@ -115,7 +115,10 @@ class SiteBrandUpdateView(UGDPutView):
                             'icon',
                             'full_logo',
                             'email',
-                            'favicon')
+                            'favicon',
+                            'login_logo',
+                            'login_background',
+                            'login_featured_callout')
 
     # 50 MB
     MAX_FILE_SIZE = 52428800
