@@ -133,7 +133,7 @@ class SiteBrandUpdateView(UGDPutView):
         result = CaseInsensitiveDict(values)
         return result
 
-    def _check_image_constraint(self, attr_name, data):
+    def _check_image_constraint(self, attr_name, data, ext):
         """
         Validate the image file constraints
         """
@@ -144,6 +144,15 @@ class SiteBrandUpdateView(UGDPutView):
                                  'message': _(u"${field} image is too large.",
                                               mapping={'field': attr_name}),
                                  'code': 'ImageSizeExceededError',
+                             },
+                             None)
+        if      attr_name == 'favicon' \
+            and ext not in ('ico', 'gif', 'png'):
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"favicon must be a ico, gif, or png type."),
+                                 'code': 'InvalidFaviconTypeError',
                              },
                              None)
 
@@ -219,7 +228,7 @@ class SiteBrandUpdateView(UGDPutView):
         brand_image.__parent__ = assets
         setattr(assets, attr_name, brand_image)
 
-    def _copy_source_data(self, attr_name, source_file, target_path):
+    def _copy_source_data(self, attr_name, source_file, target_path, ext):
         """
         Copy the source file data to our target path.
         """
@@ -234,7 +243,7 @@ class SiteBrandUpdateView(UGDPutView):
         if data.startswith('data:'):
             data_url = DataURL(data)
             data = data_url.data
-        self._check_image_constraint(attr_name, data)
+        self._check_image_constraint(attr_name, data, ext)
         with open(target_path, 'wb') as target:
             target.write(data)
 
@@ -273,7 +282,7 @@ class SiteBrandUpdateView(UGDPutView):
                 key = PersistentHierarchyKey(name=filename,
                                              bucket=assets.root)
                 path = os.path.join(location_dir, assets.root.name, filename)
-                self._copy_source_data(attr_name, asset_file, path)
+                self._copy_source_data(attr_name, asset_file, path, ext)
                 brand_image = SiteBrandImage(source=path,
                                              filename=original_filename,
                                              key=key)
