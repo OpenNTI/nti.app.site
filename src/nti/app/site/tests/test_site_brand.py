@@ -333,6 +333,17 @@ class TestSiteBrand(SiteLayerTest):
         delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
         assert_that(os.path.exists(delete_marker_path), is_(False))
 
+        # Valid favicon
+        bad_upload_files=[('favicon', 'bad_favicon.jpeg', PNG_DATAURL)]
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=bad_upload_files,
+                               extra_environ=site_admin_env,
+                               status=422)
+        res = res.json_body
+        assert_that(res, has_entries('code', 'InvalidFaviconTypeError',
+                                     'message', 'favicon must be a ico, gif, or png type.'))
+
         # Test file size constraint
         SiteBrandUpdateView.MAX_FILE_SIZE = 0
         res = self.testapp.put(brand_rel,
