@@ -147,7 +147,7 @@ class SiteBrandUpdateView(UGDPutView):
                              },
                              None)
         if      attr_name == 'favicon' \
-            and ext not in ('ico', 'gif', 'png'):
+            and ext not in ('.ico', '.gif', '.png'):
             raise_json_error(self.request,
                              hexc.HTTPUnprocessableEntity,
                              {
