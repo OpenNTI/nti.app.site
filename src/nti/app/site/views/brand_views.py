@@ -7,6 +7,8 @@ from __future__ import division
 
 import os
 
+from PIL import Image
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import IRequest
@@ -14,6 +16,8 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 
 from requests.structures import CaseInsensitiveDict
+
+from six import StringIO
 
 from zope import component
 from zope import interface
@@ -146,15 +150,25 @@ class SiteBrandUpdateView(UGDPutView):
                                  'code': 'ImageSizeExceededError',
                              },
                              None)
-        if      attr_name == 'favicon' \
-            and ext not in ('.ico', '.gif', '.png'):
-            raise_json_error(self.request,
-                             hexc.HTTPUnprocessableEntity,
-                             {
-                                 'message': _(u"favicon must be a ico, gif, or png type."),
-                                 'code': 'InvalidFaviconTypeError',
-                             },
-                             None)
+        if attr_name == 'favicon':
+            if ext not in ('.ico', '.gif', '.png'):
+                raise_json_error(self.request,
+                                 hexc.HTTPUnprocessableEntity,
+                                 {
+                                     'message': _(u"favicon must be a ico, gif, or png type."),
+                                     'code': 'InvalidFaviconTypeError',
+                                 },
+                                 None)
+            data = StringIO(data)
+            image = Image.open(data)
+            if image.size not in ((16,16), (32,32)):
+                raise_json_error(self.request,
+                                 hexc.HTTPUnprocessableEntity,
+                                 {
+                                     'message': _(u"favicon must be 16x16 or 32x32."),
+                                     'code': 'InvalidFaviconSizeError',
+                                 },
+                                 None)
 
     @Lazy
     def _asset_url_dict(self):
