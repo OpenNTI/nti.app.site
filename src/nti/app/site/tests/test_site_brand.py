@@ -345,11 +345,16 @@ class TestSiteBrand(SiteLayerTest):
                                      'message', 'favicon must be a ico, gif, or png type.'))
 
 
+        # Bad favicon size
         good_upload_files=[('favicon', 'good_favicon.png', PNG_DATAURL)]
-        self.testapp.put(brand_rel,
-                         form_data,
-                         upload_files=good_upload_files,
-                         extra_environ=site_admin_env)
+        res = self.testapp.put(brand_rel,
+                               form_data,
+                               upload_files=good_upload_files,
+                               extra_environ=site_admin_env,
+                               status=422)
+        res = res.json_body
+        assert_that(res, has_entries('code', 'InvalidFaviconSizeError',
+                                     'message', 'favicon must be 16x16 or 32x32.'))
 
         # Test file size constraint
         SiteBrandUpdateView.MAX_FILE_SIZE = 0
