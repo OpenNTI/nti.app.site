@@ -136,3 +136,16 @@ class SiteBrandEmailDisabledDecorator(Singleton):
     def decorateExternalObject(self, unused_context, external):
         # For speed, we decorate this for everyone
         external['UneditableEmailImage'] = True
+
+
+@component.adapter(ISiteBrand)
+@interface.implementer(IExternalObjectDecorator)
+class SiteBrandHideNextThoughtBrandingDecorator(Singleton):
+    """
+    For sites that do not want their nextthought branding, we provide this
+    decorator that will decorate an informational attr on the SiteBrand.
+    """
+
+    def decorateExternalObject(self, unused_context, external):
+        # For speed, we decorate this for everyone
+        external['HideNextThoughtBranding'] = True
