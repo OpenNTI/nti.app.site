@@ -159,7 +159,7 @@ class TestSiteBrand(SiteLayerTest):
         assert_that(brand_res, has_entries('assets', none(),
                                            'brand_name', is_('NextThought')))
         self.require_link_href_with_rel(brand_res, 'edit')
-        self.require_link_href_with_rel(brand_res, 'delete')
+        self.forbid_link_with_rel(brand_res, 'delete')
 
         # Get rels
         user_ws = self._get_workspace('sitebrand_siteadmin', site_admin_env)

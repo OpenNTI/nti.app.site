@@ -124,6 +124,8 @@ class SiteBrandUpdateView(UGDPutView):
                             'login_background',
                             'login_featured_callout')
 
+    VALID_IMAGE_EXTS = ('.png','.jpg','.jpeg','.gif', '.svg')
+
     # 50 MB
     MAX_FILE_SIZE = 52428800
 
@@ -167,6 +169,14 @@ class SiteBrandUpdateView(UGDPutView):
                                  {
                                      'message': _(u"favicon must be 16x16 or 32x32."),
                                      'code': 'InvalidFaviconSizeError',
+                                 },
+                                 None)
+        if ext not in self.VALID_IMAGE_EXTS:
+            raise_json_error(self.request,
+                                 hexc.HTTPUnprocessableEntity,
+                                 {
+                                     'message': _(u"Image must be a png, jpg, jpeg, gif, or svg type."),
+                                     'code': 'InvalidFaviconTypeError',
                                  },
                                  None)
 
