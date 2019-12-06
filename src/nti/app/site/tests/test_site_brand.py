@@ -216,8 +216,7 @@ class TestSiteBrand(SiteLayerTest):
         assets = brand_res.get('assets')
         assert_that(assets, has_entries('CreatedTime', not_none(),
                                         'Last Modified', not_none(),
-                                        'full_logo', has_entries('source', EXT_URL,
-                                                                 'filename', none()),
+                                        'full_logo', has_entries('filename', none()),
                                         'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo.png'),
                                                             'filename', logo_filename),
                                         'icon', none(),
@@ -260,8 +259,7 @@ class TestSiteBrand(SiteLayerTest):
         assets = brand_res.get('assets')
         assert_that(assets, has_entries('CreatedTime', not_none(),
                                         'Last Modified', not_none(),
-                                        'full_logo', has_entries('source', EXT_URL,
-                                                                 'filename', none()),
+                                        'full_logo', has_entries('filename', none()),
                                         'logo', has_entries('href', is_('/site_assets_location/test_brand_site/logo.png'),
                                                             'filename', logo_filename),
                                         'icon', none(),
