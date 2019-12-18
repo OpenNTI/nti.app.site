@@ -37,9 +37,6 @@ from nti.site import unregisterUtility
 
 from nti.site.localutility import install_utility
 
-
-__docformat__ = "restructuredtext en"
-
 logger = __import__('logging').getLogger(__name__)
 
 
