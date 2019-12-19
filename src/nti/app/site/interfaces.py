@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from persistent.interfaces import IPersistent
+
 from zope import interface
 
 from zope.interface import Attribute
@@ -30,6 +32,8 @@ from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import Int
 from nti.schema.field import DecodingValidTextLine as TextLine
+
+from nti.site.interfaces import ISiteMapping
 
 #: Default provider
 NTI = u'NTI'
@@ -99,3 +103,8 @@ class ISiteSeatLimit(interface.Interface):
                      description=u'The current number of seats taken in the site.',
                      required=True)
 
+
+class IPersistentSiteMapping(ISiteMapping, IPersistent, ILastModified, ICreated):
+    """
+    A persistent :class:`ISiteMapping`.
+    """

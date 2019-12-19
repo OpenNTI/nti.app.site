@@ -54,9 +54,7 @@ class _SiteMappingExternalizer(object):
 
     def toExternalObject(self, *args, **kwargs):
         result = LocatedExternalDict()
-        result[MIMETYPE] = self.site_mapping.mimeType
         result[CLASS] = self.site_mapping.__class__.__name__
-        result['source'] = self.site_mapping.source_site_name
-        result['target'] = self.site_mapping.target_site_name
-        result[NTIID] = result[OID] = to_external_ntiid_oid(self.site_mapping)
+        result['source_site_name'] = self.site_mapping.source_site_name
+        result['target_site_name'] = self.site_mapping.target_site_name
         return result

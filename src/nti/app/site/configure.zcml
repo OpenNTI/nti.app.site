@@ -50,7 +50,8 @@
 
 	<ext:registerAutoPackageIO
 		root_interfaces=".interfaces.ISite
-		                 .interfaces.ISiteSeatLimit"
+		                 .interfaces.ISiteSeatLimit
+		                 .interfaces.IPersistentSiteMapping"
 		modules=".model" />
 
     <!-- Decorators -->
