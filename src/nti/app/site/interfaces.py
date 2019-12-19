@@ -12,6 +12,11 @@ from persistent.interfaces import IPersistent
 
 from zope import interface
 
+from zope.container.constraints import contains
+
+from zope.container.interfaces import IContained
+from zope.container.interfaces import IContainer
+
 from zope.interface import Attribute
 
 from zope.interface.interfaces import ObjectEvent
@@ -27,6 +32,8 @@ from nti.appserver.brand.interfaces import ISiteBrandAssets
 
 from nti.base.interfaces import ICreated
 from nti.base.interfaces import ILastModified
+
+from nti.coremetadata.interfaces import IShouldHaveTraversablePath
 
 from nti.dataserver.interfaces import ISiteCommunity
 
@@ -104,7 +111,30 @@ class ISiteSeatLimit(interface.Interface):
                      required=True)
 
 
-class IPersistentSiteMapping(ISiteMapping, IPersistent, ILastModified, ICreated):
+class IPersistentSiteMapping(ISiteMapping,
+                             IPersistent,
+                             ILastModified,
+                             ICreated,
+                             IShouldHaveTraversablePath):
     """
     A persistent :class:`ISiteMapping`.
     """
+
+
+class ISiteMappingContainer(IContainer):
+    """
+    A storage container for :class:`ISiteMappings` objects. All site mappings
+    in this container should have a target_site_name of the site this container
+    is stored in.
+    """
+    contains(ISiteMapping)
+
+    def get_site_mapping(source_site_name):
+        """
+        Lookup the :class:`ISiteMapping` by source_site_name.
+        """
+
+    def add_site_mapping(site_mapping):
+        """
+        Insert the :class:`ISiteMapping` by source_site_name.
+        """

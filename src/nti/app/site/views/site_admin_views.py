@@ -22,6 +22,8 @@ from nti.externalization.interfaces import StandardExternalFields
 
 from nti.site.interfaces import ISiteMapping
 
+from nti.site.utils import registerUtility
+
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
@@ -66,4 +68,26 @@ class CurrentSiteMappingsView(AbstractAuthenticatedView):
         items = [x for x in items if x.target_site_name == site_name]
         result[ITEMS] = items
         result[ITEM_COUNT] = len(items)
+        return result
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             context=IDataserverFolder,
+             request_method='POST',
+             permission=nauth.ACT_CONTENT_EDIT,
+             name='SiteMappings')
+class SiteMappingsInsertView(AbstractAuthenticatedView):
+    """
+    Return all mappings pointing to the current site.
+    """
+
+    def __call__(self):
+        result = LocatedExternalDict()
+        site_name = getSite().__name__
+        items = component.getAllUtilitiesRegisteredFor(ISiteMapping)
+        items = [x for x in items if x.target_site_name == site_name]
+        result[ITEMS] = items
+        result[ITEM_COUNT] = len(items)
+        registerUtility(registry, obj, provided, name=name)
         return result

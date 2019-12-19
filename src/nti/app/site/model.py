@@ -25,12 +25,14 @@ from zope.mimetype.interfaces import IContentTypeAware
 
 from zope.schema.fieldproperty import createFieldProperties
 
-from nti.app.site.interfaces import ISite
+from nti.app.site.interfaces import ISite, ISiteMappingContainer
 from nti.app.site.interfaces import ISiteSeatLimit
 
 from nti.app.site import SITE_MIMETYPE
 
 from nti.base.mixins import CreatedAndModifiedTimeMixin
+
+from nti.containers.containers import CaseInsensitiveCheckingLastModifiedBTreeContainer
 
 from nti.coremetadata.interfaces import IDataserver
 
@@ -106,13 +108,41 @@ class SiteSeatLimit(Persistent, Contained):
                                                  self.source_site_name,
                                                  self.target_site_name)
 
+
+@interface.implementer(ISiteMappingContainer)
+class SiteMappingContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer,
+                           SchemaConfigured):
+    createDirectFieldProperties(ISiteMappingContainer)
+
+    __parent__ = None
+
+    def get_site_mapping(self, source_site_name):
+        return self.get(source_site_name)
+
+    def add_site_mapping(self, site_mapping):
+        result = self.get_site_mapping(site_mapping.source_site_name)
+        if result is not None:
+            return result
+        self[site_mapping.source_site_name] = site_mapping
+        return site_mapping
+
+
 @WithRepr
 @interface.implementer(IPersistentSiteMapping)
 class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
-                            SiteMapping):
+                            SiteMapping,
+                            Contained,
+                            SchemaConfigured):
     """
     Maps one site to another persistently.
     """
+    createDirectFieldProperties(IPersistentSiteMapping)
+
+    __parent__ = None
+    __name__ = None
+
+    creator = None
+    NTIID = alias('ntiid')
 
 
 zope.deferredimport.deprecatedFrom(
