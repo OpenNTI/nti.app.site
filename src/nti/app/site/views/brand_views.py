@@ -153,7 +153,7 @@ class SiteBrandUpdateView(UGDPutView):
                              },
                              None)
         if attr_name == 'favicon':
-            if ext not in ('.ico', '.gif', '.png'):
+            if ext and ext.lower() not in ('.ico', '.gif', '.png'):
                 raise_json_error(self.request,
                                  hexc.HTTPUnprocessableEntity,
                                  {
@@ -171,7 +171,7 @@ class SiteBrandUpdateView(UGDPutView):
                                      'code': 'InvalidFaviconSizeError',
                                  },
                                  None)
-        if ext not in self.VALID_IMAGE_EXTS:
+        if ext and ext.lower() not in self.VALID_IMAGE_EXTS:
             raise_json_error(self.request,
                                  hexc.HTTPUnprocessableEntity,
                                  {
