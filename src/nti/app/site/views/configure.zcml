@@ -32,4 +32,16 @@
              factory=".brand_views.SiteBrandPathAdapter"
              provides="zope.traversing.interfaces.IPathAdapter" />
 
+    <adapter name="SiteMappings"
+             for="nti.dataserver.interfaces.IDataserverFolder
+                  pyramid.interfaces.IRequest"
+             factory=".site_admin_views.SiteMappingContainerPathAdapter"
+             provides="zope.traversing.interfaces.IPathAdapter" />
+
+    <adapter name="SiteMappings"
+             for="nti.site.interfaces.IHostPolicySiteManager
+                  pyramid.interfaces.IRequest"
+             factory=".site_admin_views.SiteMappingContainerPathAdapter"
+             provides="zope.traversing.interfaces.IPathAdapter" />
+
 </configure>

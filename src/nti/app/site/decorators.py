@@ -19,6 +19,7 @@ from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
 from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
+from nti.app.site import VIEW_SITE_MAPPINGS
 
 from nti.app.site.interfaces import ISiteBrand
 
@@ -61,7 +62,7 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result_map):  # pylint: disable=arguments-differ
         links = result_map.setdefault("Links", [])
-        rels = [VIEW_SITE_ADMINS]
+        rels = [VIEW_SITE_ADMINS, VIEW_SITE_MAPPINGS]
         ds2 = find_interface(context, IDataserverFolder)
         for rel in rels:
             link = Link(ds2,

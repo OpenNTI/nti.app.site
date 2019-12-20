@@ -25,8 +25,9 @@ from zope.mimetype.interfaces import IContentTypeAware
 
 from zope.schema.fieldproperty import createFieldProperties
 
-from nti.app.site.interfaces import ISite, ISiteMappingContainer
+from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
+from nti.app.site.interfaces import ISiteMappingContainer
 
 from nti.app.site import SITE_MIMETYPE
 

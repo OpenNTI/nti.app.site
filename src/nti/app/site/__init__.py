@@ -18,6 +18,7 @@ SITE_MIMETYPE = 'application/vnd.nextthought.site'
 VIEW_SITE_ADMINS = "SiteAdmins"
 VIEW_SITE_BRAND = "SiteBrand"
 SITE_SEAT_LIMIT = "SeatLimit"
+VIEW_SITE_MAPPINGS = 'SiteMappings'
 
 #: Deleted directory marker
 DELETED_MARKER = u"__nti_deleted_marker__"

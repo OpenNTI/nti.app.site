@@ -11,6 +11,7 @@ from hamcrest import is_not
 from hamcrest import not_none
 from hamcrest import assert_that
 from hamcrest import has_entries
+from hamcrest import has_properties
 does_not = is_not
 
 from nti.testing.matchers import validly_provides
@@ -26,6 +27,9 @@ from nti.app.site.model import PersistentSiteMapping
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.externalization import to_external_object
+
+from nti.externalization.internalization import find_factory_for
+from nti.externalization.internalization import update_from_external_object
 
 from nti.externalization.tests import externalizes
 
@@ -56,6 +60,7 @@ class TestModel(ApplicationLayerTest):
     def test_persistent_site_mapping(self):
         mapping = PersistentSiteMapping(source_site_name=u"source",
                                         target_site_name=u"target")
+        from IPython.terminal.debugger import set_trace;set_trace()
         ext_obj = to_external_object(mapping)
         assert_that(ext_obj,
                     has_entries('Class', 'PersistentSiteMapping',
@@ -64,3 +69,10 @@ class TestModel(ApplicationLayerTest):
                                 'Last Modified', not_none(),
                                 'MimeType', mapping.mimeType,
                                 'target_site_name', 'target'))
+
+        factory = find_factory_for(ext_obj)
+        assert_that(factory, not_none())
+        new_io = factory()
+        update_from_external_object(new_io, ext_obj, require_updater=True)
+        assert_that(new_io, has_properties("source_site_name", "source",
+                                           'target_site_name', "target"))
