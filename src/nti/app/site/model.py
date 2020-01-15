@@ -137,6 +137,8 @@ class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
     """
     Maps one site to another persistently.
     """
+    mimeType = mime_type = 'application/vnd.nextthought.persistentsitemapping'
+
     createDirectFieldProperties(IPersistentSiteMapping)
 
     __parent__ = None

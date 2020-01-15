@@ -60,7 +60,6 @@ class TestModel(ApplicationLayerTest):
     def test_persistent_site_mapping(self):
         mapping = PersistentSiteMapping(source_site_name=u"source",
                                         target_site_name=u"target")
-        from IPython.terminal.debugger import set_trace;set_trace()
         ext_obj = to_external_object(mapping)
         assert_that(ext_obj,
                     has_entries('Class', 'PersistentSiteMapping',

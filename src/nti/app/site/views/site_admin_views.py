@@ -11,8 +11,6 @@ from pyramid.view import view_config
 from zope import component
 from zope import interface
 
-from zope.cachedescriptors.property import Lazy
-
 from zope.component.hooks import getSite
 
 from zope.traversing.interfaces import IPathAdapter
@@ -24,7 +22,6 @@ from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtils
 from nti.app.site.interfaces import ISiteMappingContainer
 
 from nti.app.site.model import SiteMappingContainer
-from nti.app.site.model import PersistentSiteMapping
 
 from nti.dataserver import authorization as nauth
 
@@ -120,13 +117,16 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         if MIMETYPE not in externalValue:
             externalValue[MIMETYPE] = self.DEFAULT_FACTORY_MIMETYPE
         if 'target_site_name' not in externalValue:
+            # XXX: Should we force this?
             externalValue['target_site_name'] = getSite().__name__
         return externalValue
 
     def _do_call(self):
-        # Need to register utility
-        from IPython.terminal.debugger import set_trace;set_trace()
         new_mapping = self.readCreateUpdateContentObject(self.remoteUser)
-        logger.info('Creating site mapping (%s) (user=%s)',
+        # We may get an already-created site mapping, makes this a no-op.
+        result = self.context.add_site_mapping(new_mapping)
+        if result is new_mapping:
+            logger.info('Creating site mapping (%s) (user=%s)',
                     new_mapping, self.remoteUser)
-        return new_mapping
+            registerUtility(component.getSiteManager(), result, provided=ISiteMapping)
+        return result
