@@ -5,6 +5,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+from pyramid import httpexceptions as hexc
+
 from pyramid.view import IRequest
 from pyramid.view import view_config
 
@@ -24,6 +26,8 @@ from nti.app.site.interfaces import ISiteMappingContainer
 from nti.app.site.model import SiteMappingContainer
 
 from nti.dataserver import authorization as nauth
+
+from nti.dataserver.authorization import is_admin
 
 from nti.dataserver.interfaces import IDataserverFolder
 
@@ -83,7 +87,7 @@ class AllSiteMappingsView(AbstractAuthenticatedView):
              renderer='rest',
              context=ISiteMappingContainer,
              request_method='GET',
-             permission=nauth.ACT_CONTENT_EDIT)
+             permission=nauth.ACT_NTI_ADMIN)
 class CurrentSiteMappingsView(AbstractAuthenticatedView):
     """
     Return all mappings pointing to the current site.
@@ -91,20 +95,13 @@ class CurrentSiteMappingsView(AbstractAuthenticatedView):
 
     def __call__(self):
         return self.context
-#         result = LocatedExternalDict()
-#         site_name = getSite().__name__
-#         items = component.getAllUtilitiesRegisteredFor(ISiteMapping)
-#         items = [x for x in items if x.target_site_name == site_name]
-#         result[ITEMS] = items
-#         result[ITEM_COUNT] = len(items)
-#         return result
 
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              context=ISiteMappingContainer,
              request_method='POST',
-             permission=nauth.ACT_CONTENT_EDIT)
+             permission=nauth.ACT_NTI_ADMIN)
 class SiteMappingsInsertView(AbstractAuthenticatedView,
                              ModeledContentUploadRequestUtilsMixin):
     """
@@ -122,6 +119,8 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         return externalValue
 
     def _do_call(self):
+        if not is_admin(self.remoteUser):
+            raise hexc.HTTPForbidden()
         new_mapping = self.readCreateUpdateContentObject(self.remoteUser)
         # We may get an already-created site mapping, makes this a no-op.
         result = self.context.add_site_mapping(new_mapping)

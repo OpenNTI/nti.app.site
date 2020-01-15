@@ -87,7 +87,6 @@ class TestSiteMappings(SiteLayerTest):
         with mock_dataserver.mock_db_trans():
             synchronize_host_policies()
 
-        # Make a site admin user
         with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
             self._create_user(u'sitemapping_siteadmin', u'temp001',
                               external_value={'realname': u'Site Admin',
@@ -113,25 +112,25 @@ class TestSiteMappings(SiteLayerTest):
                                               'href', not_none(),
                                               'NTIID', not_none()))
 
-        # Insert
+        # Must be NT admin
         data = {'source_site_name': 'source_site_42'}
-        self.testapp.post_json(mappings_rel, data,
-                               extra_environ=regular_env,
-                               status=403)
+        for env in (site_admin_env, regular_env):
+            self.testapp.post_json(mappings_rel, data,
+                                   extra_environ=env,
+                                   status=403)
 
-        res = self.testapp.post_json(mappings_rel, data,
-                                     extra_environ=site_admin_env)
+        # Insert
+        res = self.testapp.post_json(mappings_rel, data)
         res = res.json_body
         assert_that(res, has_entries('Class', 'PersistentSiteMapping',
                                      'href', '/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteMappings/source_site_42',
                                      'MimeType', 'application/vnd.nextthought.persistentsitemapping',
                                      'source_site_name', 'source_site_42',
                                      'target_site_name', 'test_brand_site',
-                                     'Creator', 'sitemapping_siteadmin',
+                                     'Creator', 'sjohnson@nextthought.com',
                                      'NTIID', not_none()))
         first_ntiid = res['NTIID']
-        mappings_res = self.testapp.get(mappings_rel,
-                                        extra_environ=site_admin_env)
+        mappings_res = self.testapp.get(mappings_rel)
         mappings_res = mappings_res.json_body
         assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
                                               'CreatedTime', not_none(),
@@ -141,8 +140,7 @@ class TestSiteMappings(SiteLayerTest):
                                               'href', '/dataserver2/SiteMappings'))
 
         # Idempotent
-        res = self.testapp.post_json(mappings_rel, data,
-                                     extra_environ=site_admin_env)
+        res = self.testapp.post_json(mappings_rel, data)
         res = res.json_body
         assert_that(res, has_entry('NTIID', first_ntiid))
 
