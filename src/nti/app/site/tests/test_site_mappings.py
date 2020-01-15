@@ -5,56 +5,26 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
 from hamcrest import has_entry
 from hamcrest import has_items
-from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
-from hamcrest import contains_string
 
-import os
-import shutil
-
-from quopri import decodestring
-
-from zope import component
-
-from zope.component.hooks import site
 from zope.component.hooks import getSite
 
 from zope.securitypolicy.interfaces import IPrincipalRoleManager
 
-from zope.traversing.interfaces import IEtcNamespace
-
-from nti.app.site import DELETED_MARKER
-from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_MAPPINGS
-
-from nti.appserver.brand.interfaces import ISiteBrand
-from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.app.site.tests import SiteLayerTest
 
-from nti.app.site.views.brand_views import SiteBrandUpdateView
-
 from nti.app.testing.decorators import WithSharedApplicationMockDS
-
-from nti.app.testing.testing import ITestMailDelivery
-
-from nti.app.testing.webtest import TestApp
 
 from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
 from nti.dataserver.tests import mock_dataserver
-
-from nti.dataserver.users.communities import Community
-
-from nti.dataserver.users.interfaces import IFriendlyNamed
-
-from nti.externalization.representation import to_json_representation
 
 from nti.site.hostpolicy import synchronize_host_policies
 
