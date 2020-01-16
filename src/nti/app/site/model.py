@@ -139,6 +139,8 @@ class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
     """
     mimeType = mime_type = 'application/vnd.nextthought.persistentsitemapping'
 
+    __external_class_name__ = "SiteMapping"
+
     createDirectFieldProperties(IPersistentSiteMapping)
 
     __parent__ = None

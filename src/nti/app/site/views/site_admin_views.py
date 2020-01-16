@@ -118,7 +118,6 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         if MIMETYPE not in externalValue:
             externalValue[MIMETYPE] = self.DEFAULT_FACTORY_MIMETYPE
         if 'target_site_name' not in externalValue:
-            # XXX: Should we force this?
             externalValue['target_site_name'] = getSite().__name__
         elif externalValue['target_site_name'] != getSite().__name__:
             raise_json_error(self.request,
@@ -138,6 +137,10 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         result = self.context.add_site_mapping(new_mapping)
         if result is new_mapping:
             logger.info('Creating site mapping (%s) (user=%s)',
-                    new_mapping, self.remoteUser)
-            registerUtility(component.getSiteManager(), result, provided=ISiteMapping)
+                        new_mapping, self.remoteUser)
+            # Must register globally
+            registerUtility(component.getGlobalSiteManager(),
+                            result,
+                            name=new_mapping.source_site_name,
+                            provided=ISiteMapping)
         return result

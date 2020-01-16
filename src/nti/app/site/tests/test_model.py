@@ -62,7 +62,7 @@ class TestModel(ApplicationLayerTest):
                                         target_site_name=u"target")
         ext_obj = to_external_object(mapping)
         assert_that(ext_obj,
-                    has_entries('Class', 'PersistentSiteMapping',
+                    has_entries('Class', 'SiteMapping',
                                 'source_site_name', 'source',
                                 'CreatedTime', not_none(),
                                 'Last Modified', not_none(),
@@ -71,6 +71,14 @@ class TestModel(ApplicationLayerTest):
 
         factory = find_factory_for(ext_obj)
         assert_that(factory, not_none())
+        new_io = factory()
+        update_from_external_object(new_io, ext_obj, require_updater=True)
+        assert_that(new_io, has_properties("source_site_name", "source",
+                                           'target_site_name', "target"))
+
+        # Casing
+        ext_obj['source_site_name'] = u'SOURCE'
+        ext_obj['target_site_name'] = u'TARGET'
         new_io = factory()
         update_from_external_object(new_io, ext_obj, require_updater=True)
         assert_that(new_io, has_properties("source_site_name", "source",

@@ -92,7 +92,7 @@ class TestSiteMappings(SiteLayerTest):
         # Insert
         res = self.testapp.post_json(mappings_rel, data)
         res = res.json_body
-        assert_that(res, has_entries('Class', 'PersistentSiteMapping',
+        assert_that(res, has_entries('Class', 'SiteMapping',
                                      'href', '/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteMappings/source_site_42',
                                      'MimeType', 'application/vnd.nextthought.persistentsitemapping',
                                      'source_site_name', 'source_site_42',
@@ -114,7 +114,39 @@ class TestSiteMappings(SiteLayerTest):
         res = res.json_body
         assert_that(res, has_entry('NTIID', first_ntiid))
 
+        # Idempotent casing
+        data2 = dict(data)
+        data2['source_site_name'] = 'SOURCE_sitE_42'
+        res = self.testapp.post_json(mappings_rel, data)
+        res = res.json_body
+        assert_that(res, has_entry('NTIID', first_ntiid))
+
         # Invalid target site
         data = {'source_site_name': 'source_site_42',
                 'target_site_name': 'invalid_target_site'}
         self.testapp.post_json(mappings_rel, data, status=422)
+
+        # A second site
+        data = {'source_site_name': 'source_SITE_43',
+                'target_site_name': 'test_brand_site'}
+        self.testapp.post_json(mappings_rel, data)
+
+        mappings_res = self.testapp.get(mappings_rel)
+        mappings_res = mappings_res.json_body
+        assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
+                                              'CreatedTime', not_none(),
+                                              'NTIID', not_none(),
+                                              'Last Modified', not_none(),
+                                              'Items', has_items('source_site_42', 'source_site_43'),
+                                              'href', '/dataserver2/SiteMappings'))
+
+        # Now can you use these sites as host origin
+        for site_name in ('source_site_42', 'SOURCE_SITE_43'):
+            env = self._make_extra_environ()
+            env["HTTP_ORIGIN"] = 'https://%s' % site_name
+            mappings_res = self.testapp.get(mappings_rel, extra_environ=env)
+            mappings_res = mappings_res.json_body
+            assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
+                                                  'Items', has_items('source_site_42', 'source_site_43'),
+                                                  'href', '/dataserver2/SiteMappings'))
+

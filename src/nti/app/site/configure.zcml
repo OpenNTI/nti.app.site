@@ -54,6 +54,10 @@
 		                 .interfaces.IPersistentSiteMapping"
 		modules=".model" />
 
+    <adapter factory=".internalization._PersistentSiteMappingUpdater"
+             provides="nti.externalization.interfaces.IInternalObjectUpdater"
+             for=".interfaces.IPersistentSiteMapping" />
+
     <!-- Decorators -->
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
