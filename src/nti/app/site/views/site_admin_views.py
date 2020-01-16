@@ -19,7 +19,11 @@ from zope.traversing.interfaces import IPathAdapter
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
+from nti.app.externalization.error import raise_json_error
+
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
+from nti.app.site import MessageFactory as _
 
 from nti.app.site.interfaces import ISiteMappingContainer
 
@@ -116,6 +120,14 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         if 'target_site_name' not in externalValue:
             # XXX: Should we force this?
             externalValue['target_site_name'] = getSite().__name__
+        elif externalValue['target_site_name'] != getSite().__name__:
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': _(u"Target site must be current site."),
+                                 'code': 'InvalidTargetSiteError',
+                             },
+                             None)
         return externalValue
 
     def _do_call(self):

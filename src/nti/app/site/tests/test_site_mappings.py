@@ -114,3 +114,7 @@ class TestSiteMappings(SiteLayerTest):
         res = res.json_body
         assert_that(res, has_entry('NTIID', first_ntiid))
 
+        # Invalid target site
+        data = {'source_site_name': 'source_site_42',
+                'target_site_name': 'invalid_target_site'}
+        self.testapp.post_json(mappings_rel, data, status=422)
