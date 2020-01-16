@@ -50,13 +50,26 @@
 
 	<ext:registerAutoPackageIO
 		root_interfaces=".interfaces.ISite
-		                 .interfaces.ISiteSeatLimit"
+		                 .interfaces.ISiteSeatLimit
+		                 .interfaces.IPersistentSiteMapping"
 		modules=".model" />
+
+    <adapter factory=".internalization._PersistentSiteMappingUpdater"
+             provides="nti.externalization.interfaces.IInternalObjectUpdater"
+             for=".interfaces.IPersistentSiteMapping" />
 
     <!-- Decorators -->
 	<adapter factory=".externalization._SiteExternalizer"
 			 for="nti.site.interfaces.IHostPolicyFolder"
 			 provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
+
+	<adapter factory=".externalization._SiteMappingExternalizer"
+             for="nti.site.interfaces.ISiteMapping"
+             provides="nti.externalization.interfaces.IInternalObjectExternalizer" />
+
+    <adapter factory=".externalization._SiteMappingContainerExternalObject"
+             provides="nti.externalization.interfaces.IExternalObject"
+             for=".interfaces.ISiteMappingContainer" />
 
 	<adapter factory=".object_io.ComponentObjectIO"
 			 provides="nti.externalization.interfaces.IInternalObjectIOFinder"
@@ -90,8 +103,20 @@
 
     <!-- Subscribers -->
     <subscriber handler=".subscribers._on_site_created" />
+    <subscriber handler=".subscribers._on_site_mapping_added" />
     <subscriber handler=".subscribers._on_site_brand_deleted" />
     <subscriber handler=".subscribers._on_site_assets_deleted" />
+    <subscriber handler=".subscribers._on_site_mapping_deleted" />
+
+    <subscriber factory=".decorators.PersistentSiteMappingAdminDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.IPersistentSiteMapping
+                     pyramid.interfaces.IRequest"/>
+
+    <subscriber factory=".decorators.SiteMappingContainerAdminDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.ISiteMappingContainer
+                     pyramid.interfaces.IRequest"/>
 
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"

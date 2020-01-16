@@ -18,6 +18,7 @@ from zope import interface
 
 from zope.component.hooks import site
 
+from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 
 from zope.site.interfaces import INewLocalSite
@@ -26,6 +27,8 @@ from nti.app.site import DELETED_MARKER
 
 from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
+from nti.app.site.interfaces import IPersistentSiteMapping
+
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
@@ -38,7 +41,11 @@ from nti.dataserver.users.interfaces import IFriendlyNamed
 
 from nti.mailer.interfaces import IMailerTemplateArgsUtility
 
+from nti.site.interfaces import ISiteMapping
 from nti.site.interfaces import IHostPolicySiteManager
+
+from nti.site.utils import registerUtility
+from nti.site.utils import unregisterUtility
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -101,6 +108,29 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
                 # If no path, we can skip this part
                 path = os.path.join(bucket_path, DELETED_MARKER)
                 open(path, 'w').close()
+
+
+@component.adapter(IPersistentSiteMapping, IObjectAddedEvent)
+def _on_site_mapping_added(site_mapping, unused_event=None):
+    """
+    On site mapping, globally register the site mapping. Must
+    be global to be accessed correctly in site tween.
+    """
+    registerUtility(component.getGlobalSiteManager(),
+                    site_mapping,
+                    name=site_mapping.source_site_name,
+                    provided=ISiteMapping)
+
+
+@component.adapter(IPersistentSiteMapping, IObjectRemovedEvent)
+def _on_site_mapping_deleted(site_mapping, unused_event=None):
+    """
+    On site mapping, unregister mapping utility from global
+    site manager.
+    """
+    unregisterUtility(component.getGlobalSiteManager(),
+                      provided=ISiteMapping,
+                      name=site_mapping.source_site_name)
 
 
 @interface.implementer(IMailerTemplateArgsUtility)

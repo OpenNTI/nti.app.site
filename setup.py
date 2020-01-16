@@ -6,6 +6,9 @@ entry_points = {
     "z3c.autoinclude.plugin": [
         'target = nti.app.sites',
     ],
+    'console_scripts': [
+        "nti_create_site_mapping = nti.app.site.scripts.nti_create_site_mapping:main",
+    ],
 }
 
 

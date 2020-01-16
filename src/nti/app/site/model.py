@@ -27,14 +27,19 @@ from zope.schema.fieldproperty import createFieldProperties
 
 from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
+from nti.app.site.interfaces import ISiteMappingContainer
 
 from nti.app.site import SITE_MIMETYPE
 
 from nti.base.mixins import CreatedAndModifiedTimeMixin
 
+from nti.containers.containers import CaseInsensitiveCheckingLastModifiedBTreeContainer
+
 from nti.coremetadata.interfaces import IDataserver
 
 from nti.dataserver.users.utils import intids_of_users_by_site
+
+from nti.dublincore.time_mixins import PersistentCreatedAndModifiedTimeObject
 
 from nti.externalization.representation import WithRepr
 
@@ -45,6 +50,10 @@ from nti.schema.eqhash import EqHash
 from nti.schema.fieldproperty import createDirectFieldProperties
 
 from nti.schema.schema import SchemaConfigured
+
+from nti.app.site.interfaces import IPersistentSiteMapping
+
+from nti.site.site import SiteMapping
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -93,6 +102,52 @@ class SiteSeatLimit(Persistent, Contained):
     def used_seats(self):
         user_ids = intids_of_users_by_site(self.current_site)
         return len(user_ids)  # Includes site admins
+
+
+    def __repr__(self):
+        return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
+                                                 self.source_site_name,
+                                                 self.target_site_name)
+
+
+@interface.implementer(ISiteMappingContainer)
+class SiteMappingContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer,
+                           SchemaConfigured):
+    createDirectFieldProperties(ISiteMappingContainer)
+
+    __parent__ = None
+
+    def get_site_mapping(self, source_site_name):
+        return self.get(source_site_name)
+
+    def add_site_mapping(self, site_mapping):
+        result = self.get_site_mapping(site_mapping.source_site_name)
+        if result is not None:
+            return result
+        self[site_mapping.source_site_name] = site_mapping
+        return site_mapping
+
+
+@WithRepr
+@interface.implementer(IPersistentSiteMapping)
+class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
+                            SiteMapping,
+                            Contained,
+                            SchemaConfigured):
+    """
+    Maps one site to another persistently.
+    """
+    mimeType = mime_type = 'application/vnd.nextthought.persistentsitemapping'
+
+    __external_class_name__ = "SiteMapping"
+
+    createDirectFieldProperties(IPersistentSiteMapping)
+
+    __parent__ = None
+    __name__ = None
+
+    creator = None
+    NTIID = alias('ntiid')
 
 
 zope.deferredimport.deprecatedFrom(

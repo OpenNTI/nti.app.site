@@ -19,8 +19,11 @@ from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
 from nti.app.site import VIEW_SITE_BRAND
 from nti.app.site import VIEW_SITE_ADMINS
+from nti.app.site import VIEW_SITE_MAPPINGS
 
 from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import IPersistentSiteMapping
 
 from nti.appserver.brand.model import SiteBrand
 
@@ -61,7 +64,7 @@ class SiteAdminWorkspaceDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result_map):  # pylint: disable=arguments-differ
         links = result_map.setdefault("Links", [])
-        rels = [VIEW_SITE_ADMINS]
+        rels = [VIEW_SITE_ADMINS, VIEW_SITE_MAPPINGS]
         ds2 = find_interface(context, IDataserverFolder)
         for rel in rels:
             link = Link(ds2,
@@ -125,6 +128,35 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         method='PUT')
             links.append(link)
 
+
+@component.adapter(IPersistentSiteMapping, IRequest)
+@interface.implementer(IExternalObjectDecorator)
+class PersistentSiteMappingAdminDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _predicate(self, unused_context, unused_result):
+        return is_admin(self.remoteUser)
+
+    def _do_decorate_external(self, context, result_map):
+        links = result_map.setdefault("Links", [])
+        link = Link(context,
+                    rel='delete',
+                    method="DELETE")
+        links.append(link)
+
+
+@component.adapter(ISiteMappingContainer, IRequest)
+@interface.implementer(IExternalObjectDecorator)
+class SiteMappingContainerAdminDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _predicate(self, unused_context, unused_result):
+        return is_admin(self.remoteUser)
+
+    def _do_decorate_external(self, context, result_map):
+        links = result_map.setdefault("Links", [])
+        link = Link(context,
+                    rel='insert',
+                    method="POST")
+        links.append(link)
 
 
 @component.adapter(ISiteBrand)
