@@ -28,7 +28,7 @@ from nti.app.site import MessageFactory as _
 from nti.app.site.interfaces import ISiteMappingContainer
 from nti.app.site.interfaces import IPersistentSiteMapping
 
-from nti.app.site.model import SiteMappingContainer
+from nti.app.site.utils import create_site_mapping_container
 
 from nti.appserver.ugd_edit_views import UGDDeleteView
 
@@ -44,10 +44,6 @@ from nti.externalization.interfaces import StandardExternalFields
 from nti.site.interfaces import ISiteMapping
 from nti.site.interfaces import IHostPolicySiteManager
 
-from nti.site.localutility import install_utility
-
-from nti.site.utils import registerUtility
-
 ITEMS = StandardExternalFields.ITEMS
 MIMETYPE = StandardExternalFields.MIMETYPE
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
@@ -62,11 +58,7 @@ def SiteMappingContainerPathAdapter(unused_context, unused_request):
     result = component.queryUtility(ISiteMappingContainer)
     if result is None:
         # In either case, spoof an empty one if none.
-        result = SiteMappingContainer()
-        install_utility(result,
-                        'SiteMappings',
-                        ISiteMappingContainer,
-                        component.getSiteManager())
+        result = create_site_mapping_container()
     return result
 
 
@@ -82,7 +74,6 @@ class AllSiteMappingsView(AbstractAuthenticatedView):
     """
 
     def __call__(self):
-        # XXX: Just persistent, or all types?
         result = LocatedExternalDict()
         items = component.getAllUtilitiesRegisteredFor(ISiteMapping)
         result[ITEMS] = items
@@ -145,11 +136,6 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
         if result is new_mapping:
             logger.info('Creating site mapping (%s) (user=%s)',
                         new_mapping, self.remoteUser)
-            # Must register globally
-            registerUtility(component.getGlobalSiteManager(),
-                            result,
-                            name=new_mapping.source_site_name,
-                            provided=ISiteMapping)
         return result
 
 

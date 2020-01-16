@@ -18,6 +18,7 @@ from zope import interface
 
 from zope.component.hooks import site
 
+from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
 
 from zope.site.interfaces import INewLocalSite
@@ -43,6 +44,7 @@ from nti.mailer.interfaces import IMailerTemplateArgsUtility
 from nti.site.interfaces import ISiteMapping
 from nti.site.interfaces import IHostPolicySiteManager
 
+from nti.site.utils import registerUtility
 from nti.site.utils import unregisterUtility
 
 logger = __import__('logging').getLogger(__name__)
@@ -106,6 +108,18 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
                 # If no path, we can skip this part
                 path = os.path.join(bucket_path, DELETED_MARKER)
                 open(path, 'w').close()
+
+
+@component.adapter(IPersistentSiteMapping, IObjectAddedEvent)
+def _on_site_mapping_added(site_mapping, unused_event=None):
+    """
+    On site mapping, globally register the site mapping. Must
+    be global to be accessed correctly in site tween.
+    """
+    registerUtility(component.getGlobalSiteManager(),
+                    site_mapping,
+                    name=site_mapping.source_site_name,
+                    provided=ISiteMapping)
 
 
 @component.adapter(IPersistentSiteMapping, IObjectRemovedEvent)

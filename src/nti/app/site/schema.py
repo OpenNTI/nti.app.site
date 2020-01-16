@@ -21,9 +21,8 @@ from zope.schema._bootstrapinterfaces import IFromUnicode
 
 from nti.schema.field import Object
 
-from nti.schema.field import Tuple as SchemaTuple
 from nti.schema.field import Variant
-from nti.schema.field import TextLine
+from nti.schema.field import Tuple as SchemaTuple
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -100,7 +99,7 @@ class BaseComponents(Variant):
     A field that represents an IBaseComponent. Provided as a convenience
     for getting IBaseComponent objects from a global or utility
     """
-    
+
     def __init__(self, **kwargs):
         fields = [_GlobalBaseComponents(),
                   _NamedBaseComponents()]
@@ -109,4 +108,4 @@ class BaseComponents(Variant):
     def fromUnicode(self, value):
         return self.fromObject(value)
 
-    
+
