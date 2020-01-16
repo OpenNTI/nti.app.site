@@ -103,6 +103,7 @@ class TestSiteMappings(SiteLayerTest):
                                      'target_site_name', 'test_brand_site',
                                      'Creator', 'sjohnson@nextthought.com',
                                      'NTIID', not_none()))
+        self.require_link_href_with_rel(res, 'delete')
         first_ntiid = res['NTIID']
         mappings_res = self.testapp.get(mappings_rel)
         mappings_res = mappings_res.json_body
@@ -143,6 +144,7 @@ class TestSiteMappings(SiteLayerTest):
                                               'Last Modified', not_none(),
                                               'Items', has_items('source_site_42', 'source_site_43'),
                                               'href', '/dataserver2/SiteMappings'))
+        self.require_link_href_with_rel(mappings_res, 'insert')
 
         # All mappings rel
         mappings_res = self.testapp.get('/dataserver2/AllSiteMappings')

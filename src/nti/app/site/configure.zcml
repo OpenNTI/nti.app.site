@@ -107,6 +107,16 @@
     <subscriber handler=".subscribers._on_site_assets_deleted" />
     <subscriber handler=".subscribers._on_site_mapping_deleted" />
 
+    <subscriber factory=".decorators.PersistentSiteMappingAdminDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.IPersistentSiteMapping
+                     pyramid.interfaces.IRequest"/>
+
+    <subscriber factory=".decorators.SiteMappingContainerAdminDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.ISiteMappingContainer
+                     pyramid.interfaces.IRequest"/>
+
     <subscriber factory=".decorators.SiteAdminWorkspaceDecorator"
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.app.site.workspaces.interfaces.ISiteAdminWorkspace

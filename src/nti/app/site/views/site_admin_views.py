@@ -25,8 +25,8 @@ from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtils
 
 from nti.app.site import MessageFactory as _
 
-from nti.app.site.interfaces import ISiteMappingContainer,\
-    IPersistentSiteMapping
+from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import IPersistentSiteMapping
 
 from nti.app.site.model import SiteMappingContainer
 

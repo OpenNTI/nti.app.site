@@ -22,6 +22,8 @@ from nti.app.site import VIEW_SITE_ADMINS
 from nti.app.site import VIEW_SITE_MAPPINGS
 
 from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import IPersistentSiteMapping
 
 from nti.appserver.brand.model import SiteBrand
 
@@ -126,6 +128,35 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         method='PUT')
             links.append(link)
 
+
+@component.adapter(IPersistentSiteMapping, IRequest)
+@interface.implementer(IExternalObjectDecorator)
+class PersistentSiteMappingAdminDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _predicate(self, unused_context, unused_result):
+        return is_admin(self.remoteUser)
+
+    def _do_decorate_external(self, context, result_map):
+        links = result_map.setdefault("Links", [])
+        link = Link(context,
+                    rel='delete',
+                    method="DELETE")
+        links.append(link)
+
+
+@component.adapter(ISiteMappingContainer, IRequest)
+@interface.implementer(IExternalObjectDecorator)
+class SiteMappingContainerAdminDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _predicate(self, unused_context, unused_result):
+        return is_admin(self.remoteUser)
+
+    def _do_decorate_external(self, context, result_map):
+        links = result_map.setdefault("Links", [])
+        link = Link(context,
+                    rel='insert',
+                    method="POST")
+        links.append(link)
 
 
 @component.adapter(ISiteBrand)
