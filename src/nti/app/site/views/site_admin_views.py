@@ -25,9 +25,12 @@ from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtils
 
 from nti.app.site import MessageFactory as _
 
-from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import ISiteMappingContainer,\
+    IPersistentSiteMapping
 
 from nti.app.site.model import SiteMappingContainer
+
+from nti.appserver.ugd_edit_views import UGDDeleteView
 
 from nti.dataserver import authorization as nauth
 
@@ -81,7 +84,7 @@ class AllSiteMappingsView(AbstractAuthenticatedView):
     def __call__(self):
         # XXX: Just persistent, or all types?
         result = LocatedExternalDict()
-        items = component.queryUtility(ISiteMapping)
+        items = component.getAllUtilitiesRegisteredFor(ISiteMapping)
         result[ITEMS] = items
         result[ITEM_COUNT] = len(items)
         return result
@@ -109,7 +112,11 @@ class CurrentSiteMappingsView(AbstractAuthenticatedView):
 class SiteMappingsInsertView(AbstractAuthenticatedView,
                              ModeledContentUploadRequestUtilsMixin):
     """
-    Return all mappings pointing to the current site.
+    View to insert a new site mapping, pointing to the current site.
+
+    The newly created ISiteMapping must be registered globally to be
+    accessible in `get_site_for_site_names`, which is used in the site
+    tween.
     """
 
     DEFAULT_FACTORY_MIMETYPE = 'application/vnd.nextthought.persistentsitemapping'
@@ -144,3 +151,15 @@ class SiteMappingsInsertView(AbstractAuthenticatedView,
                             name=new_mapping.source_site_name,
                             provided=ISiteMapping)
         return result
+
+
+@view_config(route_name="objects.generic.traversal",
+             context=IPersistentSiteMapping,
+             renderer='rest',
+             permission=nauth.ACT_NTI_ADMIN,
+             request_method='DELETE')
+class SiteMappingDeleteView(UGDDeleteView):
+
+    def _do_delete_object(self, theObject):
+        del theObject.__parent__[theObject.__name__]
+        return theObject

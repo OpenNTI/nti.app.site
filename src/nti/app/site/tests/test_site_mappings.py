@@ -6,11 +6,15 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from hamcrest import none
+from hamcrest import is_not
 from hamcrest import not_none
+from hamcrest import has_item
 from hamcrest import has_entry
 from hamcrest import has_items
+from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
+does_not = is_not
 
 from zope.component.hooks import getSite
 
@@ -140,6 +144,13 @@ class TestSiteMappings(SiteLayerTest):
                                               'Items', has_items('source_site_42', 'source_site_43'),
                                               'href', '/dataserver2/SiteMappings'))
 
+        # All mappings rel
+        mappings_res = self.testapp.get('/dataserver2/AllSiteMappings')
+        mappings_res = mappings_res.json_body
+        items = mappings_res['Items']
+        source_names = [x.get('source_site_name') for x in items]
+        assert_that(source_names, has_items('source_site_42', 'source_site_43'))
+
         # Now can you use these sites as host origin
         for site_name in ('source_site_42', 'SOURCE_SITE_43'):
             env = self._make_extra_environ()
@@ -149,4 +160,33 @@ class TestSiteMappings(SiteLayerTest):
             assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
                                                   'Items', has_items('source_site_42', 'source_site_43'),
                                                   'href', '/dataserver2/SiteMappings'))
+
+        # Delete
+        self.testapp.delete('/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteMappings/source_site_42')
+        mappings_res = self.testapp.get(mappings_rel)
+        mappings_res = mappings_res.json_body
+        assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
+                                              'CreatedTime', not_none(),
+                                              'NTIID', not_none(),
+                                              'Last Modified', not_none(),
+                                              'Items', has_items('source_site_43'),
+                                              'href', '/dataserver2/SiteMappings'))
+
+        # What should we do here with a no-longer-mapped site name, 404?
+        # This ends up running in 'dataserver2'. In normal usage, this will
+        # correspond with a DNS unregistration too.
+        env = self._make_extra_environ()
+        env["HTTP_ORIGIN"] = 'https://source_site_42'
+        mappings_res = self.testapp.get(mappings_rel, extra_environ=env)
+        mappings_res = mappings_res.json_body
+        assert_that(mappings_res, has_entries('Class', 'SiteMappingContainer',
+                                              'Items', has_length(0),
+                                              'href', '/dataserver2/SiteMappings'))
+
+        mappings_res = self.testapp.get('/dataserver2/AllSiteMappings')
+        mappings_res = mappings_res.json_body
+        items = mappings_res['Items']
+        source_names = [x.get('source_site_name') for x in items]
+        assert_that(source_names, has_item('source_site_43'))
+        assert_that(source_names, does_not(has_item('source_site_42')))
 
