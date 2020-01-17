@@ -22,6 +22,10 @@ from zope.securitypolicy.interfaces import IPrincipalRoleManager
 
 from nti.app.site import VIEW_SITE_MAPPINGS
 
+from nti.app.site.model import PersistentSiteMapping
+
+from nti.app.site.subscribers import on_site_mapping_added
+
 from nti.app.site.tests import SiteLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
@@ -191,4 +195,13 @@ class TestSiteMappings(SiteLayerTest):
         source_names = [x.get('source_site_name') for x in items]
         assert_that(source_names, has_item('source_site_43'))
         assert_that(source_names, does_not(has_item('source_site_42')))
+
+        # Validate already existent registration in another site
+        with mock_dataserver.mock_db_trans():
+            other_site_mapping = PersistentSiteMapping(source_site_name=u'source_site_44',
+                                                       target_site_name=u'just_another_site')
+            on_site_mapping_added(other_site_mapping)
+        self.testapp.post_json(mappings_rel,
+                               {'source_site_name': 'source_site_44'},
+                               status=422)
 
