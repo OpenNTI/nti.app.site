@@ -24,6 +24,8 @@ from nti.app.site.interfaces import ISiteMappingContainer
 
 from nti.app.site.utils import create_site_mapping_container
 
+from nti.base._compat import text_
+
 from nti.dataserver.utils import run_with_dataserver
 
 from nti.dataserver.utils.base_script import set_site
@@ -81,14 +83,16 @@ def main():
 
     conf_packages = ('nti.appserver',)
     context = create_context(env_dir, with_library=True)
+    source_site_name = text_(args.source_site_name)
+    target_site_name = text_(args.target_site_name)
 
     run_with_dataserver(environment_dir=env_dir,
                         xmlconfig_packages=conf_packages,
                         verbose=args.verbose,
                         context=context,
                         minimal_ds=True,
-                        function=lambda: _create_site_mapping(args.source_site_name,
-                                                              args.target_site_name))
+                        function=lambda: _create_site_mapping(source_site_name,
+                                                              target_site_name))
     sys.exit(0)
 
 

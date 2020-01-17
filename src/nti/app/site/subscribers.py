@@ -17,6 +17,7 @@ from zope import component
 from zope import interface
 
 from zope.component.hooks import site
+from zope.component.hooks import getSite
 
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectRemovedEvent
@@ -28,6 +29,7 @@ from nti.app.site import DELETED_MARKER
 from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteBrandAssets
 from nti.app.site.interfaces import IPersistentSiteMapping
+from nti.app.site.interfaces import DuplicateSiteMappingError
 
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
@@ -43,9 +45,12 @@ from nti.mailer.interfaces import IMailerTemplateArgsUtility
 
 from nti.site.interfaces import ISiteMapping
 from nti.site.interfaces import IHostPolicySiteManager
+from nti.site.interfaces import IMainApplicationFolder
 
 from nti.site.utils import registerUtility
 from nti.site.utils import unregisterUtility
+
+from nti.traversal.traversal import find_interface
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -111,14 +116,21 @@ def _on_site_assets_deleted(site_brand_assets, unused_event=None):
 
 
 @component.adapter(IPersistentSiteMapping, IObjectAddedEvent)
-def _on_site_mapping_added(site_mapping, unused_event=None):
+def on_site_mapping_added(site_mapping, unused_event=None):
     """
     On site mapping, globally register the site mapping. Must
     be global to be accessed correctly in site tween.
     """
-    registerUtility(component.getGlobalSiteManager(),
+    source_site_name = site_mapping.source_site_name
+    current_utility = component.queryUtility(ISiteMapping,
+                                             name=source_site_name)
+    if current_utility is not None:
+        raise DuplicateSiteMappingError(source_site_name)
+    # Need to register this in persistent registry
+    app_folder = find_interface(getSite(), IMainApplicationFolder)
+    registerUtility(app_folder.getSiteManager(),
                     site_mapping,
-                    name=site_mapping.source_site_name,
+                    name=source_site_name,
                     provided=ISiteMapping)
 
 
@@ -128,7 +140,8 @@ def _on_site_mapping_deleted(site_mapping, unused_event=None):
     On site mapping, unregister mapping utility from global
     site manager.
     """
-    unregisterUtility(component.getGlobalSiteManager(),
+    app_folder = find_interface(getSite(), IMainApplicationFolder)
+    unregisterUtility(app_folder.getSiteManager(),
                       provided=ISiteMapping,
                       name=site_mapping.source_site_name)
 

@@ -22,9 +22,8 @@ from zope.interface import Attribute
 from zope.interface.interfaces import ObjectEvent
 from zope.interface.interfaces import IObjectEvent
 
-from zope.location.interfaces import IContained
-
 from zope.schema import Bool
+from zope.schema import ValidationError
 
 from nti.appserver.brand.interfaces import ISiteBrand
 from nti.appserver.brand.interfaces import ISiteBrandImage
@@ -138,3 +137,10 @@ class ISiteMappingContainer(IContainer):
         """
         Insert the :class:`ISiteMapping` by source_site_name.
         """
+
+
+class DuplicateSiteMappingError(ValidationError):
+    """
+    Indicates a :class:`ISiteMapping` for a particular source_site_name is
+    already in-use. The source_site_name must be unique per environment.
+    """
