@@ -13,8 +13,8 @@
     <configure>
         <appsite:createSites package="nti.app.sites.alpha">
             <appsite:createSite site_name="test_brand_site"
-                                   base_names="nti.app.sites.alpha.sites.ALPHA,"
-                                   parent_name="nti.app.sites.alpha.sites.ALPHA">
+                                base_names="nti.app.sites.alpha.sites.ALPHA,"
+                                parent_name="nti.app.sites.alpha.sites.ALPHA">
 
                 <utility factory=".policy.AlphaSitePolicyEventListener" />
             </appsite:createSite>

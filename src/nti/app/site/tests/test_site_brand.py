@@ -33,6 +33,8 @@ from nti.app.site import VIEW_SITE_BRAND
 from nti.appserver.brand.interfaces import ISiteBrand
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
+from nti.app.site.subscribers import _create_default_community
+
 from nti.app.site.tests import SiteLayerTest
 
 from nti.app.site.views.brand_views import SiteBrandUpdateView
@@ -43,9 +45,13 @@ from nti.app.testing.testing import ITestMailDelivery
 
 from nti.app.testing.webtest import TestApp
 
+from nti.appserver.policies.site_policies import GenericAdultSitePolicyEventListener
+
 from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
 from nti.dataserver.tests import mock_dataserver
+
+from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.dataserver.users.communities import Community
 
@@ -387,3 +393,25 @@ class TestSiteBrand(SiteLayerTest):
         assert_that(os.path.exists(asset_path), is_(True))
         delete_marker_path = os.path.join(asset_path, DELETED_MARKER)
         assert_that(os.path.exists(delete_marker_path), is_(True))
+
+    @WithMockDSTrans
+    def test_default_community(self):
+        """
+        Validate the site subscribers (create community and site brand).
+
+        Validate updating the SiteBrand object and permissioning.
+        """
+        policy = GenericAdultSitePolicyEventListener()
+        com = _create_default_community(policy, 'test_default_community')
+        com_named = IFriendlyNamed(com)
+        assert_that(com_named.alias, is_(u'Community'))
+
+        policy.BRAND = u'NEXTTHOUGHT'
+        com = _create_default_community(policy, 'test_default_community2')
+        com_named = IFriendlyNamed(com)
+        assert_that(com_named.alias, is_(u'Community'))
+
+        policy.COM_ALIAS = u'com alias name'
+        com = _create_default_community(policy, 'test_default_community4')
+        com_named = IFriendlyNamed(com)
+        assert_that(com_named.alias, is_(policy.COM_ALIAS))

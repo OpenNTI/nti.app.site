@@ -33,6 +33,8 @@ from nti.app.site.interfaces import DuplicateSiteMappingError
 
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
+from nti.appserver.brand.utils import get_site_brand_name
+
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
 from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredicate
@@ -55,6 +57,43 @@ from nti.traversal.traversal import find_interface
 logger = __import__('logging').getLogger(__name__)
 
 
+def _get_community_alias(policy):
+    """
+    Prefer a community alias, non 'NextThought' site brand, or 'Community'.
+    """
+    result = getattr(policy, 'COM_ALIAS', '')
+    if not result:
+        result = get_site_brand_name()
+    if not result or result.lower() == 'nextthought':
+        result = u'Community'
+    return result
+
+
+def _create_default_community(policy, community_name):
+    """
+    Create a default, auto-joinable community for the given site policy.
+    """
+    try:
+        new_community = Community.create_community(username=community_name)
+    except KeyError:
+        # This may be common; e.g. creating a new site underneath an existing
+        # one.
+        logger.info("Cannot create existing community (%s)",
+                    community_name)
+    else:
+        new_community.public = False
+        new_community.joinable = False
+
+        com_named = IFriendlyNamed(new_community)
+        com_named.alias = _get_community_alias(policy)
+        if getattr(policy, 'COM_REALNAME', ''):
+            com_named.realname = getattr(policy, 'COM_REALNAME', '')
+
+        new_community.auto_subscribe = SiteAutoSubscribeMembershipPredicate()
+        new_community.auto_subscribe.__parent__ = new_community
+        return new_community
+
+
 @component.adapter(IHostPolicySiteManager, INewLocalSite)
 def _on_site_created(new_site_manager, unused_event=None):
     """
@@ -67,25 +106,7 @@ def _on_site_created(new_site_manager, unused_event=None):
         policy = new_site_manager.queryUtility(ICommunitySitePolicyUserEventListener)
         community_name = getattr(policy, 'COM_USERNAME', None)
         if community_name:
-            try:
-                new_community = Community.create_community(username=community_name)
-            except KeyError:
-                # This may be common; e.g. creating a new site underneath an existing
-                # one.
-                logger.info("Cannot create existing community (%s)",
-                            community_name)
-            else:
-                new_community.public = False
-                new_community.joinable = False
-
-                com_named = IFriendlyNamed(new_community)
-                if getattr(policy, 'COM_ALIAS', ''):
-                    com_named.alias = getattr(policy, 'COM_ALIAS', '')
-                if getattr(policy, 'COM_REALNAME', ''):
-                    com_named.realname = getattr(policy, 'COM_REALNAME', '')
-
-                new_community.auto_subscribe = SiteAutoSubscribeMembershipPredicate()
-                new_community.auto_subscribe.__parent__ = new_community
+            _create_default_community(policy, community_name)
 
 
 @component.adapter(ISiteBrand, IObjectRemovedEvent)
