@@ -77,7 +77,7 @@ class TestSiteBrand(SiteLayerTest):
         super(SiteLayerTest, self).tearDown()
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
         if location is not None:
-            shutil.rmtree(location.directory)
+            shutil.rmtree(location.directory, ignore_errors=True)
 
     def _get_workspace(self, name, environ, exists=True):
         service_res = self.testapp.get('/dataserver2',
