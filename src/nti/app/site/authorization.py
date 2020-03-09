@@ -62,8 +62,8 @@ class NextthoughtDotComSiteAdmin(object):
     def __init__(self, context):
         username = getattr(context, 'username', context)
 
-        # When used during authentication, we won't have an interaction
-        # and will need to create one
+        # Ensure we have the proper user in the interaction, which
+        # might be different than the authenticated user
         with _zope_interaction(username):
             if checkPermission(ACT_MANAGE_SITE.id, context):
                 self.groups = (ROLE_SITE_ADMIN,)
