@@ -35,6 +35,8 @@ from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.brand.utils import get_site_brand_name
 
+from nti.appserver.interfaces import IPreferredAppHostnameProvider
+
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
 from nti.dataserver.users.auto_subscribe import SiteAutoSubscribeMembershipPredicate
@@ -204,4 +206,30 @@ class SiteBrandMailerTemplateArgsUtility(object):
             if email_image_url:
                 result['nti_site_brand_email_image_url'] = email_image_url
         result['nti_site_brand_color'] = getattr(site_brand, 'brand_color', None) or '#89be3c'
+        return result
+
+
+@interface.implementer(IPreferredAppHostnameProvider)
+class MostRecentSiteMappingPreferredHostnameProvider(object):
+
+    def get_preferred_hostname(self, source_site_name):
+        """
+        Return the preferred host name for a particular given site name input.
+        This implementation gets the most recently registered site mapping
+        that points to the source_site_name input.
+        """
+        if not source_site_name:
+            return
+        result = source_site_name
+        found_mappings = []
+        site_mappings = component.getAllUtilitiesRegisteredFor(ISiteMapping)
+        # Gather all site mappings pointing towards our input
+        for site_mapping in site_mappings or ():
+            if site_mapping.target_site_name == source_site_name:
+                found_mappings.append(site_mapping)
+        if found_mappings:
+            # Get our most recent site mapping
+            found_mappings = sorted(found_mappings,
+                                    key=lambda x: getattr(x, 'createdTime', 0))
+            result = found_mappings[0].source_site_name
         return result
