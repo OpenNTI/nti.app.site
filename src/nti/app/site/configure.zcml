@@ -32,9 +32,9 @@
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
 
-	<adapter name="NextthoughtDotComSiteAdmin"
+	<adapter name="SiteAdminGroupsProvider"
 			 for="nti.dataserver.interfaces.IUser"
-			 factory=".authorization.NextthoughtDotComSiteAdmin"
+			 factory=".authorization.SiteAdminGroupsProvider"
 			 provides="nti.dataserver.interfaces.IGroupMember" />
 
     <!-- Seat Limit -->
