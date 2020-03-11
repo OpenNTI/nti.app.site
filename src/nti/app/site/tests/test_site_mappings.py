@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
 from hamcrest import not_none
@@ -25,6 +26,7 @@ from nti.app.site import VIEW_SITE_MAPPINGS
 from nti.app.site.model import PersistentSiteMapping
 
 from nti.app.site.subscribers import on_site_mapping_added
+from nti.app.site.subscribers import MostRecentSiteMappingPreferredHostnameProvider
 
 from nti.app.site.tests import SiteLayerTest
 
@@ -201,6 +203,14 @@ class TestSiteMappings(SiteLayerTest):
             other_site_mapping = PersistentSiteMapping(source_site_name=u'source_site_44',
                                                        target_site_name=u'just_another_site')
             on_site_mapping_added(other_site_mapping)
+
+            # Preferred site name
+            provider = MostRecentSiteMappingPreferredHostnameProvider()
+            preferred_name = provider.get_preferred_hostname('dns_site_name')
+            assert_that(preferred_name, is_('dns_site_name'))
+
+            preferred_name = provider.get_preferred_hostname('test_brand_site')
+            assert_that(preferred_name, is_('source_site_43'))
         self.testapp.post_json(mappings_rel,
                                {'source_site_name': 'source_site_44'},
                                status=422)
