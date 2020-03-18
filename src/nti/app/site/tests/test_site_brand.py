@@ -64,9 +64,9 @@ from nti.site.hostpolicy import synchronize_host_policies
 logger = __import__('logging').getLogger(__name__)
 
 # From master_email.pt
-DEFAULT_COLOR = u'#89be3c'
+DEFAULT_COLOR = u'#3FB34F'
 
-DEFAULT_LOGO_URL = u'https://d2ixlfeu83tci.cloudfront.net/images/email_logo.png'
+DEFAULT_LOGO_URL = u'https://assets.nextthought.com/images/nextthought/platform/email/logo_trans_square.png'
 
 
 class TestSiteBrand(SiteLayerTest):
@@ -150,7 +150,9 @@ class TestSiteBrand(SiteLayerTest):
             prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME, u'sitebrand_siteadmin')
 
         # Default urls
-        self._test_create_user(u'test_site_brand_defaults', DEFAULT_LOGO_URL, DEFAULT_COLOR)
+        self._test_create_user(u'test_site_brand_defaults',
+                               DEFAULT_LOGO_URL,
+                               DEFAULT_COLOR)
 
         # Update rel
         site_admin_env = self._make_extra_environ('sitebrand_siteadmin')
