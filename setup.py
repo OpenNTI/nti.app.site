@@ -8,6 +8,7 @@ entry_points = {
     ],
     'console_scripts': [
         "nti_create_site_mapping = nti.app.site.scripts.nti_create_site_mapping:main",
+        "nti_sites_usage = nti.app.site.scripts.nti_sites_usage:main"
     ],
 }
 
