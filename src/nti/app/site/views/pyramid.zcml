@@ -11,5 +11,6 @@
     <pyramid:scan package='.seat_limit_views' />
     <pyramid:scan package='.brand_views' />
     <pyramid:scan package='.site_admin_views' />
+    <pyramid:scan package='.site_usage_views' />
 
 </configure>
