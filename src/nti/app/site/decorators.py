@@ -184,3 +184,17 @@ class SiteBrandHideNextThoughtBrandingDecorator(Singleton):
     def decorateExternalObject(self, unused_context, external):
         # For speed, we decorate this for everyone
         external['HideNextThoughtBranding'] = True
+
+
+@component.adapter(ISiteBrand)
+@interface.implementer(IExternalObjectDecorator)
+class SiteBrandHideCertificateStylingDecorator(Singleton):
+    """
+    For sites that override the default completion certificate template,
+    we provide this decorator to hide the certificate customizations used
+    in that template.
+    """
+
+    def decorateExternalObject(self, unused_context, external):
+        # For speed, we decorate this for everyone
+        external['HideCertificateStyling'] = True
