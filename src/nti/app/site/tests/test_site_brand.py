@@ -67,11 +67,40 @@ logger = __import__('logging').getLogger(__name__)
 DEFAULT_COLOR = u'#3FB34F'
 
 DEFAULT_LOGO_URL = u'https://assets.nextthought.com/images/nextthought/platform/email/logo_trans_square.png'
+PNG_DATAURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAACbmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS4xLjIiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPkFjb3JuIHZlcnNpb24gMi42LjU8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgICAgIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KO/MupgAAAA1JREFUCB1j+P//PwMACPwC/uYM/6sAAAAASUVORK5CYII='
+EXT_URL = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
 
 
 class TestSiteBrand(SiteLayerTest):
 
     default_origin = 'https://test_brand_site'
+
+    def _setup_site(self):
+        with mock_dataserver.mock_db_trans():
+            synchronize_host_policies()
+            sites = component.queryUtility(IEtcNamespace, name='hostsites')
+            test_site = sites.get('test_brand_site')
+            with site(test_site):
+                # SiteBrand not created
+                site_brand = component.queryUtility(ISiteBrand)
+                assert_that(site_brand, none())
+                com = Community.get_community('testsitebrand_community')
+                assert_that(com.username, is_('testsitebrand_community'))
+                com_named = IFriendlyNamed(com)
+                assert_that(com_named.alias, is_('Test Site Brand Comm Display'))
+                assert_that(com_named.realname, none())
+
+        # Make a site admin user
+        with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
+            self._create_user(u'sitebrand_siteadmin', u'temp001',
+                              external_value={'realname': u'Site Admin',
+                                              'email': u'siteadmin@test.com'})
+            self._create_user(u'sitebrand_regularuser', u'temp001',
+                              external_value={'realname': u'Site Admin',
+                                              'email': u'siteadmin@test.com'})
+            new_site = getSite()
+            prm = IPrincipalRoleManager(new_site)
+            prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME, u'sitebrand_siteadmin')
 
     def tearDown(self):
         super(SiteLayerTest, self).tearDown()
@@ -120,34 +149,7 @@ class TestSiteBrand(SiteLayerTest):
 
         Validate updating the SiteBrand object and permissioning.
         """
-        PNG_DATAURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAACbmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS4xLjIiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPkFjb3JuIHZlcnNpb24gMi42LjU8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgICAgIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KO/MupgAAAA1JREFUCB1j+P//PwMACPwC/uYM/6sAAAAASUVORK5CYII='
-        EXT_URL = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
-
-        with mock_dataserver.mock_db_trans():
-            synchronize_host_policies()
-            sites = component.queryUtility(IEtcNamespace, name='hostsites')
-            test_site = sites.get('test_brand_site')
-            with site(test_site):
-                # SiteBrand not created
-                site_brand = component.queryUtility(ISiteBrand)
-                assert_that(site_brand, none())
-                com = Community.get_community('testsitebrand_community')
-                assert_that(com.username, is_('testsitebrand_community'))
-                com_named = IFriendlyNamed(com)
-                assert_that(com_named.alias, is_('Test Site Brand Comm Display'))
-                assert_that(com_named.realname, none())
-
-        # Make a site admin user
-        with mock_dataserver.mock_db_trans(self.ds, site_name='test_brand_site'):
-            self._create_user(u'sitebrand_siteadmin', u'temp001',
-                              external_value={'realname': u'Site Admin',
-                                              'email': u'siteadmin@test.com'})
-            self._create_user(u'sitebrand_regularuser', u'temp001',
-                              external_value={'realname': u'Site Admin',
-                                              'email': u'siteadmin@test.com'})
-            new_site = getSite()
-            prm = IPrincipalRoleManager(new_site)
-            prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME, u'sitebrand_siteadmin')
+        self._setup_site()
 
         # Default urls
         self._test_create_user(u'test_site_brand_defaults',
@@ -417,3 +419,67 @@ class TestSiteBrand(SiteLayerTest):
         com = _create_default_community(policy, 'test_default_community4')
         com_named = IFriendlyNamed(com)
         assert_that(com_named.alias, is_(policy.COM_ALIAS))
+
+    @WithSharedApplicationMockDS(testapp=True, users=True)
+    def test_branding_completion_cert(self):
+        """
+        Validate updating the completion certificate portions of the
+        SiteBrand object
+        """
+        self._setup_site()
+
+        site_admin_env = self._make_extra_environ('sitebrand_siteadmin')
+        regular_env = self._make_extra_environ('sitebrand_regularuser')
+
+        brand_href = u'/dataserver2/++etc++hostsites/test_brand_site/++etc++site/SiteBrand'
+        res = self.testapp.get(brand_href, extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'certificate_label', none(),
+                                           'certificate_brand_color', none(),))
+
+        # Update colors and cert label
+        cert_label = 'Certificate of Awesomeness'
+        cert_brand_color = u'#040404'
+        data = {'certificate_brand_color': cert_brand_color,
+                'certificate_label': cert_label}
+        cert_logo_filename = 'cert_logo.png'
+        self.testapp.put_json(brand_href, data,
+                              extra_environ=regular_env,
+                              status=403)
+
+        # Update
+        res = self.testapp.put_json(brand_href,
+                                    data,
+                                    extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('certificate_brand_color', cert_brand_color,))
+
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', none(),
+                                           'certificate_label', cert_label,
+                                           'certificate_brand_color', cert_brand_color,))
+
+        # Upload assets (have to handle this correctly since multipart)
+        data['certificate_sidebar_image'] = EXT_URL
+        upload_files=[('certificate_logo', cert_logo_filename, PNG_DATAURL), ]
+        form_data = {'__json__': to_json_representation(data)}
+        res = self.testapp.put(brand_href,
+                               form_data,
+                               upload_files=upload_files,
+                               extra_environ=site_admin_env)
+        brand_res = res.json_body
+        assert_that(brand_res, has_entries('assets', not_none(),
+                                           'certificate_label', cert_label,
+                                           'certificate_brand_color', cert_brand_color,))
+        assets = brand_res.get('assets')
+        assert_that(assets, has_entries('CreatedTime', not_none(),
+                                        'Last Modified', not_none(),
+                                        'certificate_sidebar_image', has_entries('filename', none()),
+                                        'certificate_logo', has_entries(
+                                            'href', is_('/site_assets_location/test_brand_site/certificate_logo.png'),
+                                            'filename', cert_logo_filename),
+                                        'icon', none(),
+                                        'favicon', none(),
+                                        'email', none()))
+

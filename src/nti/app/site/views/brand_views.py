@@ -122,7 +122,9 @@ class SiteBrandUpdateView(UGDPutView):
                             'favicon',
                             'login_logo',
                             'login_background',
-                            'login_featured_callout')
+                            'login_featured_callout',
+                            'certificate_sidebar_image',
+                            'certificate_logo')
 
     VALID_IMAGE_EXTS = ('.png','.jpg','.jpeg','.gif', '.svg')
 
