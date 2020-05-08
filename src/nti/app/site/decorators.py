@@ -102,7 +102,8 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
         return  self._is_authenticated \
             and has_permission(ACT_CONTENT_EDIT, context, self.request)
 
-    def _do_decorate_external(self, unused_context, result_map):
+    @staticmethod
+    def _current_site_sitebrand():
         # For editing the site brand, we want to edit our current
         # site's SiteBrand, if it exists. Otherwise, fall back and
         # expose the edit href of this site brand.
@@ -114,6 +115,14 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
             edit_context = SiteBrand()
             edit_context.__name__ = 'SiteBrand'
             edit_context.__parent__ = sm
+        return edit_context
+
+    @staticmethod
+    def _can_edit_sitebrand():
+        return component.queryUtility(ISiteAssetsFileSystemLocation)
+
+    def _do_decorate_external(self, unused_context, result_map):
+        edit_context = self._current_site_sitebrand()
         links = result_map.setdefault("Links", [])
         if is_admin(self.remoteUser):
             # Only NT admins get delete rel
@@ -122,7 +131,7 @@ class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
                         method='DELETE')
             links.append(link)
         # Can only edit with a fs location
-        if component.queryUtility(ISiteAssetsFileSystemLocation) is not None:
+        if self._can_edit_sitebrand() is not None:
             link = Link(edit_context,
                         rel='edit',
                         method='PUT')
