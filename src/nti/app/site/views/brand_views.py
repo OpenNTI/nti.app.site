@@ -104,12 +104,7 @@ class SiteBrandView(AbstractView):
         return self.context
 
 
-@view_config(context=ISiteBrand)
-@view_defaults(route_name='objects.generic.traversal',
-               renderer='rest',
-               permission=nauth.ACT_CONTENT_EDIT,
-               request_method='PUT')
-class SiteBrandUpdateView(UGDPutView):
+class SiteBrandUpdateBase(UGDPutView):
     """
     This context should be auto-created for new sites; we only need
     to update it once created.
@@ -133,7 +128,7 @@ class SiteBrandUpdateView(UGDPutView):
 
     def readInput(self, value=None, filter_asset=True):
         if self.request.body:
-            values = super(SiteBrandUpdateView, self).readInput(value)
+            values = super(SiteBrandUpdateBase, self).readInput(value)
         else:
             values = self.request.params
         if filter_asset:
@@ -221,6 +216,46 @@ class SiteBrandUpdateView(UGDPutView):
         if getattr(self.context, '_p_mtime', None) is None:
             return queryNextUtility(self.context, ISiteBrand)
 
+    def _copy_source_data(self, attr_name, source_file, target_path, ext):
+        """
+        Copy the source file data to our target path.
+        """
+        try:
+            with open(source_file, 'r') as f:
+                data = f.read()
+        except TypeError:
+            # StringIO
+            source_file.seek(0)
+            data = source_file.read()
+
+        if data.startswith('data:'):
+            data_url = DataURL(data)
+            data = data_url.data
+        self._check_image_constraint(attr_name, data, ext)
+        with open(target_path, 'wb') as target:
+            target.write(data)
+
+    def _copy_source_brand_attrs(self, source):
+        """
+        Copy the simple attributes from our source site brand.
+        """
+        self.context.brand_name = source.brand_name
+        self.context.brand_color = source.brand_color
+        if source.theme is not None:
+            self.context.theme = dict(source.theme)
+
+
+@view_config(context=ISiteBrand)
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               permission=nauth.ACT_CONTENT_EDIT,
+               request_method='PUT')
+class SiteBrandUpdateView(SiteBrandUpdateBase):
+    """
+    This context should be auto-created for new sites; we only need
+    to update it once created.
+    """
+
     def _get_location_directory(self):
         location = component.queryUtility(ISiteAssetsFileSystemLocation)
         if location is None:
@@ -253,25 +288,6 @@ class SiteBrandUpdateView(UGDPutView):
         """
         brand_image.__parent__ = assets
         setattr(assets, attr_name, brand_image)
-
-    def _copy_source_data(self, attr_name, source_file, target_path, ext):
-        """
-        Copy the source file data to our target path.
-        """
-        try:
-            with open(source_file, 'r') as f:
-                data = f.read()
-        except TypeError:
-            # StringIO
-            source_file.seek(0)
-            data = source_file.read()
-
-        if data.startswith('data:'):
-            data_url = DataURL(data)
-            data = data_url.data
-        self._check_image_constraint(attr_name, data, ext)
-        with open(target_path, 'wb') as target:
-            target.write(data)
 
     def update_assets(self):
         """
@@ -313,15 +329,6 @@ class SiteBrandUpdateView(UGDPutView):
                                              filename=original_filename,
                                              key=key)
                 self._store_brand_image(assets, attr_name, brand_image)
-
-    def _copy_source_brand_attrs(self, source):
-        """
-        Copy the simple attributes from our source site brand.
-        """
-        self.context.brand_name = source.brand_name
-        self.context.brand_color = source.brand_color
-        if source.theme is not None:
-            self.context.theme = dict(source.theme)
 
     def __call__(self):
         # Copy source attrs, import to do this before update
