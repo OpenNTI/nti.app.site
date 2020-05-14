@@ -53,7 +53,7 @@ class _SiteAdminWorkspace(object):
 
     @Lazy
     def collections(self):
-        return ()  # temp val, until we know what we need
+        return ()
 
     @property
     def links(self):

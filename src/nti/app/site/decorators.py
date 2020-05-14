@@ -98,9 +98,10 @@ class _UserSiteBrandLinkProvider(object):
 @interface.implementer(IExternalObjectDecorator)
 class SiteBrandAuthDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
-    def _predicate(self, context, unused_result):
+    def _predicate(self, unused_context, unused_result):
+        # Ignore context because we may have a different edit context
         return  self._is_authenticated \
-            and has_permission(ACT_CONTENT_EDIT, context, self.request)
+            and is_admin_or_site_admin(self.remoteUser)
 
     @staticmethod
     def _current_site_sitebrand():

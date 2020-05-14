@@ -462,7 +462,7 @@ class TestSiteBrand(SiteLayerTest):
 
         # Upload assets (have to handle this correctly since multipart)
         data['certificate_sidebar_image'] = EXT_URL
-        upload_files=[('certificate_logo', cert_logo_filename, PNG_DATAURL), ]
+        upload_files=[('certificate_logo', cert_logo_filename, PNG_DATAURL),]
         form_data = {'__json__': to_json_representation(data)}
         res = self.testapp.put(brand_href,
                                form_data,
