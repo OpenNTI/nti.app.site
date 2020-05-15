@@ -5,6 +5,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from contextlib import contextmanager
+import os
+import shutil
+
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_none
@@ -12,9 +16,6 @@ from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
 from hamcrest import contains_string
-
-import os
-import shutil
 
 from quopri import decodestring
 
@@ -69,6 +70,16 @@ DEFAULT_COLOR = u'#3FB34F'
 DEFAULT_LOGO_URL = u'https://assets.nextthought.com/images/nextthought/platform/email/logo_trans_square.png'
 PNG_DATAURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAACbmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS4xLjIiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPkFjb3JuIHZlcnNpb24gMi42LjU8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgICAgIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KO/MupgAAAA1JREFUCB1j+P//PwMACPwC/uYM/6sAAAAASUVORK5CYII='
 EXT_URL = 'https://s3.amazonaws.com/content.nextthought.com/images/ifsta/reportassets/elibrary-image.jpg'
+
+
+@contextmanager
+def max_brand_image_size(size):
+    original = SiteBrandUpdateView.MAX_FILE_SIZE
+    SiteBrandUpdateView.MAX_FILE_SIZE = size
+    try:
+        yield
+    finally:
+        SiteBrandUpdateView.MAX_FILE_SIZE = original
 
 
 class TestSiteBrand(SiteLayerTest):
@@ -365,15 +376,15 @@ class TestSiteBrand(SiteLayerTest):
                                      'message', 'favicon must be 16x16 or 32x32.'))
 
         # Test file size constraint
-        SiteBrandUpdateView.MAX_FILE_SIZE = 0
-        res = self.testapp.put(brand_rel,
-                               form_data,
-                               upload_files=upload_files,
-                               extra_environ=site_admin_env,
-                               status=422)
-        res = res.json_body
-        assert_that(res, has_entries('code', 'ImageSizeExceededError',
-                                     'message', 'logo image is too large.'))
+        with max_brand_image_size(0):
+            res = self.testapp.put(brand_rel,
+                                   form_data,
+                                   upload_files=upload_files,
+                                   extra_environ=site_admin_env,
+                                   status=422)
+            res = res.json_body
+            assert_that(res, has_entries('code', 'ImageSizeExceededError',
+                                         'message', 'logo image is too large.'))
 
 
         # Delete will reset everything
