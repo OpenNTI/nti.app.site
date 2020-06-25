@@ -97,9 +97,9 @@ class ISiteSeatLimit(interface.Interface):
     A limit upon the number of allowed users in a site.
     """
 
-    hard = Bool(title=u'Hard Seat Limit',
-                required=True,
-                default=False)
+    is_hard_limit = Bool(title=u'Hard Seat Limit',
+                         required=True,
+                         default=False)
 
     max_seats = Int(title=u'Maximum Number of Seats',
                     required=False,
@@ -108,6 +108,42 @@ class ISiteSeatLimit(interface.Interface):
     used_seats = Int(title=u'Used Seats',
                      description=u'The current number of seats taken in the site.',
                      required=True)
+
+    is_hard_admin_limit = Bool(title=u'Hard admin limit',
+                               description=u"Whether admins can be added once we have reached a limit",
+                               required=True,
+                               default=True)
+
+    max_admin_seats = Int(title=u'Maximum number of admins',
+                          required=False,
+                          default=None)
+
+    admin_used_seats = Int(title=u'Number of admins in use',
+                           description=u'The current number of admin seats taken in the site.',
+                           required=True)
+
+    def get_admin_seat_userss():
+        """
+        Returns an iterable of admin users.
+        """
+
+    def get_admin_seat_usernames():
+        """
+        Returns an iterable of admin usernames.
+        """
+
+
+class ISiteAdminSeatUserProvider(interface.Interface):
+    """
+    A utility that iterates over the list of admins that count towards the
+    site's admin user limit
+    """
+
+    def iter_users():
+        """
+        A generator of admin user objects.
+        """
+
 
 
 class IPersistentSiteMapping(ISiteMapping,

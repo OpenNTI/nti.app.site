@@ -44,6 +44,9 @@
     <subscriber factory=".workspaces.workspaces._GlobalWorkspaceSiteSeatLimitLinkProvider"
             provides="nti.appserver.workspaces.interfaces.IGlobalWorkspaceLinkProvider"/>
 
+    <utility factory=".utils._SiteAdminSeatUserProvider"
+             name="site_admins" />
+
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />

@@ -28,6 +28,7 @@ from zope.schema.fieldproperty import createFieldProperties
 from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import ISiteAdminSeatUserProvider
 
 from nti.app.site import SITE_MIMETYPE
 
@@ -86,6 +87,8 @@ class SiteSeatLimit(Persistent, Contained):
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
+    hard = alias('is_hard_limit')
+
     # Because this will be updated on any user CUD in any site
     # it is likely a minimal gain
     @property
@@ -100,14 +103,34 @@ class SiteSeatLimit(Persistent, Contained):
 
     @CachedProperty('lastModified', 'current_site')
     def used_seats(self):
+        # This includes site admins
         user_ids = intids_of_users_by_site(self.current_site)
-        return len(user_ids)  # Includes site admins
+        return len(user_ids)
 
+    def admin_used_seats(self):
+        return len(self.get_admin_seat_users())
 
     def __repr__(self):
         return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
                                                  self.source_site_name,
                                                  self.target_site_name)
+
+    def get_admin_seat_users(self):
+        """
+        Returns an iterable of admin users.
+        """
+        result = set()
+        providers = component.getAllUtilitiesRegisteredFor(ISiteAdminSeatUserProvider)
+        for provider in providers:
+            result.update(provider.iter_users())
+        return result
+
+    def get_admin_seat_usernames(self):
+        """
+        Returns an iterable of admin usernames.
+        """
+        admin_users = self.get_admin_seat_users()
+        return [x.username for x in admin_users]
 
 
 @interface.implementer(ISiteMappingContainer)
