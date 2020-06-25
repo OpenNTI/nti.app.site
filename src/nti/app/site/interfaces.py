@@ -122,7 +122,13 @@ class ISiteSeatLimit(interface.Interface):
                            description=u'The current number of admin seats taken in the site.',
                            required=True)
 
-    def get_admin_seat_userss():
+    def can_add_admin():
+        """
+        Returns a bool indicating whether a new admin can be added. If not
+        site admin seat limit is found, we default to True.
+        """
+
+    def get_admin_seat_users():
         """
         Returns an iterable of admin users.
         """
@@ -130,6 +136,17 @@ class ISiteSeatLimit(interface.Interface):
     def get_admin_seat_usernames():
         """
         Returns an iterable of admin usernames.
+        """
+
+
+class ISiteAdminSeatUserLimitUtility(interface.Interface):
+    """
+    A utility that will provide a site admin seat limit.
+    """
+
+    def get_admin_seat_limit():
+        """
+        Returns an int admin seat limit, or None if not available.
         """
 
 
@@ -143,7 +160,6 @@ class ISiteAdminSeatUserProvider(interface.Interface):
         """
         A generator of admin user objects.
         """
-
 
 
 class IPersistentSiteMapping(ISiteMapping,

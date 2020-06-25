@@ -29,6 +29,7 @@ from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteMappingContainer
 from nti.app.site.interfaces import ISiteAdminSeatUserProvider
+from nti.app.site.interfaces import ISiteAdminSeatUserLimitUtility
 
 from nti.app.site import SITE_MIMETYPE
 
@@ -107,13 +108,13 @@ class SiteSeatLimit(Persistent, Contained):
         user_ids = intids_of_users_by_site(self.current_site)
         return len(user_ids)
 
-    def admin_used_seats(self):
-        return len(self.get_admin_seat_users())
-
     def __repr__(self):
         return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
                                                  self.source_site_name,
                                                  self.target_site_name)
+
+    def admin_used_seats(self):
+        return len(self.get_admin_seat_users())
 
     def get_admin_seat_users(self):
         """
@@ -131,6 +132,19 @@ class SiteSeatLimit(Persistent, Contained):
         """
         admin_users = self.get_admin_seat_users()
         return [x.username for x in admin_users]
+
+    def can_add_admin(self):
+        """
+        Returns a bool indicating whether a new admin can be added.
+        """
+        admin_seat_limit = self.max_admin_seats
+        if admin_seat_limit is None:
+            admin_limit_utility = component.queryUtility(ISiteAdminSeatUserLimitUtility)
+            if admin_limit_utility:
+                admin_seat_limit = admin_limit_utility.get_admin_seat_limit()
+        # If no limit specified, we default to anything goes.
+        return admin_seat_limit is None \
+            or admin_seat_limit > self.admin_used_seats
 
 
 @interface.implementer(ISiteMappingContainer)
