@@ -54,6 +54,7 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 from nti.schema.schema import SchemaConfigured
 
 from nti.app.site.interfaces import IPersistentSiteMapping
+from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
 from nti.site.site import SiteMapping
 
@@ -113,6 +114,7 @@ class SiteSeatLimit(Persistent, Contained):
                                                  self.source_site_name,
                                                  self.target_site_name)
 
+    @property
     def admin_used_seats(self):
         return len(self.get_admin_seat_users())
 
@@ -133,18 +135,44 @@ class SiteSeatLimit(Persistent, Contained):
         admin_users = self.get_admin_seat_users()
         return [x.username for x in admin_users]
 
-    def can_add_admin(self):
+    def _get_admin_seat_limit(self):
         """
-        Returns a bool indicating whether a new admin can be added.
+        Get the admin seat limit. That may come from us or from the
+        :class:`ISiteAdminSeatUserLimitUtility`.
         """
         admin_seat_limit = self.max_admin_seats
         if admin_seat_limit is None:
             admin_limit_utility = component.queryUtility(ISiteAdminSeatUserLimitUtility)
             if admin_limit_utility:
                 admin_seat_limit = admin_limit_utility.get_admin_seat_limit()
+        return admin_seat_limit
+
+    def can_add_admin(self):
+        """
+        Returns a bool indicating whether a new admin can be added.
+        """
+        if not self.is_hard_admin_limit:
+            return True
+        admin_seat_limit = self._get_admin_seat_limit()
         # If no limit specified, we default to anything goes.
         return admin_seat_limit is None \
             or admin_seat_limit > self.admin_used_seats
+
+    def validate_admin_seats(self):
+        """
+        Validates that the site admin seats have not been exceeded, raising
+        a :class:`SiteAdminSeatLimitExceeded`.
+        """
+        if not self.is_hard_admin_limit:
+            return
+        admin_seat_limit = self._get_admin_seat_limit()
+        # If no limit specified, we default to anything goes.
+        admin_used_seats = self.admin_used_seats
+        if      admin_seat_limit is not None \
+            and admin_seat_limit < admin_used_seats:
+            msg = "Admin seats exceeded. {used} used out of {available} available".format(used=admin_used_seats,
+                                                                                          available=admin_seat_limit)
+            raise SiteAdminSeatLimitExceededError(msg)
 
 
 @interface.implementer(ISiteMappingContainer)

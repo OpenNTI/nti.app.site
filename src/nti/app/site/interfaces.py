@@ -92,6 +92,12 @@ class SiteAdminRemovedEvent(ObjectEvent):
         self.request = request
 
 
+class SiteAdminSeatLimitExceededError(ValidationError):
+    """
+    Raised when the site admins seats have been exceeded.
+    """
+
+
 class ISiteSeatLimit(interface.Interface):
     """
     A limit upon the number of allowed users in a site.
@@ -126,6 +132,12 @@ class ISiteSeatLimit(interface.Interface):
         """
         Returns a bool indicating whether a new admin can be added. If not
         site admin seat limit is found, we default to True.
+        """
+
+    def validate_admin_seats():
+        """
+        Validates that the site admin seats have not been exceeded, raising
+        a :class:`SiteAdminSeatLimitExceededError`.
         """
 
     def get_admin_seat_users():
