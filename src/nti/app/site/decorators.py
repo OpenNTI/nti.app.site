@@ -25,6 +25,7 @@ from nti.app.site.interfaces import ISiteBrand
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteMappingContainer
 from nti.app.site.interfaces import IPersistentSiteMapping
+from nti.app.site.interfaces import ISiteAdminSeatUserLimitUtility
 
 from nti.appserver.brand.model import SiteBrand
 
@@ -213,3 +214,6 @@ class SiteSeatLimitDecorator(Singleton):
 
     def decorateExternalObject(self, context, external):
         external['hard'] = context.hard
+        admin_limit_utility = component.queryUtility(ISiteAdminSeatUserLimitUtility)
+        if admin_limit_utility:
+            external['DefaultMaxAdminSeats'] = admin_limit_utility.get_admin_seat_limit()
