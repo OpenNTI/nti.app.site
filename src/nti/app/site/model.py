@@ -135,7 +135,7 @@ class SiteSeatLimit(Persistent, Contained):
         admin_users = self.get_admin_seat_users()
         return [x.username for x in admin_users]
 
-    def _get_admin_seat_limit(self):
+    def get_admin_seat_limit(self):
         """
         Get the admin seat limit. That may come from us or from the
         :class:`ISiteAdminSeatUserLimitUtility`.
@@ -153,7 +153,7 @@ class SiteSeatLimit(Persistent, Contained):
         """
         if not self.hard_admin_limit:
             return True
-        admin_seat_limit = self._get_admin_seat_limit()
+        admin_seat_limit = self.get_admin_seat_limit()
         # If no limit specified, we default to anything goes.
         return admin_seat_limit is None \
             or admin_seat_limit > self.admin_used_seats
@@ -165,7 +165,7 @@ class SiteSeatLimit(Persistent, Contained):
         """
         if not self.hard_admin_limit:
             return
-        admin_seat_limit = self._get_admin_seat_limit()
+        admin_seat_limit = self.get_admin_seat_limit()
         # If no limit specified, we default to anything goes.
         admin_used_seats = self.admin_used_seats
         if      admin_seat_limit is not None \

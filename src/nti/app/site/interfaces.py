@@ -128,6 +128,12 @@ class ISiteSeatLimit(interface.Interface):
                            description=u'The current number of admin seats taken in the site.',
                            required=True)
 
+    def get_admin_seat_limit():
+        """
+        Get the admin seat limit. That may come from us or from the
+        :class:`ISiteAdminSeatUserLimitUtility`.
+        """
+
     def can_add_admin():
         """
         Returns a bool indicating whether a new admin can be added. If not
