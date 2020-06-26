@@ -218,4 +218,9 @@ class SiteSeatLimitDecorator(Singleton):
         if admin_limit_utility:
             default_admin_seats = admin_limit_utility.get_admin_seat_limit()
             external['DefaultMaxAdminSeats'] = default_admin_seats
-        external['MaxAdminSeats'] = context.get_admin_seat_limit()
+        admin_seat_limit = context.get_admin_seat_limit()
+        external['MaxAdminSeats'] = admin_seat_limit
+        if admin_seat_limit is not None:
+            # If we have a limit, return the admin usernames
+            admin_usernames = sorted(x.lower() for x in context.get_admin_seat_usernames())
+            external['AdminUsernames'] = admin_usernames

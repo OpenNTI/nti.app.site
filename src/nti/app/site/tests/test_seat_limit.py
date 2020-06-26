@@ -10,6 +10,7 @@ from hamcrest import none
 from hamcrest import contains
 from hamcrest import assert_that
 from hamcrest import has_entries
+from hamcrest import contains_inanyorder
 
 from zope import component
 from zope import lifecycleevent
@@ -21,8 +22,8 @@ from zope.securitypolicy.interfaces import IPrincipalRoleManager
 
 from zope.traversing.interfaces import IEtcNamespace
 
-from nti.app.site.interfaces import ISiteSeatLimit,\
-    SiteAdminSeatLimitExceededError
+from nti.app.site.interfaces import ISiteSeatLimit
+from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -338,6 +339,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                      'max_admin_seats', 1,
                                      'MaxAdminSeats', 1,
                                      'admin_used_seats', 2,
+                                     'AdminUsernames', contains_inanyorder('seat_limitadmin1', 'seat_limitadmin2'),
                                      'used_seats', 3))
 
         # Can null out

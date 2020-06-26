@@ -116,9 +116,9 @@ class ISiteSeatLimit(interface.Interface):
                      required=True)
 
     hard_admin_limit = Bool(title=u'Hard admin limit',
-                               description=u"Whether admins can be added once we have reached a limit",
-                               required=True,
-                               default=True)
+                            description=u"Whether admins can be added once we have reached a limit",
+                            required=True,
+                            default=True)
 
     max_admin_seats = Int(title=u'Maximum number of admins',
                           required=False,
