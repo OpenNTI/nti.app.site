@@ -45,8 +45,10 @@ from nti.app.site import VIEW_SITE_ADMINS
 
 from nti.app.site import MessageFactory as _
 
+from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import SiteAdminAddedEvent
 from nti.app.site.interfaces import SiteAdminRemovedEvent
+from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
 from nti.app.users.utils import get_user_creation_site
 from nti.app.users.utils import set_user_creation_site
@@ -265,6 +267,19 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
         elif user_creation_site is None:
             set_user_creation_site(user, site)
 
+    def post_validate(self):
+        """
+        Validate site admin counts
+        """
+        seat_limit = component.queryUtility(ISiteSeatLimit)
+        try:
+            seat_limit.validate_admin_seats()
+        except SiteAdminSeatLimitExceededError as e:
+            raise_error({
+                    'message': e.message,
+                    'code': 'MaxAdminSeatsExceeded',
+                    })
+
     def _do_call(self):
         site = getSite()
         if site.__name__ == 'dataserver2':
@@ -283,6 +298,7 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
                                                          username)
             user = User.get_user(username)
             notify(SiteAdminAddedEvent(user))
+        self.post_validate()
         return self._get_site_admin_external()
 
 
