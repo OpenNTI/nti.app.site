@@ -213,7 +213,12 @@ class SiteBrandHideCertificateStylingDecorator(Singleton):
 class SiteSeatLimitDecorator(Singleton):
 
     def decorateExternalObject(self, context, external):
+        actual_max_admin_seats = context.max_admin_seats
         external['hard'] = context.hard
         admin_limit_utility = component.queryUtility(ISiteAdminSeatUserLimitUtility)
         if admin_limit_utility:
-            external['DefaultMaxAdminSeats'] = admin_limit_utility.get_admin_seat_limit()
+            default_admin_seats = admin_limit_utility.get_admin_seat_limit()
+            external['DefaultMaxAdminSeats'] = default_admin_seats
+            if actual_max_admin_seats is None:
+                actual_max_admin_seats = default_admin_seats
+        external['MaxAdminSeats'] = actual_max_admin_seats

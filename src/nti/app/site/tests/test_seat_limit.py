@@ -336,6 +336,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                      'hard_admin_limit', True,
                                      'max_seats', none(),
                                      'max_admin_seats', 1,
+                                     'MaxAdminSeats', 1,
                                      'admin_used_seats', 2,
                                      'used_seats', 3))
 
@@ -347,5 +348,6 @@ class TestSeatLimit(ApplicationLayerTest):
                                      'hard_admin_limit', True,
                                      'max_seats', none(),
                                      'max_admin_seats', none(),
+                                     'MaxAdminSeats', none(),
                                      'admin_used_seats', 2,
                                      'used_seats', 3))
