@@ -103,7 +103,7 @@ class ISiteSeatLimit(interface.Interface):
     A limit upon the number of allowed users in a site.
     """
 
-    is_hard_limit = Bool(title=u'Hard Seat Limit',
+    hard_limit = Bool(title=u'Hard Seat Limit',
                          required=True,
                          default=False)
 
@@ -115,7 +115,7 @@ class ISiteSeatLimit(interface.Interface):
                      description=u'The current number of seats taken in the site.',
                      required=True)
 
-    is_hard_admin_limit = Bool(title=u'Hard admin limit',
+    hard_admin_limit = Bool(title=u'Hard admin limit',
                                description=u"Whether admins can be added once we have reached a limit",
                                required=True,
                                default=True)

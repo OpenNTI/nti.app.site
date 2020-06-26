@@ -131,6 +131,10 @@
                 for="nti.appserver.brand.interfaces.ISiteBrand
                      pyramid.interfaces.IRequest"/>
 
+    <subscriber factory="nti.app.site.decorators.SiteSeatLimitDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.ISiteSeatLimit" />
+
     <!-- workspace -->
     <subscriber factory=".decorators._UserSiteBrandLinkProvider"
                 provides="nti.appserver.workspaces.interfaces.IUserWorkspaceLinkProvider"/>

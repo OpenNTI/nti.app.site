@@ -89,7 +89,7 @@ class SiteSeatLimit(Persistent, Contained):
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
-    hard = alias('is_hard_limit')
+    hard = alias('hard_limit')
 
     # Because this will be updated on any user CUD in any site
     # it is likely a minimal gain
@@ -110,9 +110,9 @@ class SiteSeatLimit(Persistent, Contained):
         return len(user_ids)
 
     def __repr__(self):
-        return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
-                                                 self.source_site_name,
-                                                 self.target_site_name)
+        return "<%s (max_seats=%s) (max_admin_seats=%s)>" % (self.__class__.__name__,
+                                                             self.max_seats,
+                                                             self.max_admin_seats)
 
     @property
     def admin_used_seats(self):
@@ -151,7 +151,7 @@ class SiteSeatLimit(Persistent, Contained):
         """
         Returns a bool indicating whether a new admin can be added.
         """
-        if not self.is_hard_admin_limit:
+        if not self.hard_admin_limit:
             return True
         admin_seat_limit = self._get_admin_seat_limit()
         # If no limit specified, we default to anything goes.
@@ -163,7 +163,7 @@ class SiteSeatLimit(Persistent, Contained):
         Validates that the site admin seats have not been exceeded, raising
         a :class:`SiteAdminSeatLimitExceeded`.
         """
-        if not self.is_hard_admin_limit:
+        if not self.hard_admin_limit:
             return
         admin_seat_limit = self._get_admin_seat_limit()
         # If no limit specified, we default to anything goes.
@@ -213,6 +213,11 @@ class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
 
     creator = None
     NTIID = alias('ntiid')
+
+    def __repr__(self):
+        return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
+                                                 self.source_site_name,
+                                                 self.target_site_name)
 
 
 zope.deferredimport.deprecatedFrom(

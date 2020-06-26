@@ -22,6 +22,7 @@ from nti.app.site import VIEW_SITE_ADMINS
 from nti.app.site import VIEW_SITE_MAPPINGS
 
 from nti.app.site.interfaces import ISiteBrand
+from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteMappingContainer
 from nti.app.site.interfaces import IPersistentSiteMapping
 
@@ -29,11 +30,7 @@ from nti.appserver.brand.model import SiteBrand
 
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
-from nti.appserver.pyramid_authorization import has_permission
-
 from nti.appserver.workspaces.interfaces import IUserWorkspaceLinkProvider
-
-from nti.dataserver.authorization import ACT_CONTENT_EDIT
 
 from nti.dataserver.authorization import is_admin
 from nti.dataserver.authorization import is_admin_or_site_admin
@@ -208,3 +205,11 @@ class SiteBrandHideCertificateStylingDecorator(Singleton):
     def decorateExternalObject(self, unused_context, external):
         # For speed, we decorate this for everyone
         external['HideCertificateStyling'] = True
+
+
+@component.adapter(ISiteSeatLimit)
+@interface.implementer(IExternalObjectDecorator)
+class SiteSeatLimitDecorator(Singleton):
+
+    def decorateExternalObject(self, context, external):
+        external['hard'] = context.hard
