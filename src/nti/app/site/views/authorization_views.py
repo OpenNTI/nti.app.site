@@ -235,15 +235,14 @@ class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abst
 class SiteAdminInsertView(SiteAdminAbstractUpdateView):
     """
     Insert a site admin. The site admin must have a user creation site of the
-    current site. If not, we will update when given the `force` flag.
+    current site. If not, we will update when given the `update_site` flag.
     """
 
     @Lazy
     def update_creation_site(self):
         # pylint: disable=no-member
         values = self._params
-        result = values.get('force') \
-              or values.get('update_site') \
+        result = values.get('update_site') \
               or values.get('update_creation_site')
         return is_true(result)
 
@@ -271,6 +270,9 @@ class SiteAdminInsertView(SiteAdminAbstractUpdateView):
         """
         Validate site admin counts
         """
+        if      is_true(self._params.get('force')) \
+            and self.is_admin:
+            return
         seat_limit = component.queryUtility(ISiteSeatLimit)
         try:
             seat_limit.validate_admin_seats()

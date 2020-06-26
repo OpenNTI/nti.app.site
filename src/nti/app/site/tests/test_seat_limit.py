@@ -327,6 +327,18 @@ class TestSeatLimit(ApplicationLayerTest):
         assert_that(res, has_entries(u'code', u'MaxAdminSeatsExceeded',
                                       u'message', u'Admin seats exceeded. 2 used out of 1 available'))
 
+        # Can force
+        self.testapp.post('https://ifsta.nextthought.com/dataserver2/SiteAdmins/%s?force=true' % u'seat_limitadmin2')
+
+        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = res.json_body
+        assert_that(res, has_entries('hard', False,
+                                     'hard_admin_limit', True,
+                                     'max_seats', none(),
+                                     'max_admin_seats', 1,
+                                     'admin_used_seats', 2,
+                                     'used_seats', 3))
+
         # Can null out
         res = self.testapp.post_json('https://ifsta.nextthought.com/dataserver2/@@SeatLimit',
                                      {'max_admin_seats': None})
@@ -335,5 +347,5 @@ class TestSeatLimit(ApplicationLayerTest):
                                      'hard_admin_limit', True,
                                      'max_seats', none(),
                                      'max_admin_seats', none(),
-                                     'admin_used_seats', 1,
+                                     'admin_used_seats', 2,
                                      'used_seats', 3))
