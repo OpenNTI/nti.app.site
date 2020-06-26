@@ -28,6 +28,8 @@ from zope.schema.fieldproperty import createFieldProperties
 from nti.app.site.interfaces import ISite
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import ISiteMappingContainer
+from nti.app.site.interfaces import ISiteAdminSeatUserProvider
+from nti.app.site.interfaces import ISiteAdminSeatUserLimitUtility
 
 from nti.app.site import SITE_MIMETYPE
 
@@ -52,6 +54,7 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 from nti.schema.schema import SchemaConfigured
 
 from nti.app.site.interfaces import IPersistentSiteMapping
+from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
 from nti.site.site import SiteMapping
 
@@ -86,6 +89,8 @@ class SiteSeatLimit(Persistent, Contained):
     # omit used seats so we don't try to access during startup
     createFieldProperties(ISiteSeatLimit, omit=('used_seats',))
 
+    hard = alias('hard_limit')
+
     # Because this will be updated on any user CUD in any site
     # it is likely a minimal gain
     @property
@@ -100,14 +105,74 @@ class SiteSeatLimit(Persistent, Contained):
 
     @CachedProperty('lastModified', 'current_site')
     def used_seats(self):
+        # This includes site admins
         user_ids = intids_of_users_by_site(self.current_site)
-        return len(user_ids)  # Includes site admins
-
+        return len(user_ids)
 
     def __repr__(self):
-        return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
-                                                 self.source_site_name,
-                                                 self.target_site_name)
+        return "<%s (max_seats=%s) (max_admin_seats=%s)>" % (self.__class__.__name__,
+                                                             self.max_seats,
+                                                             self.max_admin_seats)
+
+    @property
+    def admin_used_seats(self):
+        return len(self.get_admin_seat_users())
+
+    def get_admin_seat_users(self):
+        """
+        Returns an iterable of admin users.
+        """
+        result = set()
+        providers = component.getAllUtilitiesRegisteredFor(ISiteAdminSeatUserProvider)
+        for provider in providers:
+            result.update(provider.iter_users())
+        return result
+
+    def get_admin_seat_usernames(self):
+        """
+        Returns an iterable of admin usernames.
+        """
+        admin_users = self.get_admin_seat_users()
+        return [x.username for x in admin_users]
+
+    def get_admin_seat_limit(self):
+        """
+        Get the admin seat limit. That may come from us or from the
+        :class:`ISiteAdminSeatUserLimitUtility`.
+        """
+        admin_seat_limit = self.max_admin_seats
+        if admin_seat_limit is None:
+            admin_limit_utility = component.queryUtility(ISiteAdminSeatUserLimitUtility)
+            if admin_limit_utility:
+                admin_seat_limit = admin_limit_utility.get_admin_seat_limit()
+        return admin_seat_limit
+
+    def can_add_admin(self):
+        """
+        Returns a bool indicating whether a new admin can be added.
+        """
+        if not self.hard_admin_limit:
+            return True
+        admin_seat_limit = self.get_admin_seat_limit()
+        # If no limit specified, we default to anything goes.
+        return admin_seat_limit is None \
+            or admin_seat_limit > self.admin_used_seats
+
+    def validate_admin_seats(self):
+        """
+        Validates that the site admin seats have not been exceeded, raising
+        a :class:`SiteAdminSeatLimitExceeded`.
+        """
+        if not self.hard_admin_limit:
+            return
+        admin_seat_limit = self.get_admin_seat_limit()
+        # If no limit specified, we default to anything goes.
+        admin_used_seats = self.admin_used_seats
+        if      admin_seat_limit is not None \
+            and admin_seat_limit < admin_used_seats:
+            msg = "Admin seats exceeded. {used} used out of {available} available".format(used=admin_used_seats,
+                                                                                          available=admin_seat_limit)
+            raise SiteAdminSeatLimitExceededError(msg)
 
 
 @interface.implementer(ISiteMappingContainer)
@@ -148,6 +213,11 @@ class PersistentSiteMapping(PersistentCreatedAndModifiedTimeObject,
 
     creator = None
     NTIID = alias('ntiid')
+
+    def __repr__(self):
+        return "<%s (source=%s) (target=%s)>" % (self.__class__.__name__,
+                                                 self.source_site_name,
+                                                 self.target_site_name)
 
 
 zope.deferredimport.deprecatedFrom(

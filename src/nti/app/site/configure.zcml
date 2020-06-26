@@ -44,6 +44,9 @@
     <subscriber factory=".workspaces.workspaces._GlobalWorkspaceSiteSeatLimitLinkProvider"
             provides="nti.appserver.workspaces.interfaces.IGlobalWorkspaceLinkProvider"/>
 
+    <utility factory=".utils._SiteAdminSeatUserProvider"
+             name="site_admins" />
+
 	<!-- Externalization -->
 	<include package="nti.externalization" file="meta.zcml" />
 	<include package="nti.externalization" />
@@ -127,6 +130,10 @@
                 provides="nti.externalization.interfaces.IExternalObjectDecorator"
                 for="nti.appserver.brand.interfaces.ISiteBrand
                      pyramid.interfaces.IRequest"/>
+
+    <subscriber factory="nti.app.site.decorators.SiteSeatLimitDecorator"
+                provides="nti.externalization.interfaces.IExternalObjectDecorator"
+                for="nti.app.site.interfaces.ISiteSeatLimit" />
 
     <!-- workspace -->
     <subscriber factory=".decorators._UserSiteBrandLinkProvider"

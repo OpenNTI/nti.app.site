@@ -92,14 +92,20 @@ class SiteAdminRemovedEvent(ObjectEvent):
         self.request = request
 
 
+class SiteAdminSeatLimitExceededError(ValidationError):
+    """
+    Raised when the site admins seats have been exceeded.
+    """
+
+
 class ISiteSeatLimit(interface.Interface):
     """
     A limit upon the number of allowed users in a site.
     """
 
-    hard = Bool(title=u'Hard Seat Limit',
-                required=True,
-                default=False)
+    hard_limit = Bool(title=u'Hard Seat Limit',
+                         required=True,
+                         default=False)
 
     max_seats = Int(title=u'Maximum Number of Seats',
                     required=False,
@@ -108,6 +114,70 @@ class ISiteSeatLimit(interface.Interface):
     used_seats = Int(title=u'Used Seats',
                      description=u'The current number of seats taken in the site.',
                      required=True)
+
+    hard_admin_limit = Bool(title=u'Hard admin limit',
+                            description=u"Whether admins can be added once we have reached a limit",
+                            required=True,
+                            default=True)
+
+    max_admin_seats = Int(title=u'Maximum number of admins',
+                          required=False,
+                          default=None)
+
+    admin_used_seats = Int(title=u'Number of admins in use',
+                           description=u'The current number of admin seats taken in the site.',
+                           required=True)
+
+    def get_admin_seat_limit():
+        """
+        Get the admin seat limit. That may come from us or from the
+        :class:`ISiteAdminSeatUserLimitUtility`.
+        """
+
+    def can_add_admin():
+        """
+        Returns a bool indicating whether a new admin can be added. If not
+        site admin seat limit is found, we default to True.
+        """
+
+    def validate_admin_seats():
+        """
+        Validates that the site admin seats have not been exceeded, raising
+        a :class:`SiteAdminSeatLimitExceededError`.
+        """
+
+    def get_admin_seat_users():
+        """
+        Returns an iterable of admin users.
+        """
+
+    def get_admin_seat_usernames():
+        """
+        Returns an iterable of admin usernames.
+        """
+
+
+class ISiteAdminSeatUserLimitUtility(interface.Interface):
+    """
+    A utility that will provide a site admin seat limit.
+    """
+
+    def get_admin_seat_limit():
+        """
+        Returns an int admin seat limit, or None if not available.
+        """
+
+
+class ISiteAdminSeatUserProvider(interface.Interface):
+    """
+    A utility that iterates over the list of admins that count towards the
+    site's admin user limit
+    """
+
+    def iter_users():
+        """
+        A generator of admin user objects.
+        """
 
 
 class IPersistentSiteMapping(ISiteMapping,
