@@ -170,8 +170,8 @@ class SiteSeatLimit(Persistent, Contained):
         admin_used_seats = self.admin_used_seats
         if      admin_seat_limit is not None \
             and admin_seat_limit < admin_used_seats:
-            msg = "Admin seats exceeded. {used} used out of {available} available".format(used=admin_used_seats,
-                                                                                          available=admin_seat_limit)
+            msg = "Admin seats exceeded. {used} used out of {available} available. Please contact sales@nextthought.com for additional seats."
+            msg = msg.format(used=admin_used_seats, available=admin_seat_limit)
             raise SiteAdminSeatLimitExceededError(msg)
 
 
