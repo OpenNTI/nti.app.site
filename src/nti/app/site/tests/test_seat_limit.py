@@ -326,7 +326,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                 status=422)
         res = res.json_body
         assert_that(res, has_entries(u'code', u'MaxAdminSeatsExceeded',
-                                      u'message', u'Admin seats exceeded. 2 used out of 1 available'))
+                                      u'message', u'Admin seats exceeded. 2 used out of 1 available. Please contact sales@nextthought.com for additional seats.'))
 
         # Can force
         self.testapp.post('https://ifsta.nextthought.com/dataserver2/SiteAdmins/%s?force=true' % u'seat_limitadmin2')

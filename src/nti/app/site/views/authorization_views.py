@@ -28,7 +28,6 @@ from zope.event import notify
 
 from zope.intid.interfaces import IIntIds
 
-from zope.securitypolicy.interfaces import Allow
 from zope.securitypolicy.interfaces import IPrincipalRoleManager
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
@@ -50,6 +49,7 @@ from nti.app.site.interfaces import SiteAdminAddedEvent
 from nti.app.site.interfaces import SiteAdminRemovedEvent
 from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
+from nti.app.users.utils import get_site_admins
 from nti.app.users.utils import get_user_creation_site
 from nti.app.users.utils import set_user_creation_site
 
@@ -74,6 +74,8 @@ from nti.dataserver.users.index import IX_LASTSEEN_TIME
 from nti.dataserver.users.index import get_entity_catalog
 
 from nti.dataserver.users.users import User
+
+from nti.externalization.externalization import to_external_object
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
@@ -106,18 +108,13 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
             raise hexc.HTTPForbidden(_('Cannot view site administrators.'))
 
     def _get_site_admins(self, site=None):
+        site_admins = get_site_admins(site)
         result = []
         site = getSite() if site is None else site
-        principal_role_manager = IPrincipalRoleManager(site)
-        # pylint: disable=too-many-function-args
-        principal_access = principal_role_manager.getPrincipalsForRole(ROLE_SITE_ADMIN.id)
-        for principal_id, access in principal_access:
-            if access == Allow:
-                user = User.get_user(principal_id)
-                if      IUser.providedBy(user) \
-                    and self.can_administer_user(user) \
-                    and self.is_user_created_in_site(site, user):
-                    result.append(user)
+        for site_admin in site_admins:
+            if      self.can_administer_user(site_admin) \
+                and self.is_user_created_in_site(site, site_admin):
+                result.append(site_admin)
         return result
 
     @Lazy
@@ -136,7 +133,13 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
 
     def _get_site_admin_external(self):
         result = LocatedExternalDict()
-        result[ITEMS] = site_admins = self._get_site_admins()
+        site_admins = self._get_site_admins()
+        ext_site_admins = []
+        for site_admin in ext_site_admins:
+            ext_site_admin = to_external_object(site_admin,
+                                                name='admin-summary')
+            ext_site_admins.append(ext_site_admin)
+        result[ITEMS] = ext_site_admins
         result[ITEM_COUNT] = result[TOTAL] = len(site_admins)
         return result
 
@@ -174,6 +177,10 @@ class SiteAdminGetView(SiteAdminAbstractView,
             IX_CREATEDTIME: get_metadata_catalog(),
             IX_LASTSEEN_TIME: get_entity_catalog(),
         }
+
+    def get_externalizer(self, unused_user):
+        # Only admins should be able to fetch these
+        return 'admin-summary'
 
     def _do_call(self):
         return AbstractEntityViewMixin._do_call(self)
