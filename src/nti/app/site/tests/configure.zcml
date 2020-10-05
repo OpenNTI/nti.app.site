@@ -15,6 +15,15 @@
             <appsite:createSite site_name="test_brand_site"
                                 base_names="nti.appserver.policies.sites.BASEADULT,"
                                 parent_name="nti.appserver.policies.sites.BASEADULT">
+
+			<utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
+            </appsite:createSite>
+
+ 	    <appsite:createSite site_name="test_policy_site"
+                                base_names="nti.appserver.policies.sites.BASEADULT,"
+                                parent_name="nti.appserver.policies.sites.BASEADULT">
+
+			<utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
             </appsite:createSite>
         </appsite:createSites>
     </configure>

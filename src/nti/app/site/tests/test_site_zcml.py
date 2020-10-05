@@ -30,8 +30,6 @@ from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListe
 
 from nti.appserver.policies.sites import BASEADULT
 
-from nti.appserver.policies.site_policies import AdultCommunitySitePolicyEventListener
-
 from nti.app.site.zcml import ConflictingBaseComponentsError
 from nti.app.site.zcml import MissingBaseComponentsError
 from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
@@ -54,7 +52,7 @@ ZCML_REGISTRATION = """
                                    base_names="nti.appserver.policies.sites.BASEADULT,"
                                    parent_name="nti.appserver.policies.sites.BASEADULT">
 
-		         <utility factory="nti.app.site.tests.test_site_zcml._TestSitePolicyEventListener" />
+		         <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
             </appsite:createSite>
 
             <appsite:createSite site_name="test_no_username"
@@ -339,24 +337,6 @@ class TestBaseComponentCreation(ConfiguringTestBase):
         assert_that(str(e.exception), contains_string('InvalidDottedName: bar bar'))
 
 
-class _TestSitePolicyEventListener(AdultCommunitySitePolicyEventListener):
-
-    COM_ALIAS = u'TEST'
-    COM_REALNAME = u"NextThought TEST"
-    COM_USERNAME = u'ifsta.nextthought.com'
-    DISPLAY_NAME = u'ifsta.nextthought.com'
-
-    BRAND = u'TEST'
-
-    PACKAGE = 'nti.app.site.tests'
-
-    PROVIDER = u'TEST'
-
-    def user_created(self, user, event):
-        super(IFSTASitePolicyEventListener, self).user_created(user, event)
-        if IImmutableFriendlyNamed.providedBy(user):
-            interface.noLongerProvides(user, IImmutableFriendlyNamed)
-
 REGISTER_IN_NAMED = """
 <configure  xmlns="http://namespaces.zope.org/zope"
             xmlns:i18n="http://namespaces.zope.org/i18n"
@@ -375,7 +355,7 @@ REGISTER_IN_NAMED = """
                                   name="bar" />
 
     <appsite:registerInNamedComponents registry="foo">
-        <utility factory="nti.app.site.tests.test_site_zcml._TestSitePolicyEventListener" />
+        <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
     </appsite:registerInNamedComponents>
 
 </configure>
@@ -393,7 +373,7 @@ REGISTER_IN_BAD_NAMED = """
     <include package="." file="meta.zcml" />
 
     <appsite:registerInNamedComponents registry="foo">
-        <utility factory="nti.app.site.tests.test_site_zcml._TestSitePolicyEventListener" />
+        <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
     </appsite:registerInNamedComponents>
 
 </configure>
@@ -412,7 +392,7 @@ REGISTER_IN_NO_NEST = """
 
     <appsite:registerInNamedComponents registry="foo">
         <appsite:registerInNamedComponents registry="bar">
-            <utility factory="nti.app.site.tests.test_site_zcml._TestSitePolicyEventListener" />
+            <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
         </appsite:registerInNamedComponents>
     </appsite:registerInNamedComponents>
 
