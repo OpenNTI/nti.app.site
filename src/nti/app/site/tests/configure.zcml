@@ -11,12 +11,10 @@
     <include package="nti.appserver.policies" file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.alpha">
+        <appsite:createSites package=".">
             <appsite:createSite site_name="test_brand_site"
-                                base_names="nti.app.sites.alpha.sites.ALPHA,"
-                                parent_name="nti.app.sites.alpha.sites.ALPHA">
-
-                <utility factory=".policy.AlphaSitePolicyEventListener" />
+                                base_names="nti.appserver.policies.sites.BASEADULT,"
+                                parent_name="nti.appserver.policies.sites.BASEADULT">
             </appsite:createSite>
         </appsite:createSites>
     </configure>
