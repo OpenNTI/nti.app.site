@@ -13,7 +13,6 @@ entry_points = {
 
 
 TESTS_REQUIRE = [
-    'nti.app.sites.ifsta',
     'nti.app.testing',
     'nti.testing',
     'zope.dottedname',
