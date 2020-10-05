@@ -7,9 +7,13 @@ from __future__ import absolute_import
 
 import unittest
 
+from z3c.baseregistry.baseregistry import BaseComponents
+
 import zope.testing.cleanup
 
 from nti.appserver.policies.site_policies import AdultCommunitySitePolicyEventListener
+
+from nti.appserver.policies.sites import BASEADULT
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 from nti.app.testing.application_webtest import ApplicationTestLayer
@@ -18,6 +22,18 @@ from nti.testing.base import AbstractTestBase
 
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
+
+TEST_POLICY = BaseComponents(BASEADULT,
+                       name='test_policy_site',
+                       bases=(BASEADULT,))
+
+TEST_POLICY_CHILD = BaseComponents(TEST_POLICY,
+                            name='test-child-policy',
+                            bases=(TEST_POLICY,))
+
+TEST_POLICY_GRANDCHILD = BaseComponents(TEST_POLICY_CHILD,
+                             name='test-grandchild-policy',
+                             bases=(TEST_POLICY_CHILD,))
 
 class TestSitePolicyEventListener(AdultCommunitySitePolicyEventListener):
 

@@ -20,10 +20,20 @@
             </appsite:createSite>
 
  	    <appsite:createSite site_name="test_policy_site"
-                                base_names="nti.appserver.policies.sites.BASEADULT,"
-                                parent_name="nti.appserver.policies.sites.BASEADULT">
+                                base_names="nti.app.site.tests.TEST_POLICY,"
+                                parent_name="nti.app.site.tests.TEST_POLICY">
 
 			<utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
+            </appsite:createSite>
+
+	    <appsite:createSite site_name="test-child-policy"
+                                base_names="nti.app.site.tests.TEST_POLICY_CHILD,"
+                                parent_name="nti.app.site.tests.TEST_POLICY_CHILD">
+            </appsite:createSite>
+
+	    <appsite:createSite site_name="test-grandchild-policy"
+                                base_names="nti.app.site.tests.TEST_POLICY_GRANDCHILD,"
+                                parent_name="nti.app.site.tests.TEST_POLICY_GRANDCHILD">
             </appsite:createSite>
         </appsite:createSites>
     </configure>
