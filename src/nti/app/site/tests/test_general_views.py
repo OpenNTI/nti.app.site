@@ -32,7 +32,6 @@ from nti.base.interfaces import ILastModified
 from nti.dataserver.tests import mock_dataserver
 
 from nti.site.hostpolicy import get_host_site
-from nti.site.hostpolicy import synchronize_host_policies
 
 from nti.app.site.tests import SiteLayerTest
 
@@ -87,11 +86,6 @@ class TestGeneralViews(SiteLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_adapters(self):
-        with mock_dataserver.mock_db_trans():
-            # TODO why do we need to do this here, our layer includes
-            # config for nti.app.site.tests.configure.zcml, but that must
-            # happen after the db has been opened and synced?
-            synchronize_host_policies()
 
         href = '/dataserver2/sites/test_policy_site/@@create'
         self.testapp.post_json(href,

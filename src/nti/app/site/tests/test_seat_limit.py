@@ -39,8 +39,6 @@ from nti.dataserver.users.common import set_user_creation_site
 from nti.dataserver.users.common import user_creation_sitename
 from nti.dataserver.users.common import remove_user_creation_site
 
-from nti.site.hostpolicy import synchronize_host_policies
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -64,10 +62,6 @@ class TestSeatLimit(SiteLayerTest):
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_seat_limit(self):
         with mock_dataserver.mock_db_trans():
-            # TODO why do we need to do this here, our layer includes
-            # config for nti.app.site.tests.configure.zcml, but that must
-            # happen after the db has been opened and synced?
-            synchronize_host_policies()
             self._create_user_in_site(username=u'foo@bar',
                                       creation_site='test_policy_site')
             self._create_user_in_site(username=u'foo2@bar',
@@ -144,11 +138,7 @@ class TestSeatLimit(SiteLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_seat_limit_views(self):
-        with mock_dataserver.mock_db_trans():
-            # TODO why do we need to do this here, our layer includes
-            # config for nti.app.site.tests.configure.zcml, but that must
-            # happen after the db has been opened and synced?
-            synchronize_host_policies()
+
         # Test defaults
         res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
