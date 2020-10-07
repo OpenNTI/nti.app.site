@@ -33,8 +33,10 @@ from nti.dataserver.tests import mock_dataserver
 
 from nti.site.hostpolicy import get_host_site
 
+from nti.app.site.tests import SiteLayerTest
 
-class TestGeneralViews(ApplicationLayerTest):
+
+class TestGeneralViews(SiteLayerTest):
 
     default_origin = 'http://janux.ou.edu'
 
@@ -84,14 +86,15 @@ class TestGeneralViews(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_adapters(self):
-        href = '/dataserver2/sites/ifsta.nextthought.com/@@create'
+
+        href = '/dataserver2/sites/test_policy_site/@@create'
         self.testapp.post_json(href,
-                               {'name': 'myfirehouse.ifsta.com'},
+                               {'name': 'test-child-site.nextthought.io'},
                                 status=200)
 
         with mock_dataserver.mock_db_trans():
-            site = get_host_site('myfirehouse.ifsta.com')
+            site = get_host_site('test-child-site.nextthought.io')
 
             site = ISite(site, None)
             assert_that(site, is_not(none()))
-            assert_that(site, has_property('Provider', 'IFSTA'))
+            assert_that(site, has_property('Provider', 'TEST'))

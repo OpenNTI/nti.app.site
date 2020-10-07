@@ -47,17 +47,17 @@ ZCML_REGISTRATION = """
     <include package="." file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.ifsta">
+        <appsite:createSites package=".">
             <appsite:createSite site_name="test_one_base"
-                                   base_names="nti.app.sites.ifsta.sites.IFSTA,"
-                                   parent_name="nti.app.sites.ifsta.sites.IFSTA">
+                                   base_names="nti.appserver.policies.sites.BASEADULT,"
+                                   parent_name="nti.appserver.policies.sites.BASEADULT">
 
-		        <utility factory=".policy.IFSTAFirehouseSitePolicyEventListener" />
+		         <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
             </appsite:createSite>
 
             <appsite:createSite site_name="test_no_username"
-                                   base_names="nti.app.sites.ifsta.sites.IFSTA_CHILD,"
-                                   parent_name="nti.app.sites.ifsta.sites.IFSTA_CHILD" />
+                                   base_names="nti.appserver.policies.sites.BASEADULT,"
+                                   parent_name="nti.appserver.policies.sites.BASEADULT" />
 
             <appsite:createSite site_name="test_sequential_registration"
                                    base_names="test_one_base,"
@@ -78,15 +78,15 @@ DOUBLE_ZCML_REGISTRATION = """
     <include package="." file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.ifsta">
+        <appsite:createSites package=".">
             <appsite:createSite site_name="test_one_base"
-                                   base_names="nti.app.sites.ifsta.sites.IFSTA,"
-                                   parent_name="nti.app.sites.ifsta.sites.IFSTA">
+                                   base_names="nti.appserver.policies.sites.BASEADULT,"
+                                   parent_name="nti.appserver.policies.sites.BASEADULT">
             </appsite:createSite>
 
             <appsite:createSite site_name="test_one_base"
-                                   base_names="nti.app.sites.ifsta.sites.IFSTA_CHILD,"
-                                   parent_name="nti.app.sites.ifsta.sites.IFSTA_CHILD" />
+                                   base_names="nti.appserver.policies.sites.BASEADULT,"
+                                   parent_name="nti.appserver.policies.sites.BASEADULT" />
         </appsite:createSites>
     </configure>
 </configure>"""
@@ -103,12 +103,10 @@ MISSING_ZCML_REGISTRATION = """
     <include package="." file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.ifsta">
+        <appsite:createSites package=".">
             <appsite:createSite site_name="test_one_base"
                                    base_names="missing,"
                                    parent_name="missing">
-
-		        <utility factory=".policy.IFSTAFirehouseSitePolicyEventListener" />
             </appsite:createSite>
         </appsite:createSites>
     </configure>
@@ -143,7 +141,7 @@ class TestSiteZCMLRegistration(ConfiguringTestBase):
     def test_zcml_directive(self):
         self.configure_string(ZCML_REGISTRATION)
         test_one_base = component.getUtility(IComponents, name='test_one_base')
-        ifsta_base = dottedname.resolve('nti.app.sites.ifsta.sites.IFSTA')
+        ifsta_base = dottedname.resolve('nti.appserver.policies.sites.BASEADULT')
         assert_that(test_one_base.__parent__, is_(ifsta_base))
         assert_that(test_one_base._getBases(), is_((ifsta_base,)))
 
@@ -153,7 +151,7 @@ class TestSiteZCMLRegistration(ConfiguringTestBase):
         test_no_username = component.getUtility(IComponents,
                                                 name='test_no_username')
         ifsta_child_base = dottedname.resolve(
-            'nti.app.sites.ifsta.sites.IFSTA_CHILD'
+            'nti.appserver.policies.sites.BASEADULT'
         )
         assert_that(test_no_username.__parent__, is_(ifsta_child_base))
         assert_that(test_no_username._getBases(), is_((ifsta_child_base,)))
@@ -338,6 +336,7 @@ class TestBaseComponentCreation(ConfiguringTestBase):
             self.configure_string(REGISTER_BASE_NO_DOTTEDNAME)
         assert_that(str(e.exception), contains_string('InvalidDottedName: bar bar'))
 
+
 REGISTER_IN_NAMED = """
 <configure  xmlns="http://namespaces.zope.org/zope"
             xmlns:i18n="http://namespaces.zope.org/i18n"
@@ -356,7 +355,7 @@ REGISTER_IN_NAMED = """
                                   name="bar" />
 
     <appsite:registerInNamedComponents registry="foo">
-        <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+        <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
     </appsite:registerInNamedComponents>
 
 </configure>
@@ -374,7 +373,7 @@ REGISTER_IN_BAD_NAMED = """
     <include package="." file="meta.zcml" />
 
     <appsite:registerInNamedComponents registry="foo">
-        <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+        <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
     </appsite:registerInNamedComponents>
 
 </configure>
@@ -393,7 +392,7 @@ REGISTER_IN_NO_NEST = """
 
     <appsite:registerInNamedComponents registry="foo">
         <appsite:registerInNamedComponents registry="bar">
-            <utility factory="nti.app.sites.ifsta.policy.IFSTAFirehouseSitePolicyEventListener" />
+            <utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
         </appsite:registerInNamedComponents>
     </appsite:registerInNamedComponents>
 

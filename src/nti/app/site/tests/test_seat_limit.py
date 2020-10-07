@@ -25,7 +25,7 @@ from zope.traversing.interfaces import IEtcNamespace
 from nti.app.site.interfaces import ISiteSeatLimit
 from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 
-from nti.app.testing.application_webtest import ApplicationLayerTest
+from nti.app.site.tests import SiteLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
@@ -42,7 +42,7 @@ from nti.dataserver.users.common import remove_user_creation_site
 logger = __import__('logging').getLogger(__name__)
 
 
-class TestSeatLimit(ApplicationLayerTest):
+class TestSeatLimit(SiteLayerTest):
 
     def _create_user_in_site(self, username, creation_site):
         user = User.create_user(username=username)
@@ -63,14 +63,14 @@ class TestSeatLimit(ApplicationLayerTest):
     def test_seat_limit(self):
         with mock_dataserver.mock_db_trans():
             self._create_user_in_site(username=u'foo@bar',
-                                      creation_site='ifsta.nextthought.com')
+                                      creation_site='test_policy_site')
             self._create_user_in_site(username=u'foo2@bar',
-                                      creation_site='ifsta.nextthought.com')
+                                      creation_site='test_policy_site')
 
             self._create_user_in_site(username=u'ifsta_admin@bar',
-                                      creation_site='ifsta.nextthought.com')
+                                      creation_site='test_policy_site')
             sites = component.queryUtility(IEtcNamespace, name='hostsites')
-            ifsta = sites['ifsta.nextthought.com']
+            ifsta = sites['test_policy_site']
             with site(ifsta):
                 new_site = getSite()
                 prm = IPrincipalRoleManager(new_site)
@@ -83,20 +83,20 @@ class TestSeatLimit(ApplicationLayerTest):
 
             # Check caching is working as expected
             self._create_user_in_site(username=u'foo3@bar',
-                                      creation_site='ifsta.nextthought.com')
+                                      creation_site='test_policy_site')
             with site(ifsta):
                 seat_limit = component.queryUtility(ISiteSeatLimit)
                 assert_that(seat_limit.used_seats, is_(4))
                 assert_that(seat_limit.admin_used_seats, is_(1))
 
             # Check child sites
-            ifsta_child = sites['ifsta_child_site']
+            ifsta_child = sites['test-child-policy']
             with site(ifsta_child):
                 seat_limit = component.queryUtility(ISiteSeatLimit)
                 assert_that(seat_limit.used_seats, is_(0))
                 assert_that(seat_limit.admin_used_seats, is_(1))
 
-            self._create_user_in_site(u'foo7@bar', creation_site='ifsta_child_site')
+            self._create_user_in_site(u'foo7@bar', creation_site='test-child-policy')
             with site(ifsta_child):
                 seat_limit = component.queryUtility(ISiteSeatLimit)
                 assert_that(seat_limit.used_seats, is_(1))
@@ -138,8 +138,9 @@ class TestSeatLimit(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_seat_limit_views(self):
+
         # Test defaults
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -150,9 +151,9 @@ class TestSeatLimit(ApplicationLayerTest):
 
         # Test adding a user
         with mock_dataserver.mock_db_trans():
-            self._create_user_in_site('foo@bar', creation_site='ifsta.nextthought.com')
+            self._create_user_in_site('foo@bar', creation_site='test_policy_site')
 
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -162,7 +163,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', 1))
 
         # Test child sites GET
-        res = self.testapp.get('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test-child-policy/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -172,10 +173,10 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', 0))
 
         # Test child site POST creates new utility and parent is unaffected
-        child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
-        parent_utils = self._get_number_of_utilities_for_site('ifsta.nextthought.com')
+        child_utils = self._get_number_of_utilities_for_site('test-child-policy')
+        parent_utils = self._get_number_of_utilities_for_site('test_policy_site')
 
-        res = self.testapp.post_json('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.post_json('https://test-child-policy/dataserver2/@@SeatLimit',
                                      {'max_seats': 5})
         json = res.json
         assert_that(json, has_entries('hard', False,
@@ -185,11 +186,11 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 0))
 
-        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
-        updated_parent_utils = self._get_number_of_utilities_for_site('ifsta.nextthought.com')
+        updated_child_utils = self._get_number_of_utilities_for_site('test-child-policy')
+        updated_parent_utils = self._get_number_of_utilities_for_site('test_policy_site')
         assert_that(updated_child_utils, is_(child_utils + 1))
         assert_that(parent_utils, is_(updated_parent_utils))
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -199,7 +200,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', 1))
 
         # Check edit works and we don't register twice
-        res = self.testapp.put_json('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.put_json('https://test-child-policy/dataserver2/@@SeatLimit',
                                     {'max_seats': 3})
         json = res.json
         assert_that(json, has_entries('hard', False,
@@ -209,11 +210,11 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 0))
 
-        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
+        updated_child_utils = self._get_number_of_utilities_for_site('test-child-policy')
         assert_that(updated_child_utils, is_(child_utils + 1))
 
         # Check child of child inherits from 1 level above
-        res = self.testapp.get('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test-grandchild-policy/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -223,7 +224,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', 0))
 
         # Check can set unlimited seats (null value)
-        res = self.testapp.post_json('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.post_json('https://test-grandchild-policy/dataserver2/@@SeatLimit',
                                      {'max_seats': None})
         json = res.json
         assert_that(json, has_entries('hard', False,
@@ -233,7 +234,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 0))
 
-        res = self.testapp.post_json('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.post_json('https://test-grandchild-policy/dataserver2/@@SeatLimit',
                                      {'max_seats': 25,
                                       'hard_admin_limit': False,
                                       'max_admin_seats': 10})
@@ -246,13 +247,13 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'used_seats', 0))
 
         # Test DELETE
-        self.testapp.delete('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        self.testapp.delete('https://test-child-policy/dataserver2/@@SeatLimit',
                             status=204)
-        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
-        updated_parent_utils = self._get_number_of_utilities_for_site('ifsta.nextthought.com')
+        updated_child_utils = self._get_number_of_utilities_for_site('test-child-policy')
+        updated_parent_utils = self._get_number_of_utilities_for_site('test_policy_site')
         assert_that(updated_child_utils, is_(child_utils))
         assert_that(parent_utils, is_(updated_parent_utils))
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -261,7 +262,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 1))
 
-        res = self.testapp.get('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test-child-policy/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -270,7 +271,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 0))
 
-        res = self.testapp.get('https://nextthought-fire1-alpha.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test-grandchild-policy/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', False,
@@ -281,7 +282,7 @@ class TestSeatLimit(ApplicationLayerTest):
 
 
         # Check recreating works
-        res = self.testapp.post_json('https://ifsta-alpha.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.post_json('https://test-child-policy/dataserver2/@@SeatLimit',
                                      {'max_seats': 3})
         json = res.json
         assert_that(json, has_entries('hard', False,
@@ -291,16 +292,16 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 0))
 
-        updated_child_utils = self._get_number_of_utilities_for_site('ifsta-alpha.nextthought.com')
+        updated_child_utils = self._get_number_of_utilities_for_site('test-child-policy')
         assert_that(updated_child_utils, is_(child_utils + 1))
 
         # Admin seats
         with mock_dataserver.mock_db_trans():
             self._create_user_in_site(username=u'seat_limitadmin1',
-                                      creation_site='ifsta.nextthought.com')
+                                      creation_site='test_policy_site')
             self._create_user_in_site(username=u'seat_limitadmin2',
-                                      creation_site='ifsta.nextthought.com')
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+                                      creation_site='test_policy_site')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -309,9 +310,9 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 0,
                                       'used_seats', 3))
 
-        self.testapp.post('https://ifsta.nextthought.com/dataserver2/SiteAdmins/%s' % u'seat_limitadmin1')
+        self.testapp.post('https://test_policy_site/dataserver2/SiteAdmins/%s' % u'seat_limitadmin1')
 
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         json = res.json
         assert_that(json, has_entries('hard', False,
                                       'hard_admin_limit', True,
@@ -320,18 +321,18 @@ class TestSeatLimit(ApplicationLayerTest):
                                       'admin_used_seats', 1,
                                       'used_seats', 3))
 
-        self.testapp.post_json('https://ifsta.nextthought.com/dataserver2/@@SeatLimit',
+        self.testapp.post_json('https://test_policy_site/dataserver2/@@SeatLimit',
                                {'max_admin_seats': 1})
-        res = self.testapp.post('https://ifsta.nextthought.com/dataserver2/SiteAdmins/%s' % u'seat_limitadmin2',
+        res = self.testapp.post('https://test_policy_site/dataserver2/SiteAdmins/%s' % u'seat_limitadmin2',
                                 status=422)
         res = res.json_body
         assert_that(res, has_entries(u'code', u'MaxAdminSeatsExceeded',
                                       u'message', u'Admin seats exceeded. 2 used out of 1 available. Please contact sales@nextthought.com for additional seats.'))
 
         # Can force
-        self.testapp.post('https://ifsta.nextthought.com/dataserver2/SiteAdmins/%s?force=true' % u'seat_limitadmin2')
+        self.testapp.post('https://test_policy_site/dataserver2/SiteAdmins/%s?force=true' % u'seat_limitadmin2')
 
-        res = self.testapp.get('https://ifsta.nextthought.com/dataserver2/@@SeatLimit')
+        res = self.testapp.get('https://test_policy_site/dataserver2/@@SeatLimit')
         res = res.json_body
         assert_that(res, has_entries('hard', False,
                                      'hard_admin_limit', True,
@@ -343,7 +344,7 @@ class TestSeatLimit(ApplicationLayerTest):
                                      'used_seats', 3))
 
         # Can null out
-        res = self.testapp.post_json('https://ifsta.nextthought.com/dataserver2/@@SeatLimit',
+        res = self.testapp.post_json('https://test_policy_site/dataserver2/@@SeatLimit',
                                      {'max_admin_seats': None})
         res = res.json_body
         assert_that(res, has_entries('hard', False,

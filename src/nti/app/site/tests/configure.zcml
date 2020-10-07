@@ -11,12 +11,29 @@
     <include package="nti.appserver.policies" file="meta.zcml" />
 
     <configure>
-        <appsite:createSites package="nti.app.sites.alpha">
+        <appsite:createSites package=".">
             <appsite:createSite site_name="test_brand_site"
-                                base_names="nti.app.sites.alpha.sites.ALPHA,"
-                                parent_name="nti.app.sites.alpha.sites.ALPHA">
+                                base_names="nti.appserver.policies.sites.BASEADULT,"
+                                parent_name="nti.appserver.policies.sites.BASEADULT">
 
-                <utility factory=".policy.AlphaSitePolicyEventListener" />
+			<utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
+            </appsite:createSite>
+
+ 	    <appsite:createSite site_name="test_policy_site"
+                                base_names="nti.app.site.tests.TEST_POLICY,"
+                                parent_name="nti.app.site.tests.TEST_POLICY">
+
+			<utility factory="nti.app.site.tests.TestSitePolicyEventListener" />
+            </appsite:createSite>
+
+	    <appsite:createSite site_name="test-child-policy"
+                                base_names="nti.app.site.tests.TEST_POLICY_CHILD,"
+                                parent_name="nti.app.site.tests.TEST_POLICY_CHILD">
+            </appsite:createSite>
+
+	    <appsite:createSite site_name="test-grandchild-policy"
+                                base_names="nti.app.site.tests.TEST_POLICY_GRANDCHILD,"
+                                parent_name="nti.app.site.tests.TEST_POLICY_GRANDCHILD">
             </appsite:createSite>
         </appsite:createSites>
     </configure>
