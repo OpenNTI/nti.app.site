@@ -94,12 +94,20 @@ class TestSeatLimit(SiteLayerTest):
             with site(ifsta_child):
                 seat_limit = component.queryUtility(ISiteSeatLimit)
                 assert_that(seat_limit.used_seats, is_(0))
-                assert_that(seat_limit.admin_used_seats, is_(1))
+                assert_that(seat_limit.admin_used_seats, is_(0))
 
             self._create_user_in_site(u'foo7@bar', creation_site='test-child-policy')
+            self._create_user_in_site(username=u'ifsta_child_admin@bar',
+                                      creation_site='test-child-policy')
             with site(ifsta_child):
+                new_site = getSite()
+                prm = IPrincipalRoleManager(new_site)
+                prm.assignRoleToPrincipal(ROLE_SITE_ADMIN_NAME,
+                                          u'ifsta_child_admin@bar')
+
                 seat_limit = component.queryUtility(ISiteSeatLimit)
-                assert_that(seat_limit.used_seats, is_(1))
+                assert_that(seat_limit.used_seats, is_(2))
+                assert_that(seat_limit.admin_used_seats, is_(1))
 
             # Admin usage
             with site(ifsta):
