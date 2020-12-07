@@ -11,6 +11,8 @@ from __future__ import absolute_import
 from zope import component
 from zope import interface
 
+from zope.component.hooks import getSite
+
 from zope.security import checkPermission
 
 from nti.dataserver.authorization import ACT_MANAGE_SITE
@@ -34,7 +36,7 @@ class SiteAdminGroupsProvider(object):
         # Ensure we have the proper user in the interaction, which
         # might be different than the authenticated user
         with zope_interaction(username):
-            if checkPermission(ACT_MANAGE_SITE.id, context):
+            if checkPermission(ACT_MANAGE_SITE.id, getSite()):
                 self.groups = (ROLE_SITE_ADMIN,)
             else:
                 self.groups = ()
