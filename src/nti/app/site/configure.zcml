@@ -32,11 +32,6 @@
 	<!-- ACLs -->
 	<adapter factory=".acl.SiteACLProvider" />
 
-	<adapter name="SiteAdminGroupsProvider"
-			 for="nti.dataserver.interfaces.IUser"
-			 factory=".authorization.SiteAdminGroupsProvider"
-			 provides="nti.dataserver.interfaces.IGroupMember" />
-
     <!-- Seat Limit -->
     <utility factory=".model.SiteSeatLimit"
              provides=".interfaces.ISiteSeatLimit"/>
