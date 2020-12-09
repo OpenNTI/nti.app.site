@@ -13,6 +13,7 @@ from hamcrest import has_entries
 from hamcrest import contains_inanyorder
 
 from zope import component
+from zope import interface
 from zope import lifecycleevent
 
 from zope.component.hooks import site
@@ -28,6 +29,8 @@ from nti.app.site.interfaces import SiteAdminSeatLimitExceededError
 from nti.app.site.tests import SiteLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
+
+from nti.coremetadata.interfaces import IDeactivatedUser
 
 from nti.dataserver.authorization import ROLE_SITE_ADMIN_NAME
 
@@ -143,6 +146,18 @@ class TestSeatLimit(SiteLayerTest):
 
                 seat_limit.max_admin_seats = None
                 seat_limit.hard_admin_limit = True
+
+            # Deactivated users do not count towards limits
+            with site(ifsta_child):
+                user1 = self._get_user('foo7@bar')
+                user2 = self._get_user('ifsta_child_admin@bar')
+                interface.alsoProvides(user1, IDeactivatedUser)
+                interface.alsoProvides(user2, IDeactivatedUser)
+                lifecycleevent.modified(user1)
+                lifecycleevent.modified(user2)
+                seat_limit = component.queryUtility(ISiteSeatLimit)
+                assert_that(seat_limit.used_seats, is_(0))
+                assert_that(seat_limit.admin_used_seats, is_(0))
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_seat_limit_views(self):
