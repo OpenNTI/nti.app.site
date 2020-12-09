@@ -38,6 +38,7 @@ from nti.base.mixins import CreatedAndModifiedTimeMixin
 from nti.containers.containers import CaseInsensitiveCheckingLastModifiedBTreeContainer
 
 from nti.coremetadata.interfaces import IDataserver
+from nti.coremetadata.interfaces import IDeactivatedUser
 
 from nti.dataserver.users.utils import intids_of_users_by_site
 
@@ -125,7 +126,8 @@ class SiteSeatLimit(Persistent, Contained):
         result = set()
         providers = component.getAllUtilitiesRegisteredFor(ISiteAdminSeatUserProvider)
         for provider in providers:
-            result.update(provider.iter_users())
+            users = (x for x in provider.iter_users() if not IDeactivatedUser.providedBy(x))
+            result.update(users)
         return result
 
     def get_admin_seat_usernames(self):
