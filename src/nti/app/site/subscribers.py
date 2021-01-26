@@ -13,6 +13,8 @@ from pyramid.threadlocal import get_current_request
 
 from six.moves import urllib_parse
 
+from zc.displayname.interfaces import IDisplayNameGenerator
+
 from zope import component
 from zope import interface
 
@@ -193,6 +195,12 @@ class SiteBrandMailerTemplateArgsUtility(object):
                     result = urllib_parse.urljoin(request.application_url, result)
         return result
 
+    def _brand_name(self, request):
+        if request is None:
+            request = get_current_request()
+        return component.getMultiAdapter((getSite(), request),
+                                         IDisplayNameGenerator)()
+
     def get_template_args(self, request=None):
         """
         Return additional template args.
@@ -200,12 +208,11 @@ class SiteBrandMailerTemplateArgsUtility(object):
         result = {}
         site_brand = component.queryUtility(ISiteBrand)
         if site_brand is not None:
-            if site_brand.brand_name:
-                result['nti_site_brand_name'] = site_brand.brand_name
             email_image_url = self._get_email_image_url(site_brand, request)
             if email_image_url:
                 result['nti_site_brand_email_image_url'] = email_image_url
         result['nti_site_brand_color'] = getattr(site_brand, 'brand_color', None) or '#3FB34F'
+        result['nti_site_brand_name'] = self._brand_name(request)
         return result
 
 
