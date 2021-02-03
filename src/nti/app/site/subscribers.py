@@ -198,8 +198,12 @@ class SiteBrandMailerTemplateArgsUtility(object):
     def _brand_name(self, request):
         if request is None:
             request = get_current_request()
-        return component.getMultiAdapter((getSite(), request),
-                                         IDisplayNameGenerator)()
+        result = component.queryMultiAdapter((getSite(), request),
+                                             IDisplayNameGenerator)
+        # May be None in tests
+        if result is not None:
+            result = result()
+        return result or u'NextThought'
 
     def get_template_args(self, request=None):
         """
