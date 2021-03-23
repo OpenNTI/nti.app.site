@@ -261,7 +261,7 @@ REGISTER_BASE_COMPONENTS_CLOBBER = """
 
     <utility
             component="nti.appserver.policies.sites.BASEADULT"
-            provides="zope.component.interfaces.IComponents"
+            provides="zope.interface.interfaces.IComponents"
             name="genericadultbase" />
 
     <!-- We can reference a global object as our parent -->
