@@ -168,7 +168,7 @@ class SiteBrandUpdateBase(UGDPutView):
                                      'code': 'InvalidFaviconSizeError',
                                  },
                                  None)
-        if ext and ext.lower() not in self.VALID_IMAGE_EXTS:
+        elif ext and ext.lower() not in self.VALID_IMAGE_EXTS:
             raise_json_error(self.request,
                                  hexc.HTTPUnprocessableEntity,
                                  {
