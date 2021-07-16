@@ -34,6 +34,7 @@ from nti.base.interfaces import ILastModified
 
 from nti.coremetadata.interfaces import IShouldHaveTraversablePath
 
+from nti.dataserver.interfaces import ISeatLimit
 from nti.dataserver.interfaces import ISiteCommunity
 
 from nti.schema.field import Int
@@ -98,23 +99,10 @@ class SiteAdminSeatLimitExceededError(ValidationError):
     """
 
 
-class ISiteSeatLimit(interface.Interface):
+class ISiteSeatLimit(ISeatLimit):
     """
     A limit upon the number of allowed users in a site.
     """
-
-    hard_limit = Bool(title=u'Hard Seat Limit',
-                         required=True,
-                         default=False)
-
-    max_seats = Int(title=u'Maximum Number of Seats',
-                    required=False,
-                    default=None)
-
-    used_seats = Int(title=u'Used Seats',
-                     description=u'The current number of seats taken in the site.',
-                     required=True)
-
     hard_admin_limit = Bool(title=u'Hard admin limit',
                             description=u"Whether admins can be added once we have reached a limit",
                             required=True,
