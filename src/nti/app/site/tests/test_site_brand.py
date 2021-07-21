@@ -61,7 +61,6 @@ from nti.dataserver.users.interfaces import IFriendlyNamed
 from nti.externalization.representation import to_json_representation
 
 from nti.site.hostpolicy import synchronize_host_policies
-from nti.dataserver.mailer.filtered_template_mailer import _get_current_request
 
 logger = __import__('logging').getLogger(__name__)
 
