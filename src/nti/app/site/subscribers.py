@@ -198,15 +198,10 @@ class SiteBrandMailerTemplateArgsUtility(object):
                 result = assets.logo.href
 
             if result is not None:
-                if request is None:
-                    request = get_current_request()
-                if request is not None:
-                    result = urllib_parse.urljoin(request.application_url, result)
+                result = urllib_parse.urljoin(request.application_url, result)
         return result
 
-    def _brand_name(self, request):
-        if request is None:
-            request = get_current_request()
+    def _brand_name(self, request):)
         result = component.queryMultiAdapter((getSite(), request),
                                              IDisplayNameGenerator)
         # May be None in tests
