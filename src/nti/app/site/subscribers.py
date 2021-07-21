@@ -37,7 +37,8 @@ from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.brand.utils import get_site_brand_name
 
-from nti.appserver.interfaces import IPreferredAppHostnameProvider
+from nti.appserver.interfaces import IPreferredAppHostnameProvider,\
+    IApplicationSettings
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
@@ -173,6 +174,13 @@ def _on_site_mapping_deleted(site_mapping, unused_event=None):
 
 @interface.implementer(IMailerTemplateArgsUtility)
 class SiteBrandMailerTemplateArgsUtility(object):
+    
+    @property
+    def web_root(self):
+        settings = component.getUtility(IApplicationSettings)
+        web_root = settings.get('web_app_root', '/NextThoughtWebApp/')
+        # It MUST end with a trailing slash, but we don't want that
+        return web_root[:-1]
 
     def _get_email_image_url(self, site_brand, request):
         result = None
@@ -204,17 +212,19 @@ class SiteBrandMailerTemplateArgsUtility(object):
         if result is not None:
             result = result()
         return result or u'NextThought'
-
+    
     def get_template_args(self, request=None):
         """
         Return additional template args.
         """
         result = {}
+        request = get_current_request()
         site_brand = component.queryUtility(ISiteBrand)
         if site_brand is not None:
             email_image_url = self._get_email_image_url(site_brand, request)
             if email_image_url:
                 result['nti_site_brand_email_image_url'] = email_image_url
+        result['nti_site_app_url'] = urllib_parse.urljoin(request.application_url, self.web_root)
         result['nti_site_brand_color'] = getattr(site_brand, 'brand_color', None) or '#3FB34F'
         result['nti_site_brand_name'] = self._brand_name(request)
         return result

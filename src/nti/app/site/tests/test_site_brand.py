@@ -61,6 +61,7 @@ from nti.dataserver.users.interfaces import IFriendlyNamed
 from nti.externalization.representation import to_json_representation
 
 from nti.site.hostpolicy import synchronize_host_policies
+from nti.dataserver.mailer.filtered_template_mailer import _get_current_request
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -152,6 +153,7 @@ class TestSiteBrand(SiteLayerTest):
         body = decodestring(msg.html)
         assert_that(body, contains_string(email_url))
         assert_that(body, contains_string("background-color: %s" % brand_color))
+        assert_that(body, contains_string("href=\"%s\"" % 'http://localhost/NextThoughtWebApp'))
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_site_brand(self):
@@ -165,7 +167,7 @@ class TestSiteBrand(SiteLayerTest):
         # Default urls
         self._test_create_user(u'test_site_brand_defaults',
                                DEFAULT_LOGO_URL,
-                               DEFAULT_COLOR)
+                               DEFAULT_COLOR,)
 
         # Update rel
         site_admin_env = self._make_extra_environ('sitebrand_siteadmin')
