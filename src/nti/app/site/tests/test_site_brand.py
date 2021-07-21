@@ -167,7 +167,7 @@ class TestSiteBrand(SiteLayerTest):
         # Default urls
         self._test_create_user(u'test_site_brand_defaults',
                                DEFAULT_LOGO_URL,
-                               DEFAULT_COLOR,)
+                               DEFAULT_COLOR)
 
         # Update rel
         site_admin_env = self._make_extra_environ('sitebrand_siteadmin')

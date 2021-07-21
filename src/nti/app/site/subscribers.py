@@ -37,8 +37,8 @@ from nti.appserver.brand.interfaces import ISiteAssetsFileSystemLocation
 
 from nti.appserver.brand.utils import get_site_brand_name
 
-from nti.appserver.interfaces import IPreferredAppHostnameProvider,\
-    IApplicationSettings
+from nti.appserver.interfaces import IPreferredAppHostnameProvider
+from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ICommunitySitePolicyUserEventListener
 
@@ -58,6 +58,7 @@ from nti.site.utils import registerUtility
 from nti.site.utils import unregisterUtility
 
 from nti.traversal.traversal import find_interface
+from dns.rdataclass import NONE
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -218,7 +219,8 @@ class SiteBrandMailerTemplateArgsUtility(object):
         Return additional template args.
         """
         result = {}
-        request = get_current_request()
+        if request is None: 
+            request = get_current_request()
         site_brand = component.queryUtility(ISiteBrand)
         if site_brand is not None:
             email_image_url = self._get_email_image_url(site_brand, request)
