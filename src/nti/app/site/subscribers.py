@@ -58,7 +58,6 @@ from nti.site.utils import registerUtility
 from nti.site.utils import unregisterUtility
 
 from nti.traversal.traversal import find_interface
-from dns.rdataclass import NONE
 
 logger = __import__('logging').getLogger(__name__)
 
