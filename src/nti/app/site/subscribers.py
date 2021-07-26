@@ -177,7 +177,9 @@ class SiteBrandMailerTemplateArgsUtility(object):
     
     @property
     def web_root(self):
-        settings = component.getUtility(IApplicationSettings)
+        settings = component.queryUtility(IApplicationSettings)
+        if settings is None:
+            return '/'
         web_root = settings.get('web_app_root', '/NextThoughtWebApp/')
         # It MUST end with a trailing slash, but we don't want that
         return web_root[:-1]
