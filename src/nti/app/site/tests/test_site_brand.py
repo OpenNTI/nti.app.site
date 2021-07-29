@@ -152,7 +152,7 @@ class TestSiteBrand(SiteLayerTest):
         body = decodestring(msg.html)
         assert_that(body, contains_string(email_url))
         assert_that(body, contains_string("background-color: %s" % brand_color))
-        assert_that(body, contains_string("href=\"%s\"" % 'http://localhost/NextThoughtWebApp'))
+        assert_that(body, contains_string("href=\"%s\"" % 'http://localhost/app'))
 
     @WithSharedApplicationMockDS(testapp=True, users=True)
     def test_site_brand(self):
