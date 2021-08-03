@@ -10,6 +10,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import unicodecsv as csv
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.threadlocal import get_current_request
@@ -38,6 +40,7 @@ from nti.app.externalization.internalization import read_body_as_external_object
 
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
+from nti.app.users.views.view_mixins import UsersCSVExportMixin
 from nti.app.users.views.view_mixins import AbstractEntityViewMixin
 
 from nti.app.site import VIEW_SITE_ADMINS
@@ -185,6 +188,63 @@ class SiteAdminGetView(SiteAdminAbstractView,
 
     def _do_call(self):
         return AbstractEntityViewMixin._do_call(self)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             context=IDataserverFolder,
+             name=VIEW_SITE_ADMINS,
+             accept='text/csv',
+             request_method='GET')
+class SiteAdminCSVView(SiteAdminGetView,
+                       UsersCSVExportMixin):
+
+    def _get_filename(self):
+        return u'admin_export.csv'
+
+    def __call__(self):
+        return self._create_csv_response()
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             context=IDataserverFolder,
+             name=VIEW_SITE_ADMINS,
+             request_method='POST',
+             request_param='format=text/csv')
+class SiteAdminCSVPOSTView(SiteAdminCSVView, 
+                           ModeledContentUploadRequestUtilsMixin):
+    
+    def readInput(self):
+        if self.request.POST:
+            result = {'usernames': self.request.params.getall('usernames') or []}
+        elif self.request.body:
+            result = super(SiteAdminCSVPOSTView, self).readInput()
+        else:
+            result = self.request.params
+        return CaseInsensitiveDict(result)
+    
+    @Lazy
+    def _params(self):
+        return self.readInput()
+
+    def _get_result_iter(self):
+        usernames = self._params.get('usernames', ())
+        if not usernames:
+            return super(SiteAdminCSVPOSTView, self)._get_result_iter()
+        intids = component.getUtility(IIntIds)
+        result = []
+        for username in usernames:
+            user = User.get_user(username)
+            if user is None:
+                continue
+            user_intid = intids.queryId(user)
+            if user_intid is None:
+                continue
+            # Validate the user is in the original result set
+            if user_intid in self.filtered_intids:
+                result.append(user) 
+        return result
 
 
 class SiteAdminAbstractUpdateView(SiteAdminAbstractView,  # pylint: disable=abstract-method

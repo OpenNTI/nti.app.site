@@ -71,8 +71,9 @@ class TestAuthorization(ApplicationLayerTest):
         for environ in (admin_environ, regular_environ, other_site_environ):
             environ['HTTP_ORIGIN'] = 'http://mathcounts.nextthought.com'
 
+        headers = {'accept': str('application/json')}
         admin_site_href = self._get_site_admin_href(admin_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=admin_environ)
+        res = self.testapp.get(admin_site_href, extra_environ=admin_environ, headers=headers)
         res = res.json_body
         assert_that(res, has_entry('Items', has_length(0)))
 
@@ -103,6 +104,7 @@ class TestAuthorization(ApplicationLayerTest):
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
         res = self.testapp.get(admin_site_href,
+                               headers=headers,
                                extra_environ=admin_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
@@ -112,7 +114,7 @@ class TestAuthorization(ApplicationLayerTest):
         admin_site_href = self._get_site_admin_href(regular_environ)
         params = {'sortOn': 'createdTime', 'searchTerm': 'regu'}
         res = self.testapp.get(admin_site_href, params=params,
-                               extra_environ=regular_environ).json_body
+                               extra_environ=regular_environ, headers=headers).json_body
         items = res['Items']
         assert_that(items, has_length(1))
         assert_that(items[0]['Username'], is_(regular_username))
@@ -136,7 +138,7 @@ class TestAuthorization(ApplicationLayerTest):
                 assert_that(user_site, is_('mathcounts.nextthought.com'))
                 assert_that(is_site_admin(user), is_(True))
 
-        res = self.testapp.get(admin_site_href,
+        res = self.testapp.get(admin_site_href, headers=headers,
                                extra_environ=other_site_environ)
         res = res.json_body
         items = res['Items']
@@ -146,11 +148,12 @@ class TestAuthorization(ApplicationLayerTest):
                                                    other_site_username))
 
         # Unwind
-        self.testapp.delete('%s/%s' % (admin_site_href, other_site_username),
+        self.testapp.delete('%s/%s' % (admin_site_href, other_site_username), 
+                            headers=headers,
                             extra_environ=regular_environ)
 
         admin_site_href = self._get_site_admin_href(regular_environ)
-        res = self.testapp.get(admin_site_href,
+        res = self.testapp.get(admin_site_href, headers=headers,
                                extra_environ=regular_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
@@ -159,6 +162,7 @@ class TestAuthorization(ApplicationLayerTest):
         self.testapp.delete('%s/%s' % (admin_site_href, regular_username),
                             extra_environ=admin_environ)
         res = self.testapp.get(admin_site_href,
+                               headers=headers,
                                extra_environ=admin_environ).json_body
         items = res['Items']
         assert_that(items, has_length(0))
@@ -176,7 +180,7 @@ class TestAuthorization(ApplicationLayerTest):
         # Can re-add
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=admin_environ)
+        res = self.testapp.get(admin_site_href, extra_environ=admin_environ, headers=headers)
         res = res.json_body
         items = res['Items']
         assert_that(items, has_length(1))
