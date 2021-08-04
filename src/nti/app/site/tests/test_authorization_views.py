@@ -10,11 +10,19 @@ from __future__ import absolute_import
 
 from hamcrest import is_
 from hamcrest import none
+from hamcrest import is_not
 from hamcrest import not_none
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
+from hamcrest import has_entries
+from hamcrest import contains_string
 from hamcrest import contains_inanyorder
+does_not = is_not
+
+import csv
+
+from six.moves import StringIO
 
 from nti.app.site import VIEW_SITE_ADMINS
 
@@ -71,8 +79,9 @@ class TestAuthorization(ApplicationLayerTest):
         for environ in (admin_environ, regular_environ, other_site_environ):
             environ['HTTP_ORIGIN'] = 'http://mathcounts.nextthought.com'
 
+        headers = {'accept': str('application/json')}
         admin_site_href = self._get_site_admin_href(admin_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=admin_environ)
+        res = self.testapp.get(admin_site_href, extra_environ=admin_environ, headers=headers)
         res = res.json_body
         assert_that(res, has_entry('Items', has_length(0)))
 
@@ -103,6 +112,7 @@ class TestAuthorization(ApplicationLayerTest):
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
         res = self.testapp.get(admin_site_href,
+                               headers=headers,
                                extra_environ=admin_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
@@ -112,7 +122,7 @@ class TestAuthorization(ApplicationLayerTest):
         admin_site_href = self._get_site_admin_href(regular_environ)
         params = {'sortOn': 'createdTime', 'searchTerm': 'regu'}
         res = self.testapp.get(admin_site_href, params=params,
-                               extra_environ=regular_environ).json_body
+                               extra_environ=regular_environ, headers=headers).json_body
         items = res['Items']
         assert_that(items, has_length(1))
         assert_that(items[0]['Username'], is_(regular_username))
@@ -136,7 +146,7 @@ class TestAuthorization(ApplicationLayerTest):
                 assert_that(user_site, is_('mathcounts.nextthought.com'))
                 assert_that(is_site_admin(user), is_(True))
 
-        res = self.testapp.get(admin_site_href,
+        res = self.testapp.get(admin_site_href, headers=headers,
                                extra_environ=other_site_environ)
         res = res.json_body
         items = res['Items']
@@ -144,13 +154,62 @@ class TestAuthorization(ApplicationLayerTest):
         usernames = [x['Username'] for x in items]
         assert_that(usernames, contains_inanyorder(regular_username,
                                                    other_site_username))
+        
+        # CSV
+        params = {'sortOn': 'createdTime'}
+        headers = {'accept': str('text/csv')}
+        res = self.testapp.get(admin_site_href, params, status=200, headers=headers,
+                               extra_environ=other_site_environ)
+        csv_reader = csv.DictReader(StringIO(res.body))
+        csv_reader = tuple(csv_reader)
+        assert_that(csv_reader, has_length(2))
+        assert_that(csv_reader[0], has_entries('username', other_site_username,
+                                               'realname', '',
+                                               'alias', '',
+                                               'email', '',
+                                               'createdTime', not_none(),
+                                               'lastLoginTime', ''))
+        assert_that(csv_reader[1], has_entries('username', regular_username,
+                                               'realname', '',
+                                               'alias', '',
+                                               'email', '',
+                                               'createdTime', not_none(),
+                                               'lastLoginTime', ''))
+        
+        res = self.testapp.post('%s?format=text/csv&sortOn=createdTime' % admin_site_href,
+                                extra_environ=other_site_environ)
+        csv_reader = csv.DictReader(StringIO(res.body))
+        csv_reader = tuple(csv_reader)
+        assert_that(csv_reader, has_length(2))
+        assert_that(csv_reader[0], has_entries('username', other_site_username))
+        assert_that(csv_reader[1], has_entries('username', regular_username))
+        
+        usernames = {'usernames': [other_site_username, 'dneusername']}
+        res = self.testapp.post_json('%s?format=text/csv&sortOn=createdTime' % admin_site_href,
+                                     usernames,
+                                     extra_environ=other_site_environ)
+        csv_reader = csv.DictReader(StringIO(res.body))
+        csv_reader = tuple(csv_reader)
+        assert_that(csv_reader, has_length(1))
+        assert_that(csv_reader[0], has_entries('username', other_site_username))
+        
+        res = self.testapp.post('%s?format=text/csv&sortOn=createdTime' % admin_site_href,
+                                params=usernames,
+                                content_type='application/x-www-form-urlencoded',
+                                extra_environ=other_site_environ)
+        csv_reader = csv.DictReader(StringIO(res.body))
+        csv_reader = tuple(csv_reader)
+        assert_that(csv_reader, has_length(1))
+        assert_that(csv_reader[0], has_entries('username', other_site_username))
 
         # Unwind
-        self.testapp.delete('%s/%s' % (admin_site_href, other_site_username),
+        headers = {'accept': str('application/json')}
+        self.testapp.delete('%s/%s' % (admin_site_href, other_site_username), 
+                            headers=headers,
                             extra_environ=regular_environ)
 
         admin_site_href = self._get_site_admin_href(regular_environ)
-        res = self.testapp.get(admin_site_href,
+        res = self.testapp.get(admin_site_href, headers=headers,
                                extra_environ=regular_environ).json_body
         items = res['Items']
         assert_that(items, has_length(1))
@@ -159,6 +218,7 @@ class TestAuthorization(ApplicationLayerTest):
         self.testapp.delete('%s/%s' % (admin_site_href, regular_username),
                             extra_environ=admin_environ)
         res = self.testapp.get(admin_site_href,
+                               headers=headers,
                                extra_environ=admin_environ).json_body
         items = res['Items']
         assert_that(items, has_length(0))
@@ -176,7 +236,7 @@ class TestAuthorization(ApplicationLayerTest):
         # Can re-add
         self.testapp.post('%s/%s' % (admin_site_href, regular_username),
                           extra_environ=admin_environ)
-        res = self.testapp.get(admin_site_href, extra_environ=admin_environ)
+        res = self.testapp.get(admin_site_href, extra_environ=admin_environ, headers=headers)
         res = res.json_body
         items = res['Items']
         assert_that(items, has_length(1))
