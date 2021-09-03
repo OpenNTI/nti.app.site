@@ -156,6 +156,7 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
              renderer='rest',
              context=IDataserverFolder,
              name=VIEW_SITE_ADMINS,
+             accept='application/json',
              request_method='GET')
 class SiteAdminGetView(SiteAdminAbstractView,
                        AbstractEntityViewMixin):
