@@ -21,6 +21,7 @@ from nti.appserver.workspaces.interfaces import IUserService
 from nti.app.site import SITE_ADMIN
 from nti.app.site import SITE_SEAT_LIMIT
 
+from nti.app.site.workspaces.interfaces import ISiteAdminCollection
 from nti.app.site.workspaces.interfaces import ISiteAdminWorkspace
 
 from nti.coremetadata.interfaces import IUser
@@ -53,14 +54,27 @@ class _SiteAdminWorkspace(object):
 
     @Lazy
     def collections(self):
-        return ()
+        """
+        The returned collections are sorted by name.
+        """
+        result = []
+        for collection in component.subscribers((self,), ISiteAdminCollection):
+            result.append(collection)
+        return sorted(result, key=lambda x: x.name)
 
     @property
     def links(self):
         return ()
 
     def __getitem__(self, key):
-        pass
+        """
+        Make us traversable to collections.
+        """
+        # pylint: disable=not-an-iterable
+        for i in self.collections:
+            if i.__name__ == key:
+                return i
+        raise KeyError(key)  # pragma: no cover
 
     def __len__(self):
         pass
