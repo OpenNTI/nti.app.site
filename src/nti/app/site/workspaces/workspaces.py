@@ -60,7 +60,7 @@ class _SiteAdminWorkspace(object):
         result = []
         for collection in component.subscribers((self,), ISiteAdminCollection):
             result.append(collection)
-        return sorted(result, key=lambda x: x.name)
+        return result
 
     @property
     def links(self):
