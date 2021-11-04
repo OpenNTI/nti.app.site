@@ -41,7 +41,7 @@ from nti.app.externalization.internalization import read_body_as_external_object
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
 from nti.app.users.views.view_mixins import UsersCSVExportMixin
-from nti.app.users.views.view_mixins import AbstractEntityViewMixin
+from nti.app.users.views.view_mixins import AbstractUserViewMixin
 
 from nti.app.site import VIEW_SITE_ADMINS
 
@@ -58,8 +58,6 @@ from nti.app.users.utils import set_user_creation_site
 
 from nti.common.string import is_true
 
-from nti.coremetadata.interfaces import IX_LASTSEEN_TIME
-
 from nti.dataserver.authorization import ROLE_SITE_ADMIN
 
 from nti.dataserver.authorization import is_admin
@@ -68,14 +66,6 @@ from nti.dataserver.authorization import is_site_admin
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserverFolder
 from nti.dataserver.interfaces import ISiteAdminUtility
-
-from nti.dataserver.metadata.index import IX_CREATEDTIME
-from nti.dataserver.metadata.index import get_metadata_catalog
-
-from nti.dataserver.users.index import IX_ALIAS
-from nti.dataserver.users.index import IX_REALNAME
-from nti.dataserver.users.index import IX_DISPLAYNAME
-from nti.dataserver.users.index import get_entity_catalog
 
 from nti.dataserver.users.users import User
 
@@ -159,13 +149,10 @@ class SiteAdminAbstractView(AbstractAuthenticatedView):
              accept='application/json',
              request_method='GET')
 class SiteAdminGetView(SiteAdminAbstractView,
-                       AbstractEntityViewMixin):
+                       AbstractUserViewMixin):
     """
     Return all site admins for the given site.
     """
-
-    _ALLOWED_SORTING = AbstractEntityViewMixin._ALLOWED_SORTING + (IX_LASTSEEN_TIME,)
-    _NUMERIC_SORTING = AbstractEntityViewMixin._NUMERIC_SORTING + (IX_LASTSEEN_TIME,)
 
     def get_entity_intids(self, site=None):
         intids = component.getUtility(IIntIds)
@@ -173,22 +160,12 @@ class SiteAdminGetView(SiteAdminAbstractView,
             doc_id = intids.getId(user)
             yield doc_id
 
-    @Lazy
-    def sortMap(self):
-        return {
-            IX_ALIAS: get_entity_catalog(),
-            IX_REALNAME: get_entity_catalog(),
-            IX_DISPLAYNAME: get_entity_catalog(),
-            IX_CREATEDTIME: get_metadata_catalog(),
-            IX_LASTSEEN_TIME: get_metadata_catalog(),
-        }
-
     def get_externalizer(self, unused_user):
         # Only admins should be able to fetch these
         return 'admin-summary'
 
     def _do_call(self):
-        return AbstractEntityViewMixin._do_call(self)
+        return AbstractUserViewMixin._do_call(self)
 
 
 @view_config(route_name='objects.generic.traversal',
